@@ -1,0 +1,185 @@
+/* BODY ..................................................................... */
+
+body {
+  background: none;
+  background-color: #fff;
+  color: #222;
+  font: 76%/1.5 Verdana,Arial,Helvetica,sans-serif;
+}
+
+/* HEADER ....................................................................*/
+
+#header {
+  height: 40px;
+  background-color: #CFD6C0;
+  font: 30px Georgia,Verdana,Arial,Helvetica,sans-serif;
+  text-align: left;
+  margin: 0 10px;
+}
+
+/* NAVBAR ...................................................................*/
+
+#navbar {
+  margin: 0 10px;
+  padding: 5px 0;
+  background-color: #69884C;
+  text-align: right;
+  color: #fff;
+  font: 1.5em trebuchet ms,verdana,bitstream vera sans,sans-serif;
+  letter-spacing: 0.1em;
+}
+#navbar a {
+  color: #fff;
+  text-decoration: none;
+}
+#navbar a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+#navbar a.this_page:hover {
+  color: #fff;
+  text-decoration: none;
+}
+#navbar #navlist {
+  display: inline;
+  list-style-type: none;
+}
+#navbar #navlist li {
+  display: inline;
+  vertical-align: middle;
+  padding: 0 5px;
+}
+#navbar #databrowserTitle {
+  float: left;
+  padding: 0 10px;
+}
+
+
+/* DATABROWSER ...............................................................*/
+
+/* .... CONTROLS .............................................................*/
+
+#controls div { 
+  margin: 0 0 0 0; 
+}
+
+form#controls_form {
+  margin-top: 10px;
+}
+
+#controls div.control_container {
+  margin: 5px 0 0 10px; 
+}
+
+fieldset {
+  padding: 5px 10px;
+}
+
+fieldset > legend {
+  padding: 0 10px;
+}
+
+#controls label {
+  color: #222;
+  font-size: 1em;
+  font-weight: bold;
+  letter-spacing: 0em;
+  margin-left: 0px;
+}
+
+#controls select {
+  margin-left: 5px;
+}
+
+/* .... .... ANALYSIS ........................................................*/
+
+/* .... .... PLOT OPTIONS ....................................................*/
+
+/* .... .... TOOLTIPS ........................................................*/
+
+#controls span.tooltip {
+  color: #573;
+  font: normal bold 1.4em Times,"Times New Roman",Georgia,Garamond,Baskerville,serif;
+  font: normal bold 1.4em Verdana,Arial,Helvetica,sans-serif;
+  padding-right: 5px;
+}
+#controls span.tooltip:hover {
+  cursor: help;
+}
+
+/*
+// the HTML that will be used for the tooltip
+template: ['<div>',
+  '<div class="cluetip-outer">',
+    '<h3 class="cluetip-title ui-widget-header ui-cluetip-header"></h3>',
+    '<div class="cluetip-inner ui-widget-content ui-cluetip-content"></div>',
+  '</div>',
+  '<div class="cluetip-extra"></div>',
+  '<div class="cluetip-arrows ui-state-default"></div>',
+'</div>'].join(''),
+*/
+
+.cluetip-default {
+  background-color: #eee;
+}
+.cluetip-default h3.cluetip-title {
+  color: #fff;
+  background-color: #69884C;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+
+/* .... .... SPINNER .........................................................*/
+
+/* .... PLOT_CONTAINER .......................................................*/
+
+/* .... .... INVITATION ......................................................*/
+
+#invitation {
+  margin: 10px;
+  text-align: center;
+}
+#invitation h1 {
+  font: normal bold 1.4em Verdana,Arial,Helvetica,sans-serif;
+}
+#invitation .error_text {
+  color: firebrick;
+  font-style: bold;
+}
+
+/* .... .... PLOT ............................................................*/
+
+#plot_container {
+  background-color: #FFF;
+  padding: 0;
+  border: 2;
+  text-align: center
+}
+
+/* FOOTER ....................................................................*/
+
+#footer {
+  margin: 10px 10px 0 10px;
+  padding: 5px 0;
+  background: #eee;
+  text-align: left;
+  font: 14px Verdana,Arial,Helvetica,sans-serif;
+}
+#footer > * {
+  padding: 0 10px;
+}
+
+/* Mazama Science link */
+
+#footer a.mazama_science {
+  color: #684;
+  font-variant: small-caps;
+  text-decoration: none;
+}
+#footer a.mazama-science:hover {
+  color: #d93;
+  text-decoration: underline;
+}
+
+

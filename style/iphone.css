@@ -1,0 +1,80 @@
+/* This style sheet is designed to help the appearance of the Generic Databrowser
+   on desktop webbrowsers. It is not meant to make the Databrowser look optimal
+   just better. 
+ */
+
+body {
+    background-color: #ddd; /* Background color */
+    color: #222; /* Foreground color used for text */
+    font-family: Helvetica;
+    font-size: 14px;
+    margin: 0; /* Amount of negative space around the outside of the body */
+    padding: 0; /* Amount of negative space around the inside of the body */
+}
+
+/* hides "more" and "info" links because they do not fit well on iphone*/
+body a { 
+	display: none; 
+}
+/* Get rid of green header, not enough room! */
+#databrowserTitle {
+   background-color: #69884C;
+   display: block;
+}
+
+#navbar  {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 1px 1px;
+    text-align: center;
+    text-decoration: none;
+	border: 2px solid #999999;
+}
+/* generic, all select elements will show as iphone button with these settings   */ 
+body select  {
+    background-color: #FFFFFF;
+    color: #222222;
+    display: block;
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: -1px;
+    padding: 10px 10px;
+    text-decoration: none;
+	width: 120px;
+}
+
+/* width of controls from needs to be adjusted */
+#controls_form {
+	width: 280px;    /* a bit less than width of iphone */
+	-webkit-border-top-left-radius: 8px;
+	-webkit-border-top-right-radius: 8px;
+}
+
+/* change the width of class container  */
+.container {
+	width: 300px; 
+}
+
+#plot_container {
+	width: 290px;
+	display: block;
+    font-size: 13px;
+	font-weight: bold;
+	padding: 3px 0;
+	background-color: #ddd;
+	
+}
+
+
+#databrowser  {
+    padding: 3px;
+}
+
+/* make footer a nice block iphone button      */
+#footer {
+   display: none;
+}
+
+/* plot_container needs to be moved below the analysis and plot options buttons 
+/* lineColor and trigFunction buttons need to be changed to more iphone likle buttons 

@@ -1,0 +1,219 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en">
+
+<head>
+
+  <title>MUSTANG Databrowser</title>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="keywords" content="keyword1, keyword2" />
+  <meta name="description" content="One sentence description that will appear in search engine summaries." />
+  <meta name="author" content="mazamascience.com" />
+
+  <!--
+  The databrowser relies on javascript functionality found in the jquery javascript library.
+  -->
+  <script type="text/javascript" src="behavior/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="behavior/jquery-ui-1.8.7.custom.min.js"></script>
+  <script type="text/javascript" src="behavior/jquery.hoverIntent.minified.js"></script>
+  <script type="text/javascript" src="behavior/jquery.bgiframe.min.js"></script>
+  <script type="text/javascript" src="behavior/jquery.cluetip.min.js"></script>
+  
+  <!-- 
+  This is how we are going to be able to make dependent drop downs using JSON 
+  http://www.prodiven.com/jcombo/?lang=en 
+  -->
+
+  <!--
+  We use the 'blueprint' CSS framework as a starting point.
+  http://blueprintcss.org/
+  -->
+  <link rel="stylesheet" href="style/blueprint/screen.css" type="text/css" media="screen, projection">
+  <link rel="stylesheet" href="style/blueprint/print.css" type="text/css" media="print"> 
+  <!--[if lt IE 8]>
+    <link rel="stylesheet" href="style/blueprint/ie.css" type="text/css" media="screen, projection">
+  <![endif]-->
+
+  <!-- jquery UI elements like datepicker. -->
+  <link type="text/css" href="style/ui-lightness/jquery-ui-1.8.7.custom.css" rel="stylesheet" />  
+
+  <!-- CSS associated with jQuery plugins.  -->
+  <link rel="stylesheet" href="style/jquery.cluetip.css">
+
+  <!--
+  Default CSS properties for the databrowser are found in Mazama_databrowser_base.css.
+  Customizations should be made in Mazama_databrowser.css
+  -->
+  <link rel="stylesheet" href="style/Mazama_databrowser_base.css">
+  <link rel="stylesheet" href="style/Mazama_databrowser.css">
+  
+  <meta name="viewport" content="user-scalable=no, width=device-width" /> <!-- zooms based on the screen size of devise -->
+  <!--[if IE]> 
+    <link rel="stylesheet" type="text/css" href="explorer.css" media="all" /> 
+  <![endif]-->
+  
+  <!-- Load G_networkStations associative array. -->
+  <script type="text/javascript" src="behavior/networkStations.js"></script>
+  <script type="text/javascript" src="behavior/Mazama_databrowser_metricTest.js"></script>
+
+</head> 
+
+
+<body>
+
+  <div id="header">
+  </div>
+      
+  <div id="navbar">
+    <span id="databrowserTitle">MUSTANG databrowser</span>
+    <!-- The "navlist" provides an easy way to link to other information. -->
+    <ul id="navlist">
+      <li><a href="">Alternate UI</a></li>
+    </ul>
+  </div>
+
+  <div id="databrowser" class="container">
+
+    <div id="controls" class="span-10">
+
+      <form id="controls_form" name="controls_form">
+
+        <!-- The following variables are hidden but can be set in javascript. -->
+        <input id="language" type="hidden" name="language" value="en">
+        <input id="plotWidth" type="hidden" name="plotWidth" value="600">
+    
+
+        <input id="starttime" type="hidden" name="starttime" value="1900-01-01">
+        <input id="endtime"   type="hidden" name="endtime"   value="2500-01-01">
+
+        <!--------------------------------------------------------------------->
+        <!--------------------------------------------------------------------->
+
+        <div id="plot_options_container" class="control_container">
+
+          <fieldset id="plot_options">
+
+            <legend>
+              <span class="tooltip" id="tooltip_plot_options.html" title="Plot Type and Metric">
+                <img class="tooltip_icon" src="style/images/info_icon_question.jpeg" />
+              </span>
+              Plot Type and Metric
+            </legend>
+                 
+            <div id="plotTypeDiv">
+              <label for="plotType">Plot Type</label>
+              <button id="plotData" type="button">Plot Data</button>
+              <br>
+              <select id="plotType" name="plotType">
+                <option selected value="metricTimeseries">Metric Timeseries</option>
+                <option value="stackedMetricTimeseries">Multiple Metric Timeseries</option>
+                <optgroup label="In Development">
+                  <option value="metricTest">Daily Offset Metric</option>
+                </optgroup>
+<!--
+                <option value="networkBoxplot">Network Boxplots</option>
+                <option value="stationBoxplot">Station Boxplots</option>
+                <option value="trace">Seismic Trace</option>
+                <option value="pdf">PDF Plot</option>
+-->
+              </select>
+            </div>
+            <!-- END of plotTypeDiv -->
+
+            <div id="metricNameDiv">
+              <label for="metric">Metric</label>
+              <br>
+              <select id="metric" name="metric"></select>
+            </div>
+            <!-- END of metricNameDiv -->
+
+            <div id="plotTypeOptionsDiv">
+              <label id="plotOptionsLabel" for="plotTypeOptions">No Plot Options for Metric Timeseries</label>
+              <img id="spinner" src="style/images/spinner.gif" />
+              <br>
+              <div id="boxplotOptions">
+                outliers <input id="boxplotShowOutliers" name="boxplotShowOutliers" type="checkbox" checked="" />
+              </div>
+              <div id="timeseriesOptions">
+                channel set <input id="timeseriesChannelSet" name="timeseriesChannelSet" type="checkbox" checked="" />
+              </div>
+            </div>
+            <!-- END of plotTypeOptionsDiv -->
+
+          </fieldset>
+
+        </div>
+        <!-- END of plot_options_container -->
+
+        <!--------------------------------------------------------------------->
+        <!--------------------------------------------------------------------->
+
+
+        <div id="data_source_container" class="control_container">
+
+          <fieldset id="data_source">
+            <legend>
+              <span id="data_source_legend">
+              <span class="tooltip" id="tooltip_data_source.html" title="Data Source and Timespan">
+                <img class="tooltip_icon" src="style/images/info_icon_question.jpeg" />
+              </span>
+                Data Source and Timespan
+            </legend>
+            
+            <!-- Cascading dropdowns for SNCL selection -->
+            <label for="snclSelectors">Network - Station - Location - Channel</label><br>
+            <div id="snclSelectors">
+              <select id="network" name="network" type="text"></select>
+              <select id="station" name="station" type="text"></select>
+              <select id="location" name="location" type="text"></select>
+              <select id="channel" name="channel" type="text"></select>
+              <!--
+              <select id="quality" name="quality" type="text">
+                <option selected value="M">M</option>
+                <option value="B">B</option>
+                <option value="*">*</option>
+              </select>
+              -->
+            </div>
+      
+            <label for="datepickers">Time Span</label>
+            <div id="datepickers">
+              <p>
+                <span>Start: <input type="text" id="datepicker1" /></span><br />
+                <span>&nbsp;End: <input type="text" id="datepicker2" /></span>
+              </p>
+            </div>
+            
+          </fieldset>
+          <!-- END of data_source -->
+
+        </div>
+        <!-- END of data_source_conainer -->
+
+        <!--------------------------------------------------------------------->
+        <!--------------------------------------------------------------------->
+
+      </form>
+      <!-- END of controls_form -->
+
+      <div id="profiling_container" class="control_container">
+        data load=<span id="loadSecs"></span>, plot=<span id="plotSecs"></span>, R total=<span id="RSecs"></span>, CGI total=<span id="CGISecs"></span>
+      </div>
+
+    </div>
+    <!-- END of controls -->
+    
+    <div id="plot_container" class="span-16 last">
+
+      <div id="requestMessage"></div>
+
+      <div>
+        <img id="plot" />
+      </div>
+
+    </div>
+
+  </div>
+  <!-- END of databrowser div-->
+
+</body>
+</html>

@@ -37,7 +37,7 @@ CACHE_SIZE=1000
 # NOTE:  The sed scripts below use '%' as the delimiter instead of the typical '/'.
 # NOTE:  This allows us to include paths without escaping the '/'s embedded in the path.
 
-PYTHON_SED_SCRIPT='s%__PYTHON__%/usr/bin/python%'
+PYTHON_SED_SCRIPT='s%__PYTHON__%/opt/local/bin/python%'
 URL_PATH_SED_SCRIPT='s%__URL_PATH__%http://$(SERVER)/$(DATABROWSER)%'
 DATABROWSER_PATH_SED_SCRIPT='s%__DATABROWSER_PATH__%$(DATABROWSER_PATH)%'
 OUTPUT_DIR_SED_SCRIPT='s%__OUTPUT_DIR__%$(OUTPUT_DIR)%'

@@ -1,0 +1,49 @@
+/* style specifically designed for iphone html page */
+
+
+body {
+    background-color: white; /* Background color */
+    color: #222; /* Foreground color used for text */
+    font-family: Helvetica;
+    font-size: 20px;
+    margin: 0; /* Amount of negative space around the outside of the body */
+    padding: 0; /* Amount of negative space around the inside of the body */
+}
+
+body h1 {
+	color: white;
+	font-size: 21px;
+	background-color: #69884C;
+	font-weight: bold;
+	margin: 10;
+	padding: 3;
+	text-align: center;
+	text-decoration: none;
+	border: 3px;
+
+}
+
+
+
+/* generic, all select elements will show as iphone button with these settings   */ 
+body select  {
+    background-color: #FFFFFF;
+    color: #222222;
+    display: block;
+    font-size: 17px;
+    font-weight: bold;
+    margin-left: 20px;
+    text-decoration: none;
+	width: 280px;
+	text-align: center;
+
+}
+
+#plot_container {
+	width: 320px;
+}
+
+
+#controls {
+	border: none;
+}
