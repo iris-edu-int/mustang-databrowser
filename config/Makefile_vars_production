@@ -1,0 +1,46 @@
+# Configurable Makefile parameters.
+#
+# Changes to this file allow the databrowser to be configured for installation on different web servers.
+ 
+
+# Server specific locations
+#
+# SERVER                      -- DNS name of the server
+# OWNERSHIP                   -- argument to chown, allows web server to create files
+# CGI_PATH                    -- absolute path of the CGI directory
+# DATABROWSER_PATH            -- absolute path of the databrowser directory
+# DATABROWSER                 -- name of databrowser
+# DATA_DIR                    -- name of subdirectory containing data accessed by the databrowser (will be soft linked --> data/)
+# OUTPUT_DIR                  -- name of subdirectory containing databrowser products
+# CACHE_SIZE                  -- size of cache in megabytes
+
+SERVER=mazamascience.com
+OWNERSHIP=jonc:mazama
+CGI_PATH=/var/www/mazamascience.com/cgi-bin
+DATABROWSER_PATH=/var/www/mazamascience.com/html/MUSTANGDatabrowser
+DATABROWSER=MUSTANGDatabrowser
+DATA_DIR=data_local
+OUTPUT_DIR=output_en
+CACHE_SIZE=1000
+
+# sed scripts applied to *.in files
+#
+# PYTHON_SED_SCRIPT           -- sed script for the location of Python
+# URL_PATH_SED_SCRIPT         -- sed script for full URLs
+# DATABROWSER_PATH_SED_SCRIPT -- sed script for full local path
+# OUTPUT_DIR_SED_SCRIPT       -- sed script for the databrowser local
+# ATTRIBUTION_SED_SCRIPT      -- sed script for the text at the bottom of plots
+# DATABROWSER_SED_SCRIPT      -- sed script for the databrowser name
+# CACHE_SIZE_SED_SCRIPT       -- sed script for the cache size
+#
+# NOTE:  The sed scripts below use '%' as the delimiter instead of the typical '/'.
+# NOTE:  This allows us to include paths without escaping the '/'s embedded in the path.
+
+PYTHON_SED_SCRIPT='s%__PYTHON__%/usr/bin/python2.7%'
+URL_PATH_SED_SCRIPT='s%__URL_PATH__%http://$(SERVER)/$(DATABROWSER)%'
+DATABROWSER_PATH_SED_SCRIPT='s%__DATABROWSER_PATH__%$(DATABROWSER_PATH)%'
+OUTPUT_DIR_SED_SCRIPT='s%__OUTPUT_DIR__%$(OUTPUT_DIR)%'
+ATTRIBUTION_SED_SCRIPT='s%__ATTRIBUTION__%Source:  $(SERVER)/$(DATABROWSER)%'
+DATABROWSER_SED_SCRIPT='s%__DATABROWSER__%$(DATABROWSER)%g'
+CACHE_SIZE_SED_SCRIPT='s%__CACHE_SIZE__%$(CACHE_SIZE)%g'
+
