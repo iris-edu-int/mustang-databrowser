@@ -68,12 +68,21 @@ install_UI: FORCE
                 sed $(ATTRIBUTION_SED_SCRIPT) > $(DATABROWSER_PATH)/$(DATABROWSER).R
 	rm $(DATABROWSER_PATH)/R/__Databrowser.R
 	# configure __Databrowser.cgi
-	sed $(PYTHON_SED_SCRIPT) __Databrowser.cgi | \
+	#sed $(PYTHON_SED_SCRIPT) __Databrowser.cgi | \
+	#	sed $(URL_PATH_SED_SCRIPT) | \
+	#	sed $(DATABROWSER_PATH_SED_SCRIPT) | \
+        #        sed $(OUTPUT_DIR_SED_SCRIPT) | \
+        #        sed $(DATABROWSER_SED_SCRIPT) | \
+        #        sed $(CACHE_SIZE_SED_SCRIPT) >  $(CGI_PATH)/$(DATABROWSER).cgi
+	#-chown $(OWNERSHIP) $(CGI_PATH)/$(DATABROWSER).cgi
+	#-chmod 755 $(CGI_PATH)/$(DATABROWSER).cgi
+	# configure MUSTANGDatabrowser.R
+	sed $(PYTHON_SED_SCRIPT) MUSTANGDatabrowser.R | \
 		sed $(URL_PATH_SED_SCRIPT) | \
 		sed $(DATABROWSER_PATH_SED_SCRIPT) | \
                 sed $(OUTPUT_DIR_SED_SCRIPT) | \
                 sed $(DATABROWSER_SED_SCRIPT) | \
-                sed $(CACHE_SIZE_SED_SCRIPT) >  $(CGI_PATH)/$(DATABROWSER).cgi
+                sed $(CACHE_SIZE_SED_SCRIPT) >  $(CGI_PATH)/MUSTANGDatabrowser.cgi
 	-chown $(OWNERSHIP) $(CGI_PATH)/$(DATABROWSER).cgi
 	-chmod 755 $(CGI_PATH)/$(DATABROWSER).cgi
 	# copy in javascript files
