@@ -94,6 +94,11 @@ install_UI: FORCE
 	touch $(DATABROWSER_PATH)/DEBUG.txt
 	-chown $(OWNERSHIP) $(DATABROWSER_PATH)/*.txt
 	-chmod 666 $(DATABROWSER_PATH)/*.txt
+	touch $(DATABROWSER_PATH)/ERROR.log
+	touch $(DATABROWSER_PATH)/INFO.log
+	touch $(DATABROWSER_PATH)/DEBUG.log
+	-chown $(OWNERSHIP) $(DATABROWSER_PATH)/*.log
+	-chmod 666 $(DATABROWSER_PATH)/*.log
 
 
 install_data: FORCE

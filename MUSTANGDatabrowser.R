@@ -12,6 +12,7 @@
 # SECURITY: 2) All commands are run inside try().
 
 library(methods)              # always included for Rscripts
+library(MazamaWebUtils)       # logging, cache management and cgi support
 
 # Specficic packages and scripts for this service -----------------------------
 
@@ -23,87 +24,29 @@ VERSION <- "1.0.0"
 URL_PATH <- '__URL_PATH__'
 DATABROWSER_PATH <- '__DATABROWSER_PATH__'
 OUTPUT_DIR <- '__OUTPUT_DIR__'
-###CACHE_SIZE <- __CACHE_SIZE__ # TODO:  Reinstate this
+CACHE_SIZE <- as.numeric('__CACHE_SIZE__')
 
 # Directories
 URL_OUT <- file.path(URL_PATH, OUTPUT_DIR)
 ABS_OUT <- file.path(DATABROWSER_PATH, OUTPUT_DIR)
 
-# Minimal request object
-request = list(debug='none',
-               responseType='json',
-               plotWidth='500',
-               plotType='DEFAULT')
+# Set up logging
+logger.setup(debugLog=file.path(DATABROWSER_PATH, "DEBUG.log"),
+             infoLog=file.path(DATABROWSER_PATH, "INFO.log"),
+             errorLog=file.path(DATABROWSER_PATH, "ERROR.log"))
 
-# NOTE:  You can set up a request object with all required parameters and run this
-# NOTE:  this cgi script from the command line for debugging.
+# NOTE:  Skipping creation of testing request object
 
-# Set up a default request so this script can be run from the command line
-request = list(debug='none',
-               language='en',
-               responseType='json',
-               plotWidth='500',
-               plotHeight='500',
-               plotDevice='png',
-               plotType='metricTimeseries',
-               metric='sample_rms',
-               network='IU',
-               station='ANMO',
-               location='10',
-               channel='LHZ',
-               starttime='2013-06-01',
-               endtime='2013-06-30')
+req <- cgiRequest()
+request <- req$params
 
-# Create a list of valids against which incoming parameters will be compared
-valids = list()
+logger.info("Environment:\n%s", paste(capture.output(print(Sys.getenv())),collapse="\n"))
+logger.info("--------------------------------------------------------------------------------") # 80 characters
+logger.info("Request parameters:\n%s", paste(capture.output(str(request)),collapse="\n"))
 
-# TODO:  Could write a simple CGI.R script to provide the basics of the python cgi module
 
-queryString <- Sys.getenv('QUERY_STRING')
-# request <- subset of envList
-params <- webutils::parse_query(queryString)
+# NOTE:  Skip validation of parameters
 
-cat("Content-type: text/plain\n\n")
-
-cat("TRANSCRIPT:\n")
-# cat("\nSys.getenv():\n")
-print(params)
-# 
-# cat("\nparams:\n")
-# str(params)
-
-# # Start off by assuming all parameters are alpha-numeric strings
-# for key in request.keys():
-#     valids[key] = ['ALPHANUMERIC']
-# 
-# # Now override for specific elements that are numeric
-# numeric_parameters = ['plotWidth','plotHeight']
-# for key in numeric_parameters:
-#     valids[key] = ['NUMERIC']
-# 
-# # TODO:  We should pass in full ISO 8601 date strings
-# # Now override for specific elements that are non-ALPHANUMERIC
-# timestamp_parameters = ['starttime']
-# for key in timestamp_parameters:
-#     valids[key] = ['TIMESTAMP']
-# 
-# # Special case for 'debug'
-# valids['debug'] = ['none', 'transcript']
-# 
-# # NOTE:  This should be enough protection but specific values can be included in
-# # NOTE:  order to trap bad parameters and generate error strings within this CGI
-# # NOTE:  script.
-# # NOTE:  E.g. valids['fruit'] = ['apple','banana','orange']
-# 
-# # Special case for 'responseType'
-# valids['responseType'] = ['json']
-# 
-# 
-# ################################################################################
-# # END configuration. BEGIN setup.
-# ################################################################################
-# 
-# 
 # # Initialize the default status and message strings
 # status = 'OK'
 # error_text = ''
@@ -451,3 +394,6 @@ print(params)
 # if FS.keys() == []:
 #     print("\n")
 # 
+
+cat("Content-type: text/plain\n\n")
+cat("Finished")
