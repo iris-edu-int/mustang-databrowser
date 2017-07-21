@@ -30,217 +30,80 @@ CACHE_SIZE <- as.numeric('__CACHE_SIZE__')
 URL_OUT <- file.path(URL_PATH, OUTPUT_DIR)
 ABS_OUT <- file.path(DATABROWSER_PATH, OUTPUT_DIR)
 
-# Set up logging
-logger.setup(debugLog=file.path(DATABROWSER_PATH, "DEBUG.log"),
-             infoLog=file.path(DATABROWSER_PATH, "INFO.log"),
-             errorLog=file.path(DATABROWSER_PATH, "ERROR.log"))
+# Initialize the default status and message strings
+status <- "OK"
+err_msg <- ""
 
-# NOTE:  Skipping creation of testing request object
+# ----- Set up Logging --------------------------------------------------------
+result <- try({
+  logger.setup(debugLog=file.path(DATABROWSER_PATH, "DEBUG.log"),
+               infoLog=file.path(DATABROWSER_PATH, "INFO.log"),
+               errorLog=file.path(DATABROWSER_PATH, "ERROR.log"))
+})
 
-req <- cgiRequest()
-request <- req$params
+if ( "try-error" %in% class(result) ) {
+  status <- "ERROR"
+  err_msg <- paste0("CGI ERROR during logging setup: ", geterrmessage())
+  logger.error(err_msg)
+  # Need some sort of stop that generates an appropriate response
+}
 
-logger.info("Environment:\n%s", paste(capture.output(print(Sys.getenv())),collapse="\n"))
-logger.info("--------------------------------------------------------------------------------") # 80 characters
-logger.info("Request parameters:\n%s", paste(capture.output(str(request)),collapse="\n"))
+# ----- Parse Request ---------------------------------------------------------
+result <- try({
+  req <- cgiRequest()
+  request <- req$params
+  
+  # Defaults
+  request$responseType <- ifelse(is.null(request$responseType), 'json', request$responseType)
+  
+  # Create uniqueID from the request
+  uniqueID <- digest::digest(request, algo="md5")
+  
+  # Set up filenames to be used
+  abs_base <- paste0(ABS_OUT,'/',uniqueID)
+  rel_base <- paste0(OUTPUT_DIR,'/',uniqueID)
+  abs_png <- paste0(abs_base,'.png')
+  abs_json <- paste0(abs_base,'.json')
+  abs_file <- paste0(abs_base,'.',request$responseType)
+  
+  # modify the request
+  request$outputFileBase <- uniqueID
+  
+  logger.debug("Environment:\n%s", paste(capture.output(print(Sys.getenv())),collapse="\n"))
+  logger.info("Request parameters:\n%s", paste(capture.output(str(request)),collapse="\n"))
+})
 
+if ( "try-error" %in% class(result) ) {
+  status <- "ERROR"
+  err_msg <- paste0("CGI ERROR during request parsing: ", geterrmessage())
+  logger.error(err_msg)
+  # Need some sort of stop that generates an appropriate response
+}
 
-# NOTE:  Skip validation of parameters
+# ----- Manage Cache ----------------------------------------------------------
 
-# # Initialize the default status and message strings
-# status = 'OK'
-# error_text = ''
-# debug_text = ''
-# 
-# # Import required python modules
-# import sys, os, re, time
-# import cgi
-# # The json module was introduced in python 2.6
-# # For backwards compatibility you can import simplejson
-# try:
-#     import json
-# except ImportError:
-#     import simplejson as json 
-# 
-# start = time.time()
-# timepoint = time.time()
-# 
-# # Set up the TRANSCRIPT file and redirect stdout there
-# try:
-#     transcript = DATABROWSER_PATH + '/TRANSCRIPT.txt'
-#     sys.stdout=open(transcript,'w')
-#     transcript_was_used = True
-# except Exception, e:
-#     transcript_was_used = False
-#     error_text = "cannot open transcript file:  " + str(e)
-#     status = 'ERROR'
-# 
-# # Profiling point
-# elapsed = time.time() - timepoint
-# debug_text += "\n# %07.4f seconds to open TRANSCRIPT.txt\n" % elapsed
-# timepoint = time.time()
-# 
-# # Debugging info
-# debug_text += "\nEnvironment Variables:\n"
-# for param in os.environ.keys():
-#   debug_text += "\t%20s: %s\n" % (param, os.environ[param])
-# 
-# 
-# # Use the parameter:value pairs from the web server to override the default 'request' parameters
-# FS = cgi.FieldStorage()
-# for key in FS.keys():
-#     try:
-#         request[key] = FS[key].value
-#     except Exception, e:
-#         status = 'ERROR'
-#         error_text = "incoming parameter '%s' has no value:  %s" % (key,str(e))
-# 
-#     # parameters not mentioned in request{} above are assigned to ALPHANUMERIC by default
-#     if key not in valids:
-#         valids[key] = ['ALPHANUMERIC']
-# 
-# # Validate every parameter against the list of valids for that parameter
-# debug_text += "\nRequest:\n"
-# for key in request:
-#     value = request[key]
-#     debug_text += "\t%s = '%s'\n" % (key,value)
-#     
-#     if key == 'plotWidth':
-#         try:
-#             if int(value) < 100 or int(value) > 2000:
-#                 request['plotWidth'] = '500'
-#         except Exception, e:
-#             error_text = "parameter '%s' has a value of '%s' which is not an integer: %s" % (key,value,e)
-#             status = 'ERROR'
-# 
-#     elif key == 'plotHeight':
-#         try:
-#             if int(value) < 100 or int(value) > 1200:
-#                 request['plotHeight'] = request['plotWidth']
-#         except Exception, e:
-#             error_text = "parameter '%s' has a value of '%s' which is not an integer: %s" % (key,value,e)
-#             status = 'ERROR'
-# 
-#     elif valids[key][0] == 'NUMERIC':
-#         try:
-#             val = float(value)
-#         except Exception, e:
-#             error_text = "parameter '%s' has a value of '%s' which is not numeric: %s" % (key,value,e)
-#             status = 'ERROR'
-# 
-#     elif valids[key][0] == 'ALPHANUMERIC':
-#         # NOTE:  Accept '' ias a valid alphanumeric value
-#         if value != '' and value != '--':
-#             # NOTE:  Accept alphanumeric strings which may also contain '.', ',', '_' or '-'
-#             if not value.replace('.','').replace(',','').replace('_','').replace('-','').replace('(','').replace(')','').isalnum():    
-#                 error_text = "parameter '%s' has a value of '%s' which is not alphanumeric" % (key,value)
-#                 status = 'ERROR'
-# 
-#     elif valids[key][0] == 'TIMESTAMP':
-#         if not value.replace(':','').replace('-','').replace(' ','').isdigit():    
-#             error_text = "parameter '%s' has a value of '%s' which is not a timestamp" % (key,value)
-#             status = 'ERROR'
-#     
-#     else:
-#         if value not in valids[key]:
-#             error_text = "parameter '%s' has a value of '%s' which is not a valid value" % (key,value)
-#             status = 'ERROR'
-# 
-# 
-# # Profiling point
-# elapsed = time.time() - timepoint
-# debug_text += "\n# %07.4f seconds to validate parameters\n" % elapsed
-# timepoint = time.time()
-# 
-# 
-# ################################################################################
-# # END setup. BEGIN generation of result.
-# ################################################################################
-# 
-# # Default settings for variables that must be defined regardless of what happens
-# from_cache = False
-# 
-# if status == 'OK':
-# 
-#     # Create unique filebase from request    
-#     import copy
-#     import hashlib
-# 
-#     # Remove 'responseType' and any other parameters that do not require the
-#     # generation of new output products.  We want things to be found in cache
-#     # as often as possible.
-#     dummyDict = copy.deepcopy(request)
-#     dummy = dummyDict.pop('responseType')
-#     unique_ID = hashlib.sha256(str(dummyDict)).hexdigest()
-# 
-#     # Set up filenames to be used
-#     abs_base = ABS_OUT + '/' + unique_ID
-#     rel_base = OUTPUT_DIR + '/' + unique_ID
-#     abs_png = abs_base + '.png'
-#     abs_json = abs_base + '.json'
-#     abs_file = abs_base + '.' + request['responseType']
-# 
-#     # modify the request
-#     request['outputFileBase'] = unique_ID
-# 
-#     # Determine whether the output file is found in cache
-#     if (request['responseType'] == 'json'):
-#         from_cache = os.path.exists(abs_png) and os.path.exists(abs_json)
-#     else:
-#         from_cache = os.path.exists(abs_file)
-# 
-#     # Check for a previously generated result.
-#     if from_cache:
-#         # File exists -- no action necessary
-#         debug_text += "\n'%s' already exists\n" % abs_file
-#         debug_text += "\nRetrieving file from cache\n"
-#         elapsed = time.time() - start
-#         debug_text += "\n# %07.4f seconds from start to finish\n" % elapsed
-#         print(debug_text)
-#         from_cache = True
-# 
-#     else:
-# 
-#         # We're going to generate a new plot so we need to make sure
-#         # that we have room in the cache.
-# 
-#         # Cache management by Lucy Williams ----------------------------------------
-#     
-#         # Compiles statistics on all files in the output directory
-#         files = (os.listdir(ABS_OUT))
-#         stats = []
-#         totalSize = 0
-#         for file in files:
-#             path = ABS_OUT + '/' + file
-#             statList = os.stat(path)
-#             # path, size, atime
-#             newStatList = [path, statList.st_size, statList.st_atime]
-#             totalSize = totalSize + statList.st_size
-#             # don't want hidden files so don't add stuff that starts with .
-#             if not file.startswith('.'):
-#                 stats.append(newStatList)
-#         
-#         # Sort file stats by last access time
-#         stats = sorted(stats, key=lambda file: file[2])
-#         
-#         # Delete old files until we get under CACHE_SIZE (configured in megabytes)
-#         numDeletions = 0
-#         while totalSize > CACHE_SIZE * 1000000:
-#             # front of stats list is the file with the smallest (=oldest) access time
-#             lastAccessedFile = stats[0]
-#             # index 1 is where size is
-#             totalSize = totalSize - lastAccessedFile[1]
-#             # index 0 is where path is
-#             os.remove(lastAccessedFile[0])
-#             # remove the file from the stats list
-#             stats.pop(0)
-#             numDeletions = numDeletions + 1
-#             
-#         # Profiling point
-#         elapsed = time.time() - timepoint
-#         debug_text += "\n# %07.4f seconds to keep the cache at %07.2f megabytes -- %d files deleted\n" % (elapsed,CACHE_SIZE,numDeletions)
-#         timepoint = time.time()
-#     
+result <- try({
+  if ( request$responseType == 'json' ) {
+    fromCache <- file.exists(abs_png) && file.exists(abs_json)
+  } else {
+    fromCache <- file.exists(abs_file)
+  }
+  
+  if ( fromCache ) {
+    logger.debug("Retrieving %s from cache", abs_file)
+  } else {
+    deletedCount <- manageCache(OUTPUT_DIR, extensions=c("json","png"), maxCacheSize=CACHE_SIZE)
+    logger.debug("Removed %d files from cache to keep the size at %d MB", deletedCount, CACHE_SIZE)
+  }
+})
+
+if ( "try-error" %in% class(result) ) {
+  status <- "ERROR"
+  err_msg <- paste0("CGI ERROR during cache management: ", geterrmessage())
+  logger.error(err_msg)
+  # Need some sort of stop that generates an appropriate response
+}
+
 #         # END Cache management -----------------------------------------------------
 #     
 #     
