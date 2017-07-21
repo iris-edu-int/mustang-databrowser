@@ -24,7 +24,7 @@ webservicePdfPlot <- function(dataList, infoList, textList) {
 
   # Choose appropriate limits for period
   period <- 1/freq
-#   if (str_detect(channel,"^B")) {
+#   if (stringr::str_detect(channel,"^B")) {
 #     xlim <- c(0.1,100)
 #     verticalLines <- c(seq(.1,1,length.out=10),
 #                        seq(1,10,length.out=10),

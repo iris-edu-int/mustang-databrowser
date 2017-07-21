@@ -106,7 +106,7 @@ networkMapPlot <- function(dataList,infoList,textList) {
   for (i in seq(stationCount)) {
     # NOTE:  A BLANK location is "--" for all web services except the measurement
     # NOTE:  web service. We need to convert here in order to use grepl.
-    blankLocation <- str_replace(location,"--","")
+    blankLocation <- stringr::str_replace(location,"--","")
     sncl <- paste(network, stations$station[i], blankLocation, channel, sep='.')
     dfSubset <- subset(metricValues, grepl(sncl,snclq))
     # TODO:  Should we be averaging every metric including "sample_max" or do we want max or min of some metrics?

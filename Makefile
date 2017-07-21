@@ -67,22 +67,13 @@ install_UI: FORCE
                 sed $(DATABROWSER_SED_SCRIPT) | \
                 sed $(ATTRIBUTION_SED_SCRIPT) > $(DATABROWSER_PATH)/$(DATABROWSER).R
 	rm $(DATABROWSER_PATH)/R/__Databrowser.R
-	# configure __Databrowser.cgi
-	#sed $(PYTHON_SED_SCRIPT) __Databrowser.cgi | \
-	#	sed $(URL_PATH_SED_SCRIPT) | \
-	#	sed $(DATABROWSER_PATH_SED_SCRIPT) | \
-        #        sed $(OUTPUT_DIR_SED_SCRIPT) | \
-        #        sed $(DATABROWSER_SED_SCRIPT) | \
-        #        sed $(CACHE_SIZE_SED_SCRIPT) >  $(CGI_PATH)/$(DATABROWSER).cgi
-	#-chown $(OWNERSHIP) $(CGI_PATH)/$(DATABROWSER).cgi
-	#-chmod 755 $(CGI_PATH)/$(DATABROWSER).cgi
-	# configure MUSTANGDatabrowser.R
-	sed $(PYTHON_SED_SCRIPT) MUSTANGDatabrowser.R | \
+	# configure __MUSTANGDatabrowser.cgi.R
+	sed $(PYTHON_SED_SCRIPT) __Databrowser.cgi.R | \
 		sed $(URL_PATH_SED_SCRIPT) | \
 		sed $(DATABROWSER_PATH_SED_SCRIPT) | \
                 sed $(OUTPUT_DIR_SED_SCRIPT) | \
                 sed $(DATABROWSER_SED_SCRIPT) | \
-                sed $(CACHE_SIZE_SED_SCRIPT) >  $(CGI_PATH)/MUSTANGDatabrowser.cgi
+                sed $(CACHE_SIZE_SED_SCRIPT) >  $(CGI_PATH)/$(DATABROWSER).cgi
 	-chown $(OWNERSHIP) $(CGI_PATH)/$(DATABROWSER).cgi
 	-chmod 755 $(CGI_PATH)/$(DATABROWSER).cgi
 	# copy in javascript files
@@ -90,10 +81,6 @@ install_UI: FORCE
 	sed $(DATABROWSER_SED_SCRIPT) behavior/__Mazama_databrowser.js > $(DATABROWSER_PATH)/behavior/Mazama_databrowser.js
 	rm $(DATABROWSER_PATH)/behavior/__*
 	# make debugging files
-	touch $(DATABROWSER_PATH)/TRANSCRIPT.txt
-	touch $(DATABROWSER_PATH)/DEBUG.txt
-	-chown $(OWNERSHIP) $(DATABROWSER_PATH)/*.txt
-	-chmod 666 $(DATABROWSER_PATH)/*.txt
 	touch $(DATABROWSER_PATH)/ERROR.log
 	touch $(DATABROWSER_PATH)/INFO.log
 	touch $(DATABROWSER_PATH)/DEBUG.log
@@ -146,14 +133,24 @@ uninstall_packages: FORCE
 
 
 ################################################################################
-# Targets for checking DEBUG and TRANSCRIPT logs
+# Targets related to log files
 
 debug: FORCE
-	cat $(DATABROWSER_PATH)/DEBUG.txt
+	cat $(DATABROWSER_PATH)/DEBUG.log
 
-transcript: FORCE
-	cat $(DATABROWSER_PATH)/TRANSCRIPT.txt
+info: FORCE
+	cat $(DATABROWSER_PATH)/INFO.log
 
+error: FORCE
+	cat $(DATABROWSER_PATH)/ERROR.log
+
+clear_logs: FORCE
+	rm -f $(DATABROWSER_PATH)/*.log
+	touch $(DATABROWSER_PATH)/ERROR.log
+	touch $(DATABROWSER_PATH)/INFO.log
+	touch $(DATABROWSER_PATH)/DEBUG.log
+	-chown $(OWNERSHIP) $(DATABROWSER_PATH)/*.log
+	-chmod 666 $(DATABROWSER_PATH)/*.log
 
 ################################################################################
 # Targets for creating the distribution tarball

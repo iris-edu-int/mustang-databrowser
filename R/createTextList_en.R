@@ -8,6 +8,8 @@
 
 createTextList <- function(dataList, infoList) {
 
+  logger.info("----- createTextList -----")
+  
   # Create empty textList
   textList <- list()
   

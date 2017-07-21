@@ -38,12 +38,12 @@ translateErrors <- function(err_msg,infoList) {
     }
   }
   
-  if (str_detect(err_msg,"No targets were found after filtering")) {
+  if (stringr::str_detect(err_msg,"No targets were found after filtering")) {
     
     # handles getSingleValueMeasurements problems with parameters.
     return(paste("No",metricName,"data found for",snclName))
     
-  } else if (str_detect(err_msg,"cannot open the connection")) {
+  } else if (stringr::str_detect(err_msg,"cannot open the connection")) {
     
     # getNetwork could not find a network
     # starttime is too late
@@ -52,29 +52,36 @@ translateErrors <- function(err_msg,infoList) {
     # also this happens if it can't connect to the server and getNetwork fails
     return(paste("No",metricName,"data found for",snclName))
     
-  } else if (str_detect(err_msg,"miniseed2Stream: No data found")) {
+  } else if (stringr::str_detect(err_msg,"miniseed2Stream: No data found")) {
     
     # dataselect web service failed
     return(paste("Dataselect service returns no data for ",snclName))      
     
-  } else if (str_detect(err_msg,"Could not resolve host:") ||
-               str_detect(err_msg,"unable to resolve")) {
+  } else if (stringr::str_detect(err_msg,"Could not resolve host:") ||
+               stringr::str_detect(err_msg,"unable to resolve")) {
     
     # if it cannot connect to the server
     return("Could not connect to server")
 
-  } else if (str_detect(err_msg,"getSingleValueMeasurements.IrisClient: Metric")) {
+  # TODO:  Handle updated error message from getSingleValueMetrics
     
-    # if metricname is wrong
-    return("Incorrect metric name")
+  # NOTE:  Error message is not specific to the function. Here is an example"
+  # NOTE:  
+  # NOTE:  Error in read.table(file = file, header = header, sep = sep, quote = quote,  : 
+  # NOTE:    no lines available in input
+                        
+  # } else if (stringr::str_detect(err_msg,"getSingleValueMeasurements.IrisClient: Metric")) {
+  #   
+  #   # if metricname is wrong
+  #   return("Incorrect metric name")
     
-  } else if (str_detect(err_msg,"measurementName : replacement has length zero")) {
+  } else if (stringr::str_detect(err_msg,"measurementName : replacement has length zero")) {
 
     # This happens when measurement service returns with header columns but no data
     return(paste("No",metricName,"data found for",snclName))
 
-  } else if (str_detect(err_msg,"getEvent.IrisClient: No Data") ||
-               str_detect(err_msg,"No data found")) {
+  } else if (stringr::str_detect(err_msg,"getEvent.IrisClient: No Data") ||
+               stringr::str_detect(err_msg,"No data found")) {
     
     # getEvent could not get any data since minmag is too large
     # also this happens if it can't connect to the server and getEvent fails

@@ -1,7 +1,7 @@
 ########################################################################
 # createInfoList.R
 #
-# Create an infoList from a jsonArgs string.
+# Create an infoList from request parameters.
 #
 # Besides basic conversion from strings to other data types, a lot of
 # specific choices are made here that will be used later on in different
@@ -11,12 +11,14 @@
 # Author: Jonathan Callahan
 ########################################################################
 
-createInfoList <- function(jsonArgs='{}') {
+createInfoList <- function(request) {
+
+  logger.info("----- createInfoList -----")
 
   # ----- Minumum set of infoList parameters from the UI -----------------------
   
-  # Initialize the infoList from the jsonArgs
-  infoList <- as.list(fromJSON(jsonArgs))
+  # Initialize the infoList from the request
+  infoList <- request
   
   # NOTE:  "metric" is is used in the API to match other web services.
   # NOTE:  Internally, I vastly prefer "metricName" to communicate that this is
@@ -33,7 +35,16 @@ createInfoList <- function(jsonArgs='{}') {
   infoList$station  <- ifelse(is.null(infoList$station),'',infoList$station)
   infoList$location <- ifelse(is.null(infoList$location),'',infoList$location)
   infoList$channel  <- ifelse(is.null(infoList$channel),'',infoList$channel)
-  infoList$quality  <- ifelse(is.null(infoList$quality),'',infoList$quality)
+  infoList$quality  <- ifelse
+  
+  # TODO:  Sort out wildcards in the UI
+  
+  # NOTE:  The old getSingleValueMeasurements() function used "." as a single character wildcard but
+  # NOTE:  the new getSingleValueMetrics() seems to expect "?".
+  infoList$network <- stringr::str_replace(infoList$network, "\\.", "\\?")
+  infoList$station <- stringr::str_replace(infoList$station, "\\.", "\\?")
+  infoList$location <- stringr::str_replace(infoList$location, "\\.", "\\?")
+  infoList$channel <- stringr::str_replace(infoList$channel, "\\.", "\\?")
   
   # Save date strings but also convert them to POSIXct dates
   infoList$startdate <- infoList$starttime 

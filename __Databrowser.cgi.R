@@ -30,22 +30,40 @@ CACHE_SIZE <- as.numeric('__CACHE_SIZE__')
 URL_OUT <- file.path(URL_PATH, OUTPUT_DIR)
 ABS_OUT <- file.path(DATABROWSER_PATH, OUTPUT_DIR)
 
-# Initialize the default status and message strings
-status <- "OK"
-err_msg <- ""
+# ----- Define finalizer function ---------------------------------------------
+
+.Last <- function() {
+  graphics.off() # close devices before printing
+  cat("\n")
+}
+
+# ----- Define error function -------------------------------------------------
+
+stopOnError <- function(result, errorPrefix="", useErrorMessage=TRUE, contentType="json") {
+  if ( "try-error" %in% class(result) ) {
+    err_msg <- ifelse(useErrorMessage, paste0(errorPrefix, geterrmessage()), errorPrefix)
+    logger.error(err_msg)
+    returnList <- list(status="ERROR", error_text=err_msg)
+    returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
+    cat(paste0(contentTypeHeader("json"),returnJSON))
+    quit(save="no", status=0, runLast=TRUE)
+  }
+}
 
 # ----- Set up Logging --------------------------------------------------------
 result <- try({
   logger.setup(debugLog=file.path(DATABROWSER_PATH, "DEBUG.log"),
                infoLog=file.path(DATABROWSER_PATH, "INFO.log"),
                errorLog=file.path(DATABROWSER_PATH, "ERROR.log"))
-})
+}, silent=TRUE)
 
 if ( "try-error" %in% class(result) ) {
-  status <- "ERROR"
+  # NOTE:  Can't use stopOnError() at this early stage becuase we can't use logging
   err_msg <- paste0("CGI ERROR during logging setup: ", geterrmessage())
-  logger.error(err_msg)
-  # Need some sort of stop that generates an appropriate response
+  returnList <- list(status="ERROR", error_text=err_msg)
+  returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
+  cat(paste0(contentTypeHeader("json"),returnJSON))
+  quit(save="no", status=0, runLast=TRUE)
 }
 
 # ----- Parse Request ---------------------------------------------------------
@@ -53,6 +71,9 @@ result <- try({
   req <- cgiRequest()
   request <- req$params
   
+  # TODO:  Change starttime override
+  request$starttime <- "2017-07-01"
+
   # Defaults
   request$responseType <- ifelse(is.null(request$responseType), 'json', request$responseType)
   
@@ -65,44 +86,64 @@ result <- try({
   abs_png <- paste0(abs_base,'.png')
   abs_json <- paste0(abs_base,'.json')
   abs_file <- paste0(abs_base,'.',request$responseType)
-  
+
   # modify the request
   request$outputFileBase <- uniqueID
   
   logger.debug("Environment:\n%s", paste(capture.output(print(Sys.getenv())),collapse="\n"))
   logger.info("Request parameters:\n%s", paste(capture.output(str(request)),collapse="\n"))
-})
+}, silent=TRUE)
 
-if ( "try-error" %in% class(result) ) {
-  status <- "ERROR"
-  err_msg <- paste0("CGI ERROR during request parsing: ", geterrmessage())
-  logger.error(err_msg)
-  # Need some sort of stop that generates an appropriate response
-}
+stopOnError(result, "CGI ERROR during request parsing: ")
 
 # ----- Manage Cache ----------------------------------------------------------
 
-result <- try({
-  if ( request$responseType == 'json' ) {
-    fromCache <- file.exists(abs_png) && file.exists(abs_json)
-  } else {
-    fromCache <- file.exists(abs_file)
-  }
+if ( request$responseType == 'json' ) {
+  fromCache <- file.exists(abs_png) && file.exists(abs_json)
+} else {
+  fromCache <- file.exists(abs_file)
+}
+
+if ( fromCache ) {
   
-  if ( fromCache ) {
+  result <- try({
     logger.debug("Retrieving %s from cache", abs_file)
-  } else {
+    lines <- readr::read_lines(abs_file)
+    returnJSON <- paste0(lines, collapse='\n')
+    cat(paste0(contentTypeHeader("json"),returnJSON))
+    quit(save="no", status=0, runLast=TRUE)
+  }, silent=TRUE)
+  stopOnError(result, "CGI ERROR reading cached json file: ")
+  
+} else {
+  
+  result <- try({
     deletedCount <- manageCache(OUTPUT_DIR, extensions=c("json","png"), maxCacheSize=CACHE_SIZE)
     logger.debug("Removed %d files from cache to keep the size at %d MB", deletedCount, CACHE_SIZE)
-  }
-})
-
-if ( "try-error" %in% class(result) ) {
-  status <- "ERROR"
-  err_msg <- paste0("CGI ERROR during cache management: ", geterrmessage())
-  logger.error(err_msg)
-  # Need some sort of stop that generates an appropriate response
+  }, silent=TRUE)
+  stopOnError(result, "CGI ERROR deleting files from cache: ")
+  
 }
+
+# NOTE:  If we get this far, we need to generate a new result
+
+result <- try({
+  script <- file.path(DATABROWSER_PATH,'__DATABROWSER__.R')
+  source(script)
+}, silent=TRUE)
+stopOnError(result, "CGI ERROR sourcing the main script: ")
+
+
+result <- try({
+  bop <- capture.output(returnList <- __DATABROWSER__(request))
+  returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
+  cat(paste0(contentTypeHeader("json"),returnJSON,"\n"))
+  quit(save="no", status=0, runLast=TRUE)
+}, silent=TRUE)
+stopOnError(result, "R ERROR: ")
+
+
+cat(paste0(contentTypeHeader("json"),"Ran to the end of the script"))
 
 #         # END Cache management -----------------------------------------------------
 #     
@@ -258,5 +299,3 @@ if ( "try-error" %in% class(result) ) {
 #     print("\n")
 # 
 
-cat("Content-type: text/plain\n\n")
-cat("Finished")

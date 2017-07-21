@@ -42,7 +42,7 @@ stationBoxplotPlot <- function(dataList,infoList,textList) {
 
   metricValues <- metric_DF[[metricName]]
   snclq <- metric_DF$snclq
-  sncl <- str_replace(snclq,"..$","")  # remove last two characters
+  sncl <- stringr::str_replace(snclq,"..$","")  # remove last two characters
   
   # NOTE:  Support for different plot orders:
   # NOTE:  atValue passes a numbered order that tells boxplot in what order to plot the boxes/snclq values

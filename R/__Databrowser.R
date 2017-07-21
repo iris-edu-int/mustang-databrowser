@@ -5,12 +5,9 @@
 ################################################################################
 
 # Required R packages
-library(RJSONIO)
-library(stringr)
-library(digest)
-library(seismicRoll)
-library(seismic)
-library(seismicMetrics)
+suppressPackageStartupMessages(library(seismicRoll))
+suppressPackageStartupMessages(library(IRISSeismic))
+suppressPackageStartupMessages(library(IRISMustangMetrics))
 
 # Creation of textList and dataList
 source("__DATABROWSER_PATH__/R/createInfoList.R")
@@ -35,27 +32,29 @@ source("__DATABROWSER_PATH__/R/stationBoxplotPlot.R")
 source("__DATABROWSER_PATH__/R/dailyDCOffsetDevelopmentPlot.R")
 
 # Global variables
-G_DEBUG <- TRUE
+###G_DEBUG <- TRUE
 
 ################################################################################
 # Databrowser function
 
-__DATABROWSER__ <- function(jsonArgs='{}') {
+__DATABROWSER__ <- function(request) {
 
+  logger.info("----- __DATABROWSER__ -----")
+  
   start <- (proc.time())[3]
   timepoint <- (proc.time())[3]
 
   # ----- Create the infoList -------------------------------------------------
 
-  infoList <- createInfoList(jsonArgs)
-
+  infoList <- createInfoList(request)
+  
   # Add directories determined from Makefile settings
   infoList$databrowserDir <- "__DATABROWSER_PATH__/"
   infoList$scriptDir <- "__DATABROWSER_PATH__/R/"
   infoList$dataDir <- "__DATABROWSER_PATH__/data/"
   infoList$outputDir <- "__DATABROWSER_PATH__/__OUTPUT_DIR__/"
 
-  if (G_DEBUG) cat(str(infoList))
+  ###if (G_DEBUG) cat(str(infoList))
 
   # ----- Read in the data ----------------------------------------------------
 
@@ -74,21 +73,23 @@ __DATABROWSER__ <- function(jsonArgs='{}') {
 
   loadSecs <- elapsed <- ( (proc.time())[3] - timepoint )
   timepoint <- (proc.time())[3]
-  print(paste(round(elapsed,4),"seconds to load the data"))
+  ###print(paste(round(elapsed,4),"seconds to load the data"))
 
-  if (G_DEBUG) cat(str(dataList))
+  ###if (G_DEBUG) cat(str(dataList))
 
   # ----- Create textList with language dependent strings for plot annotation --
 
   # NOTE:  The textList is not currently used in lower level plotting scripts
   # NOTE:  but must still exist as it is a part of many function calls.
 
+  logger.info("----- createTextList -----")
+  
   textListScript = paste('__DATABROWSER_PATH__/R/createTextList_',
                          infoList$language, '.R', sep="")
   source(textListScript)
   textList = createTextList(dataList, infoList)
 
-  if (G_DEBUG) cat(str(textList))
+  ###if (G_DEBUG) cat(str(textList))
 
   # ----- Create the png file --------------------------------------------------
 
@@ -97,11 +98,13 @@ __DATABROWSER__ <- function(jsonArgs='{}') {
 
   # ----- Adjust height in special cases -------------------
 
-  if (infoList$plotType == 'networkBoxplot' ||
+  logger.debug("----- adjust height in special cases -----")
+
+    if (infoList$plotType == 'networkBoxplot' ||
       infoList$plotType == 'stationBoxplot') {    
     # heightScale is based on number of SNCLs in metric_DF
     snclq <- dataList[['metric_DF']]$snclq
-    sncl <- str_replace(snclq,'..$','')      # remove last two characters
+    sncl <- stringr::str_replace(snclq,'..$','')      # remove last two characters
     heightScale <- 0.4 + length(unique(sncl)) * 0.04   # 40% margins for just a few stations
     heightScale <- max(0.6, heightScale)
     infoList$plotHeight <- infoList$plotWidth * heightScale
@@ -109,6 +112,8 @@ __DATABROWSER__ <- function(jsonArgs='{}') {
   
   # ----- Create appropriate plot device -------------------
 
+  logger.debug("----- create appropriate plot device -----")
+  
   if (infoList$plotDevice == "pdf") {
 
     width <- 8
@@ -129,7 +134,7 @@ __DATABROWSER__ <- function(jsonArgs='{}') {
     png(filename=absPlotPNG, 
         width=infoList$plotWidth, height=infoList$plotHeight, 
         units='px', bg='white')
-    print(paste("Working on",absPlotPNG))
+    ###print(paste("Working on",absPlotPNG))
 
   }
 
@@ -179,8 +184,8 @@ __DATABROWSER__ <- function(jsonArgs='{}') {
 
   } else if (infoList$plotType == 'networkMap') {
 
-    library(sp)    # to load world_countries dataframe from simpleMap.RData
-    library(maps)  # to overlay state boundaries
+    suppressPackageStartupMessages(library(sp))    # to load world_countries dataframe from simpleMap.RData
+    suppressPackageStartupMessages(library(maps))  # to overlay state boundaries
     returnValues <- networkMapPlot(dataList,infoList,textList)
 
   } else {
@@ -191,13 +196,13 @@ __DATABROWSER__ <- function(jsonArgs='{}') {
 
   plotSecs <- elapsed <- ( (proc.time())[3] - timepoint )
   timepoint <- (proc.time())[3]
-  print(paste(round(elapsed,4),"seconds to plot the data"))
+  ###print(paste(round(elapsed,4),"seconds to plot the data"))
 
 
   # ----- Cleanup -------------------------------------------------------------
 
   totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
-  print(paste("Total elapsed =",round(total_elapsed,4),"seconds"))
+  ###print(paste("Total elapsed =",round(total_elapsed,4),"seconds"))
 
   if (infoList$plotDevice != '') {
     dev.off()
@@ -229,7 +234,7 @@ __DATABROWSER__ <- function(jsonArgs='{}') {
 
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    print(paste(round(elapsed,4),"seconds to convert PDF to PNG"))
+    ###print(paste(round(elapsed,4),"seconds to convert PDF to PNG"))
 
   }
 
@@ -241,15 +246,16 @@ __DATABROWSER__ <- function(jsonArgs='{}') {
   # NOTE:  user interface. The javascript code in __Mazama_databrowser.js must
   # NOTE:  then interpret and use the JSON object.
 
-  returnValues <- list(loadSecs=as.numeric(loadSecs),
-                       plotSecs=as.numeric(plotSecs),
-                       totalSecs=as.numeric(totalSecs),
-                       returnValues=returnValues,
-                       bssUrl=bssUrl)
+  returnList <- list(loadSecs=as.numeric(loadSecs),
+                     plotSecs=as.numeric(plotSecs),
+                     totalSecs=as.numeric(totalSecs),
+                     returnValues=returnValues,
+                     bssUrl=bssUrl)
 
-  returnJSON <- toJSON(returnValues, collapse="", .escapeEscapes=FALSE)
-
-  return(returnJSON)
+  return(returnList)  
+  # returnJSON <- toJSON(returnValues, collapse="", .escapeEscapes=FALSE)
+  # 
+  # return(returnJSON)
 
 }
 

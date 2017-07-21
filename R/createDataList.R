@@ -10,6 +10,8 @@
 
 createDataList <- function(infoList) {
   
+  logger.info("----- createDataList -----")
+  
   # Create dataList
   dataList <- list()
 
@@ -47,8 +49,7 @@ createDataList <- function(infoList) {
   ########################################
   
   # Open a connection to IRIS DMC webservices
-  iris <- new("IrisClient",debug=TRUE)
-  
+  iris <- new("IrisClient",debug=FALSE)
   
   if (infoList$plotType == 'trace') {
     
@@ -60,7 +61,9 @@ createDataList <- function(infoList) {
 
   } else if (infoList$plotType == 'metricTest') {
 
-    dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)      
+    ###dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)
+    dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+    dataList <- split(dataDF, dataDF$metricName)
 
     # Return BSS URL
     dataList[['bssUrl']] <- createBssUrl(iris,network,station,location,channel,starttime,endtime,metricName)      
@@ -70,9 +73,12 @@ createDataList <- function(infoList) {
 
     if (infoList$timeseriesChannelSet) {
       # NOTE:  infoList$channel will only have two characters so we add '.' as a wildcard character
-      channel <- paste(channel,'.',sep='')
+      ###channel <- paste(channel,'.',sep='')
+      channel <- paste0(channel,'?')
       # Get the single dataframe including metric for an entire channelSet
-      df <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)[[1]]
+      ###df <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)[[1]]
+      logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
+      df <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
       # Check if any data is returned
       if ( nrow(df) == 0 ) {
         stop("No data found.", call.=FALSE)
@@ -85,7 +91,10 @@ createDataList <- function(infoList) {
         index <- index + 1
       }
     } else {
-      dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)      
+      ###dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)      
+      logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
+      dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+      dataList <- split(dataDF, dataDF$metricName)
     }
 
     # Return BSS URL
@@ -130,9 +139,12 @@ createDataList <- function(infoList) {
       # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
       actualMetricNames <- c("transfer_function")
     }
-    print(paste('location = "',location,'"'))
-    dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
-
+    ###print(paste('location = "',location,'"'))
+    logger.debug("location = 'location'")
+    ###dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
+    dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
+    dataList <- split(dataDF, dataDF$metricName)
+    
     # Return BSS URL
     dataList[['bssUrl']] <- createBssUrl(iris,network,station,location,channel,starttime,endtime,actualMetricNames)      
 
@@ -143,9 +155,12 @@ createDataList <- function(infoList) {
     dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime)
 
     # loads single values for each station based on whatever metric we ask for
-    metricList <- getSingleValueMeasurements(iris,network,'',location,channel,starttime,endtime,metricName)
-    dataList[['metric_DF']] <- metricList[[1]]
-
+    ######metricList <- getSingleValueMeasurements(iris,network,'',location,channel,starttime,endtime,metricName)
+    ###dataList[['metric_DF']] <- metricList[[1]]
+    dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    metricList <- split(dataDF, dataDF$metricName)
+    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code, we could just use dataDF
+    
     # transferFunctionCoherenceThreshold should only come in if metricName is one of the transfer metrics
     if (infoList$transferFunctionCoherenceThreshold) {
       dfTemp <- dataList[['metric_DF']]
@@ -163,10 +178,14 @@ createDataList <- function(infoList) {
     dataList[['station_DF']] <- getStation(iris,network,station,'','',starttime,endtime)
 
     # loads single values for all seismic channels
-    allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN."
-    metricList <- getSingleValueMeasurements(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
-    dataList[['metric_DF']] <- metricList[[1]]
-
+    ###allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN."
+    allSeismicChannels <- "LH?|LL?|LG?|LM?|LN?|MH?|ML?|MG?|MM?|MN?|BH?|BL?|BG?|BM?|BN?|HH?|HL?|HG?|HM?|HN?"
+    ###metricList <- getSingleValueMeasurements(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
+    ###dataList[['metric_DF']] <- metricList[[1]]
+    dataDF <- getSingleValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
+    metricList <- split(dataDF, dataDF$metricName)
+    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code, we could just use dataDF
+    
     # transferFunctionCoherenceThreshold should only come in if metricName is one of the transfer metrics
     if (infoList$transferFunctionCoherenceThreshold) {
       dfTemp <- dataList[['metric_DF']]
@@ -187,13 +206,15 @@ createDataList <- function(infoList) {
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    print(paste(round(elapsed,4),"seconds to load getNetwork"))
+    ###print(paste(round(elapsed,4),"seconds to load getNetwork"))
+    logger.debug("%f seconds to load getNetwork", round(elapsed,4))
     
     dataList[['station_DF']] <- getStation(iris,network,'','','',starttime,endtime)
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    print(paste(round(elapsed,4),"seconds to load getStation"))
+    ###print(paste(round(elapsed,4),"seconds to load getStation"))
+    logger.debug("%f seconds to load getStation", round(elapsed,4))
     
     if (showEvents) {
       dataList[['event_DF']] <- getEvent(iris,starttime,endtime,minmag)
@@ -203,7 +224,8 @@ createDataList <- function(infoList) {
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    print(paste(round(elapsed,4),"seconds to load getEvent"))
+    ###print(paste(round(elapsed,4),"seconds to load getEvent"))
+    logger.debug("%f seconds to load getEvent", round(elapsed,4))
     
     # Loading world_countries dataframe for use in generating maps
     library(sp)
@@ -212,18 +234,24 @@ createDataList <- function(infoList) {
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    print(paste(round(elapsed,4),"seconds to load simpleMap.RData"))    
+    ###print(paste(round(elapsed,4),"seconds to load simpleMap.RData"))    
+    logger.debug("%f seconds to load simplemap.RData", round(elapsed,4))
     
     # get individual station measurements
-    metricList <- getSingleValueMeasurements(iris,network,'',location,channel,starttime,endtime,metricName)
-    dataList[['metric_DF']] <- metricList[[1]]
+    ###metricList <- getSingleValueMeasurements(iris,network,'',location,channel,starttime,endtime,metricName)
+    ###dataList[['metric_DF']] <- metricList[[1]]
+    dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    metricList <- split(dataDF, dataDF$metricName)
+    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code, we could just use dataDF
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    print(paste(round(elapsed,4),"seconds to load getSingleValueMeasurements"))
+    ###print(paste(round(elapsed,4),"seconds to load getSingleValueMeasurements"))
+    logger.debug("%f seconds to load getSingleValueMetrics", round(elapsed,4))
     
     total_elapsed <- ( (proc.time())[3] - start )
-    print(paste("Total elapsed =",round(total_elapsed,4),"seconds"))
+    ###print(paste("Total elapsed =",round(total_elapsed,4),"seconds"))
+    logger.debug("Total elapsed = %f seconds to load getSingleValueMetrics", round(elapsed,4))
     
     # Return BSS URL
     dataList[['bssUrl']] <- ''
