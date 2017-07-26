@@ -31,9 +31,6 @@ source("__DATABROWSER_PATH__/R/stationBoxplotPlot.R")
 # Temporary metric testing scripts
 source("__DATABROWSER_PATH__/R/dailyDCOffsetDevelopmentPlot.R")
 
-# Global variables
-###G_DEBUG <- TRUE
-
 ################################################################################
 # Databrowser function
 
@@ -54,8 +51,6 @@ __DATABROWSER__ <- function(request) {
   infoList$dataDir <- "__DATABROWSER_PATH__/data/"
   infoList$outputDir <- "__DATABROWSER_PATH__/__OUTPUT_DIR__/"
 
-  ###if (G_DEBUG) cat(str(infoList))
-
   # ----- Read in the data ----------------------------------------------------
 
   result <- try( dataList <- createDataList(infoList),
@@ -75,21 +70,15 @@ __DATABROWSER__ <- function(request) {
   timepoint <- (proc.time())[3]
   ###print(paste(round(elapsed,4),"seconds to load the data"))
 
-  ###if (G_DEBUG) cat(str(dataList))
-
   # ----- Create textList with language dependent strings for plot annotation --
 
   # NOTE:  The textList is not currently used in lower level plotting scripts
   # NOTE:  but must still exist as it is a part of many function calls.
 
-  logger.info("----- createTextList -----")
-  
   textListScript = paste('__DATABROWSER_PATH__/R/createTextList_',
                          infoList$language, '.R', sep="")
   source(textListScript)
   textList = createTextList(dataList, infoList)
-
-  ###if (G_DEBUG) cat(str(textList))
 
   # ----- Create the png file --------------------------------------------------
 
@@ -98,9 +87,9 @@ __DATABROWSER__ <- function(request) {
 
   # ----- Adjust height in special cases -------------------
 
-  logger.debug("----- adjust height in special cases -----")
-
-    if (infoList$plotType == 'networkBoxplot' ||
+  logger.debug("adjust height in special cases")
+  
+  if (infoList$plotType == 'networkBoxplot' ||
       infoList$plotType == 'stationBoxplot') {    
     # heightScale is based on number of SNCLs in metric_DF
     snclq <- dataList[['metric_DF']]$snclq
@@ -112,33 +101,12 @@ __DATABROWSER__ <- function(request) {
   
   # ----- Create appropriate plot device -------------------
 
-  logger.debug("----- create appropriate plot device -----")
+  logger.debug("creating %s", absPlotPNG)
   
-  if (infoList$plotDevice == "pdf") {
-
-    width <- 8
-    height <- width * infoList$plotHeight/infoList$plotWidth
-    pdf(file=absPlotPDF, width=width, height=height, bg='white')
-    print(paste("Working on",absPlotPDF))
-
-  } else if (infoList$plotDevice == "cairo") {
-
-    library(Cairo) # CairoPNG is part of the Cairo package
-    CairoPNG(filename=absPlotPNG, 
-             width=infoList$plotWidth, height=infoList$plotHeight, 
-             units='px', bg='white')
-    print(paste("Working on", absPlotPNG))
-
-  } else if (infoList$plotDevice == "png") {
-
-    png(filename=absPlotPNG, 
-        width=infoList$plotWidth, height=infoList$plotHeight, 
-        units='px', bg='white')
-    ###print(paste("Working on",absPlotPNG))
-
-  }
-
-
+  png(filename=absPlotPNG, 
+      width=infoList$plotWidth, height=infoList$plotHeight, 
+      units='px', bg='white')
+  
   # ----- Subset the data -----------------------------------------------------
 
 
@@ -204,39 +172,7 @@ __DATABROWSER__ <- function(request) {
   totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
   ###print(paste("Total elapsed =",round(total_elapsed,4),"seconds"))
 
-  if (infoList$plotDevice != '') {
-    dev.off()
-  }
-
-
-  # ----- Convert PDF file to PNG file using ImageMagick ----------------------
-
-  if (infoList$plotDevice == "pdf") {
-
-    gs_cmd <- paste("gs -dSAFTER -dBATCH -dNOPAUSE -sDEVICE=png16m ",
-                    "-dGraphicsAlphaBits=4 -dTextAlphaBits=4 -r300 ",
-                    "-dBackgroundColor='16#ffffff' ",
-                    "-sOutputFile=",absPlotPNG," ",absPlotPDF," > /dev/null",
-                    sep="")
-    result <- system(gs_cmd)
-
-    # ImageMagick version of mogrify
-    mogrify_cmd <- paste("mogrify -resize ", infoList$plotWidth, "x",
-                         infoList$plotHeight, " ", absPlotPNG,
-                         " > /dev/null", sep="")
-
-    # GraphicsMagick version of mogrify
-    #mogrify_cmd <- paste("gm mogrify -resize ", infoList$plotWidth, "x",
-    #                     infoList$plotHeight, " ", absPlotPNG,
-    #                     " > /dev/null", sep="")
-
-    result <- system(mogrify_cmd)
-
-    elapsed <- ( (proc.time())[3] - timepoint )
-    timepoint <- (proc.time())[3]
-    ###print(paste(round(elapsed,4),"seconds to convert PDF to PNG"))
-
-  }
+  dev.off()
 
 
   # ----- Return ---------------------------------------------------------------

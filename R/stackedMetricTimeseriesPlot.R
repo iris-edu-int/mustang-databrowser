@@ -10,6 +10,8 @@
 
 stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
  
+  logger.info("----- stackedMetricTimeseriesPlot -----")
+  
   # Get items from infoList 
   metricName  <- infoList$metricName 
   starttime <- infoList$starttime

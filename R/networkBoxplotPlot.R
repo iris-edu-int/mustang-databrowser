@@ -5,6 +5,8 @@
 # 
 
 networkBoxplotPlot <- function(dataList,infoList,textList) {
+
+  logger.info("----- networkBoxplotPlot -----")
   
   # Configurable setting
   infoList$boxplotOrder <- "medianLoHi"

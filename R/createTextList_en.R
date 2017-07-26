@@ -175,7 +175,6 @@ createTextList <- function(dataList, infoList) {
   
   textList$dataRange <- paste("Data for",textList$dataDateRange,'(',textList$dataJulianDateRange,')')
   
-
-
   return(textList)
+  
 }

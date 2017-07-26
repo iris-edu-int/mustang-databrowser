@@ -4,6 +4,8 @@
 
 tracePlot <- function(dataList, infoList, textList) {
 
+  logger.info("----- tracePlot -----")
+  
   ########################################
   # Pull data out of list 
   ########################################

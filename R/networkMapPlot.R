@@ -15,6 +15,8 @@
 
 networkMapPlot <- function(dataList,infoList,textList) {
   
+  logger.info("----- networkMapPlot -----")
+  
   ########################################
   # Extract local variables from the infoList
   ########################################

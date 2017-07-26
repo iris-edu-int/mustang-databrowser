@@ -11,6 +11,8 @@
 
 irisTickTimes <- function(starttime, endtime) {
 
+  logger.info("----- irisTickTimes -----")
+
   DAY <- 24*3600
   dayCount <- as.numeric( difftime(endtime,starttime,units="days") )
 
@@ -93,6 +95,8 @@ timeseriesPlot <- function(time, metric,
                            xlim="",
                            yStyle='zeroScaled',
                            ...) {
+  
+  logger.info("----- timeseriesPlot -----")
   
   # ----- Style ------------------------
   

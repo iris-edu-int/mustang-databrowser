@@ -6,6 +6,8 @@
 
 stationBoxplotPlot <- function(dataList,infoList,textList) {
   
+  logger.info("----- stationBoxplotPlot -----")
+  
   # Configurable setting
   infoList$boxplotOrder <- "medianLoHi"
 

@@ -3,6 +3,8 @@
 
 dailyDCOffsetDevelopmentPlot <- function(dataList, infoList, textList) {
 
+  logger.info("----- dailyDCOffsetDevelopmentPlot -----")
+  
   library(zoo)  # for rollapply
   
   ########################################

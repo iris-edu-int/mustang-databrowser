@@ -45,9 +45,18 @@ stopOnError <- function(result, errorPrefix="", useErrorMessage=TRUE, contentTyp
     logger.error(err_msg)
     returnList <- list(status="ERROR", error_text=err_msg)
     returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
-    cat(paste0(contentTypeHeader("json"),returnJSON))
+    cat(paste0(contentTypeHeader("json"), returnJSON))
     quit(save="no", status=0, runLast=TRUE)
   }
+}
+
+# ----- Define success function -----------------------------------------------
+
+stopOnSuccess <- function(rel_base, returnJSON) {
+  outerReturnList <- list(status="OK", rel_base=rel_base, return_json=returnJSON)
+  outerReturnJSON <- jsonlite::toJSON(outerReturnList, auto_unbox=TRUE, pretty=FALSE)
+  cat(paste0(contentTypeHeader("json"), outerReturnJSON))
+  quit(save="no", status=0, runLast=TRUE)
 }
 
 # ----- Set up Logging --------------------------------------------------------
@@ -71,8 +80,8 @@ result <- try({
   req <- cgiRequest()
   request <- req$params
   
-  # TODO:  Change starttime override
-  request$starttime <- "2017-07-01"
+  # # TODO:  Change starttime override
+  # request$starttime <- "2017-07-01"
 
   # Defaults
   request$responseType <- ifelse(is.null(request$responseType), 'json', request$responseType)
@@ -86,7 +95,8 @@ result <- try({
   abs_png <- paste0(abs_base,'.png')
   abs_json <- paste0(abs_base,'.json')
   abs_file <- paste0(abs_base,'.',request$responseType)
-
+  abs_rdata <- paste0(abs_base,'_request.RData')
+  
   # modify the request
   request$outputFileBase <- uniqueID
   
@@ -110,15 +120,14 @@ if ( fromCache ) {
     logger.debug("Retrieving %s from cache", abs_file)
     lines <- readr::read_lines(abs_file)
     returnJSON <- paste0(lines, collapse='\n')
-    cat(paste0(contentTypeHeader("json"),returnJSON))
-    quit(save="no", status=0, runLast=TRUE)
+    stopOnSuccess(rel_base, returnJSON)
   }, silent=TRUE)
   stopOnError(result, "CGI ERROR reading cached json file: ")
   
 } else {
   
   result <- try({
-    deletedCount <- manageCache(OUTPUT_DIR, extensions=c("json","png"), maxCacheSize=CACHE_SIZE)
+    deletedCount <- manageCache(OUTPUT_DIR, extensions=c("json","png","RData"), maxCacheSize=CACHE_SIZE)
     logger.debug("Removed %d files from cache to keep the size at %d MB", deletedCount, CACHE_SIZE)
   }, silent=TRUE)
   stopOnError(result, "CGI ERROR deleting files from cache: ")
@@ -133,6 +142,13 @@ result <- try({
 }, silent=TRUE)
 stopOnError(result, "CGI ERROR sourcing the main script: ")
 
+result <- try({
+  logger.debug("Saving %s", abs_rdata)
+  save(request, file=abs_rdata)
+}, silent=TRUE)
+stopOnError(result, "CGI ERROR saving request as .RData: ")
+
+# ----- Generate a new result -------------------------------------------------
 
 result <- try({
   bop <- capture.output(returnList <- __DATABROWSER__(request))
@@ -142,8 +158,11 @@ result <- try({
 }, silent=TRUE)
 stopOnError(result, "R ERROR: ")
 
+stopOnSuccess(rel_base, returnJSON)
 
-cat(paste0(contentTypeHeader("json"),"Ran to the end of the script"))
+
+# JUST IN CASE:
+cat(paste0(contentTypeHeader("json"),"Ran to the end of the script (which should never happen)"))
 
 #         # END Cache management -----------------------------------------------------
 #     

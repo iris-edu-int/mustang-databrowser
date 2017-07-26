@@ -4,6 +4,8 @@
 
 pdfPlot <- function(dataList, infoList, textList) {
 
+  logger.info("----- pdfPlot -----")
+  
   # TODO:  Remove the creation of an IrisClient in pdfPlot when the seismic
   # TODO:  package includes this in the psdPlot() method.
 

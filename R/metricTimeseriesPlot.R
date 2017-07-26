@@ -11,6 +11,8 @@
 
 metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
  
+  logger.info("----- metricTimeseriesPlot -----")
+  
   # Get the dataframe of time-sorted data
   df <- dataList[[1]]
   

@@ -6,6 +6,8 @@
 
 webservicePdfPlot <- function(dataList, infoList, textList) {
   
+  logger.info("----- webservicePdfPlot -----")
+  
   ########################################
   # Pull data out of list 
   ########################################

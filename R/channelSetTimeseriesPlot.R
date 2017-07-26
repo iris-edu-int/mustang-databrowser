@@ -9,7 +9,9 @@
 
 
 channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
- 
+
+  logger.info("----- channelSetTimeseriesPlot -----")
+  
   # Get items from infoList 
   metricName <- infoList$metricName
   starttime <- infoList$starttime
@@ -73,7 +75,9 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   # plot all data series in dataList
   for (i in seq(plotCount)) {
     df <- dataList[[i]]
-    timeseriesPlot(df$starttime, df[[metricName]], style, xlim, yStyle)
+    ###timeseriesPlot(df$starttime, df[[metricName]], style, xlim, yStyle)
+    # NOTE:  dataframes returned by getSingleValueMetric have "metricName|value|snclq|starttime|endtime|loadtime"
+    timeseriesPlot(df$starttime, df$value, style, xlim, yStyle)
     snclq <- unique(df$snclq)[1]
     mtext(snclq, line=0.5, adj=0.05, cex=1.3)
     i <- i + 1
