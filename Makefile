@@ -57,7 +57,7 @@ install_UI: FORCE
 	# copy files and directories into installation directory
 	mkdir -p $(DATABROWSER_PATH)
 	cp html/*.html $(DATABROWSER_PATH)
-	cp -r R style $(DATABROWSER_PATH)
+	cp -r R style images $(DATABROWSER_PATH)
 	rm -rf $(DATABROWSER_PATH)/R/packages
 	# remove subversion directories
 	-find $(DATABROWSER_PATH) -depth -name .svn -exec rm -rf {} \;

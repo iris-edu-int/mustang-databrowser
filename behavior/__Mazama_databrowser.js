@@ -116,7 +116,6 @@ var G_multiMetric = 'basic_stats';
 var G_loadSecs;
 var G_plotSecs;
 var G_RSecs;
-// // //var G_CGISecs;
 
 
 /**** UTILITY FUNCTIONS *******************************************************/
@@ -378,7 +377,7 @@ function generateNetworks(){
   }
 
   // Reset the gobal network in case anything changed
-  G_network = $('#network').val();
+  G_network = $('#network').val(); // TODO:  This is removed in Robert's version
   
   generateStations();
 }
@@ -404,7 +403,7 @@ function generateStations(){
   }
   
   // Reset the gobal station in case anything changed
-  G_station = $('#station').val();
+  G_station = $('#station').val(); // TODO:  This is removed in Robert's version
   
   generateLocations();
 }
@@ -562,33 +561,26 @@ function updatePlot() {
 
   var dayCount = createTimeSpan();
 
+/***** IGNORE THESE FOR NOW
   if ( $('#plotType').val() == 'networkBoxplot' && $('#network').val() == 'IU' && dayCount > 190 ) {
-
     alert("Network Boxplots for the IU network download a lot of data. Please choose a timespan <= 6 months.");
-
   } else if ( $('#plotType').val() == 'trace' && $('#channel').val()[0] == 'L' && dayCount > 7 ) {
-
     alert("Seismic Trace plots download a lot of data. Please choose a timespan <= 7 days for L channels.");
-
   } else if ( $('#plotType').val() == 'trace' && $('#channel').val()[0] != 'L' && dayCount > 1 ) {
-
     alert("Seismic Trace plots download a lot of data. Please choose a timespan = 1 day for non-L channels.");
-/*
   } else if ( $('#plotType').val() == 'pdf' && $('#channel').val()[0] == 'L' && dayCount > 7 ) {
-
     alert("Seismic PDF plots download a lot of data. Please choose a timespan <= 7 days for L channels.");
-
   } else if ( $('#plotType').val() == 'pdf' && $('#channel').val()[0] != 'L' && dayCount > 1 ) {
-
     alert("Seismic PDF plots download a lot of data. Please choose a timespan = 1 day for non-L channels.");
-*/
   } else { 
+**/
 
     prePlotActions();
     sendRequest();
 
+/**
   }
-
+**/
 }
 
 
@@ -649,13 +641,16 @@ function sendRequest() {
        data = data.replace(removeString,'');
      }
   }
-  // Special handling for timseriesChannelSet option -- only include first two characters of channel
+  // Special handling for timseriesChannelSet option -- 10/31/2016
+  // Make the last character a question mark.
   if ($('#timeseriesChannelSet').prop('checked') &&
       !$('#timeseriesChannelSet').hasClass('doNotSerialize')) {
     var channelString = "channel=" + $('#channel').val();
-    var chasetString = "channel=" + $('#channel').val().substr(0,2);
+    var chasetString = "channel=" + $('#channel').val().substr(0,2) + "?";
     data = data.replace(channelString,chasetString);
   }
+  //  DEBUG
+  //displayError("url: " + url + ", data: " + data);
   $.getJSON(url, data, handleJSONResponse);
 }
 
@@ -669,6 +664,7 @@ function handleJSONResponse(JSONResponse) {
     // NOTE:  If more than one result is generated, they should have names
     // NOTE:  derived from the basename.
     var img_url = JSONResponse.rel_base + ".png";
+    //var img_url = "/mustang/databrowser/" + JSONResponse.rel_base + ".png";
     $('#plot').attr('src',img_url);
     // The returnObject is a JSON serialization of an R list.
     var returnObject = $.parseJSON(JSONResponse.return_json); 
@@ -677,14 +673,19 @@ function handleJSONResponse(JSONResponse) {
     G_loadSecs = returnObject.loadSecs;
     G_plotSecs = returnObject.plotSecs;
     G_RSecs = returnObject.totalSecs;
-    // // //G_CGISecs = returnValues[3];
 
     $('#loadSecs').text(G_loadSecs.toFixed(2));
     $('#plotSecs').text(G_plotSecs.toFixed(2));
     $('#RSecs').text(G_RSecs.toFixed(2));
-    // // //$('#CGISecs').text(G_CGISecs.toFixed(2));
 
-    $('#bssDataLink').attr('href',returnObject.bssUrl);
+    // format the MUSTANG URL we will display for the user
+    // if this is a measurements url, append orderby=start
+    displayURL = returnObject.bssUrl
+    if (displayURL.indexOf("measurements") > -1) {
+    	displayURL = returnObject.bssUrl + "&orderby=start"
+    }
+    $('#bssDataLink').attr('href',displayURL);
+
   }
   postPlotActions();
 }
@@ -720,9 +721,15 @@ $(function() {
               changeYear: true
             }
   $('#datepicker1').datepicker(options);
-  $('#datepicker1').datepicker("setDate","2013-09-01");
+  //$('#datepicker1').datepicker("setDate","2013-09-01");
   
+  // get today's date
   var today = new Date();
+  // set start date to be a certain number of days earlier
+  var yesterday = new Date();
+  yesterday.setDate(today.getDate()-14);
+  $('#datepicker1').datepicker("setDate",yesterday);
+
   options = { minDate: new Date(1975,1-1,1),
               maxDate: 0,
               dateFormat: "yy-mm-dd",
@@ -746,8 +753,14 @@ $(function() {
   // Activate tooltips
   $('span.tooltip').cluetip({width: '500px', attribute: 'id', hoverClass: 'highlight'});
   
+  // set the initial plot type
+  $('#plotType').val("metricTimeseries");
+  
   // Initial population of the SNCL selectors (which will generate a request)
   generateNetworks();
+
+  // set the initial plot type
+  $('#plotType').val("metricTimeseries");
 
 });
 
