@@ -13,7 +13,7 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   logger.info("----- stackedMetricTimeseriesPlot -----")
   
   # Get items from infoList 
-  metricName  <- infoList$metricName 
+  metricName<- infoList$metricName 
   starttime <- infoList$starttime
   endtime <- infoList$endtime
   xlim <- c(starttime,endtime)
@@ -24,7 +24,7 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   oldPar <- par()
   par(bg='gray95', mar=c(.5,3,.5,3), oma=c(5,2,4,0))
 
-  if (metricName == 'SOH_flags') {
+  if ( metricName == 'SOH_flags' ) {
     style <- 'minimalA'
     actualMetricNames <- c("amplifier_saturation",
                            "digitizer_clipping",
@@ -41,7 +41,7 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
                            "event_in_progress",
                            "clock_locked") 
     yStyles <- rep('zeroScaled',length(actualMetricNames))
-  } else if (metricName == 'gaps_and_overlaps') {
+  } else if ( metricName == 'gaps_and_overlaps' ) {
     style <- 'minimalA'
     actualMetricNames <- c("num_gaps",
                            "max_gap",
@@ -49,7 +49,7 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
                            "max_overlap",
                            "percent_availability") 
     yStyles <- c('zeroScaled','zeroScaled','zeroScaled','zeroScaled','percent')
-  } else if (metricName == 'basic_stats') {
+  } else if ( metricName == 'basic_stats' ) {
     style <- 'minimalA'
     actualMetricNames <- c("sample_max",
                            "sample_min",
@@ -57,13 +57,13 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
                            "sample_median",
                            "sample_rms") 
     yStyles <- c(rep('float',5))
-  } else if (metricName == 'latency') {
+  } else if ( metricName == 'latency' ) {
     style <- 'minimalA'
     actualMetricNames <- c("data_latency",
                            "feed_latency",
                            "total_latency") 
     yStyles <- c(rep('zeroScaled',3))
-  } else if (metricName == 'transfer_function') {
+  } else if ( metricName == 'transfer_function' ) {
     style <- 'minimalA'
     actualMetricNames <- c("ms_coherence",
                            "gain_ratio",
@@ -89,14 +89,16 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   for (i in seq(plotCount)) {
     # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
     # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-    if (metricName == 'transfer_function')
+    if ( metricName == 'transfer_function' ) {
       df <- dataList[[1]]
-    else
+    } else {
       df <- dataList[[i]]
+    }
     tempMetricName <- actualMetricNames[i]
     metricTitle <- textList$metricTitlesList[[tempMetricName]]
     yStyle <- yStyles[i]
-    timeseriesPlot(df$starttime, df[[tempMetricName]], style, xlim, yStyle)
+    # NOTE:  dataframes returned by getSingleValueMetric have "metricName|value|snclq|starttime|endtime|loadtime"
+    timeseriesPlot(df$starttime, df$value, style, xlim, yStyle)
     mtext(metricTitle, line=-1.5, adj=0.05, cex=1.3)
     i <- i + 1
   }

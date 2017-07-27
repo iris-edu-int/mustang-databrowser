@@ -26,7 +26,7 @@ createDataList <- function(infoList) {
   metricName  <- infoList$metricName
 
   # Default settings for optional parameters associated with different plot types
-  if (infoList$plotType == "networkMap") {
+  if ( infoList$plotType == "networkMap" ) {
     # showEvents toggles the display of seismic events when creating maps
     showEvents  <- as.logical(ifelse(is.null(infoList$showEvents),'TRUE',infoList$showEvents))    
     # minmag specifies the minimum magnitude for querying for events when creating maps
@@ -35,7 +35,7 @@ createDataList <- function(infoList) {
 
   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-  if (metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff') {
+  if ( metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff' ) {
     metricName <- c("transfer_function")
     # Special behavior for transfer funciton 'location'
     if (location == '00')
@@ -51,7 +51,7 @@ createDataList <- function(infoList) {
   # Open a connection to IRIS DMC webservices
   iris <- new("IrisClient",debug=FALSE)
   
-  if (infoList$plotType == 'trace') {
+  if ( infoList$plotType == 'trace' ) {
     
     dataList[['dataselect_DF']] <- getDataselect(iris,network,station,location,channel,starttime,endtime)
     
@@ -59,7 +59,7 @@ createDataList <- function(infoList) {
     dataList[['bssUrl']] <- ''
 
 
-  } else if (infoList$plotType == 'metricTest') {
+  } else if ( infoList$plotType == 'metricTest' ) {
 
     ###dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
@@ -69,14 +69,12 @@ createDataList <- function(infoList) {
     dataList[['bssUrl']] <- createBssUrl(iris,network,station,location,channel,starttime,endtime,metricName)      
 
     
-  } else if (infoList$plotType == 'metricTimeseries') {
+  } else if ( infoList$plotType == 'metricTimeseries' ) {
 
-    if (infoList$timeseriesChannelSet) {
+    if  (infoList$timeseriesChannelSet ) {
       # NOTE:  infoList$channel will only have two characters so we add '.' as a wildcard character
-      ###channel <- paste(channel,'.',sep='')
       channel <- paste0(channel,'?')
       # Get the single dataframe including metric for an entire channelSet
-      ###df <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)[[1]]
       logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       df <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
       # Check if any data is returned
@@ -101,25 +99,25 @@ createDataList <- function(infoList) {
     dataList[['bssUrl']] <- createBssUrl(iris,network,station,location,channel,starttime,endtime,metricName)      
 
 
-  } else if (infoList$plotType == 'stackedMetricTimeseries') {
+  } else if ( infoList$plotType == 'stackedMetricTimeseries' ) {
     
-    if (metricName == 'basic_stats') {
+    if ( metricName == 'basic_stats' ) {
       actualMetricNames <- c("sample_max",
                              "sample_min",
                              "sample_mean",
                              "sample_median",
                              "sample_rms") 
-    } else if (metricName == 'latency') {
+    } else if ( metricName == 'latency' ) {
       actualMetricNames <- c("data_latency",
                              "feed_latency",
                              "total_latency") 
-    } else if (metricName == 'gaps_and_overlaps') {
+    } else if ( metricName == 'gaps_and_overlaps' ) {
       actualMetricNames <- c("num_gaps",
                              "max_gap",
                              "num_overlaps",
                              "max_overlap",
                              "percent_availability") 
-    } else if (metricName == 'SOH_flags') {
+    } else if ( metricName == 'SOH_flags' ) {
       actualMetricNames <- c("amplifier_saturation",
                              "digitizer_clipping",
                              "spikes",
@@ -134,14 +132,13 @@ createDataList <- function(infoList) {
                              "event_end",
                              "event_in_progress",
                              "clock_locked") 
-    } else if (metricName == 'transfer_function') {
+    } else if ( metricName == 'transfer_function' ) {
       # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
       # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
       actualMetricNames <- c("transfer_function")
     }
-    ###print(paste('location = "',location,'"'))
-    logger.debug("location = 'location'")
-    ###dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
+    actualMetricNames <- paste0(actualMetricNames, collapse=",")
+    logger.debug("location = '%s', metrics = '%s'", location, actualMetricNames)
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
     dataList <- split(dataDF, dataDF$metricName)
     

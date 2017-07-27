@@ -10,7 +10,7 @@
 translateErrors <- function(err_msg,infoList) {
 
   # Log error message for debugging. Helps when we need to add more/better string detection.
-  logger.warning("err_msg = %s", err_msg)
+  logger.warn("err_msg = %s", err_msg)
   
   metricName <- infoList$metricName
   

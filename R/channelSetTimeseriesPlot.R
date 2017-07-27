@@ -75,7 +75,6 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   # plot all data series in dataList
   for (i in seq(plotCount)) {
     df <- dataList[[i]]
-    ###timeseriesPlot(df$starttime, df[[metricName]], style, xlim, yStyle)
     # NOTE:  dataframes returned by getSingleValueMetric have "metricName|value|snclq|starttime|endtime|loadtime"
     timeseriesPlot(df$starttime, df$value, style, xlim, yStyle)
     snclq <- unique(df$snclq)[1]

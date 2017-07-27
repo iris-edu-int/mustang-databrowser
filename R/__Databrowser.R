@@ -68,8 +68,8 @@ __DATABROWSER__ <- function(request) {
 
   loadSecs <- elapsed <- ( (proc.time())[3] - timepoint )
   timepoint <- (proc.time())[3]
-  ###print(paste(round(elapsed,4),"seconds to load the data"))
-
+  logger.debug("%f seconds to load the data", round(elapsed,4))
+  
   # ----- Create textList with language dependent strings for plot annotation --
 
   # NOTE:  The textList is not currently used in lower level plotting scripts

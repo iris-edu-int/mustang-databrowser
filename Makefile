@@ -67,6 +67,7 @@ install_UI: FORCE
                 sed $(DATABROWSER_SED_SCRIPT) | \
                 sed $(ATTRIBUTION_SED_SCRIPT) > $(DATABROWSER_PATH)/$(DATABROWSER).R
 	rm $(DATABROWSER_PATH)/R/__Databrowser.R
+	cp $(DATABROWSER_PATH)/$(DATABROWSER).R ./DEBUG_$(DATABROWSER).R
 	# configure __MUSTANGDatabrowser.cgi.R
 	sed $(PYTHON_SED_SCRIPT) __Databrowser.cgi.R | \
 		sed $(URL_PATH_SED_SCRIPT) | \
@@ -76,6 +77,7 @@ install_UI: FORCE
                 sed $(CACHE_SIZE_SED_SCRIPT) >  $(CGI_PATH)/$(DATABROWSER).cgi
 	-chown $(OWNERSHIP) $(CGI_PATH)/$(DATABROWSER).cgi
 	-chmod 755 $(CGI_PATH)/$(DATABROWSER).cgi
+	cp $(CGI_PATH)/$(DATABROWSER).cgi ./DEBUG_$(DATABROWSER).cgi.R
 	# copy in javascript files
 	cp -r behavior $(DATABROWSER_PATH)
 	sed $(DATABROWSER_SED_SCRIPT) behavior/__Mazama_databrowser.js > $(DATABROWSER_PATH)/behavior/Mazama_databrowser.js

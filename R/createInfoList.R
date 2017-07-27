@@ -35,7 +35,7 @@ createInfoList <- function(request) {
   infoList$station  <- ifelse(is.null(infoList$station),'',infoList$station)
   infoList$location <- ifelse(is.null(infoList$location),'',infoList$location)
   infoList$channel  <- ifelse(is.null(infoList$channel),'',infoList$channel)
-  infoList$quality  <- ifelse
+  infoList$quality  <- ifelse(is.null(infoList$quality),'',infoList$quality)
   
   # TODO:  Sort out wildcards in the UI
   
