@@ -16,7 +16,7 @@ irisTickTimes <- function(starttime, endtime) {
   DAY <- 24*3600
   dayCount <- as.numeric( difftime(endtime,starttime,units="days") )
 
-print(paste("starttime =",starttime,", endtime =",endtime,", dayCount =",dayCount))
+  logger.debug("starttime = %s, endtime = %s, dayCount = %d", starttime, endtime, dayCount)
 
   # NOTE:  The endtime coming in should be the UI requested endtime and should be associated
   # NOTE:  with the day AFTER the last data record. We will create xlim and tickTimes

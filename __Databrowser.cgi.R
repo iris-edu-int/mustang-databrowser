@@ -30,6 +30,9 @@ CACHE_SIZE <- as.numeric('__CACHE_SIZE__')
 URL_OUT <- file.path(URL_PATH, OUTPUT_DIR)
 ABS_OUT <- file.path(DATABROWSER_PATH, OUTPUT_DIR)
 
+# Silence warning messages
+options(warn=-1) # -1=ignore, 0=save/print, 1=print, 2=error
+
 # ----- Define finalizer function ---------------------------------------------
 
 .Last <- function() {
@@ -55,6 +58,7 @@ stopOnError <- function(result, errorPrefix="", useErrorMessage=TRUE, contentTyp
 stopOnSuccess <- function(rel_base, returnJSON) {
   outerReturnList <- list(status="OK", rel_base=rel_base, return_json=returnJSON)
   outerReturnJSON <- jsonlite::toJSON(outerReturnList, auto_unbox=TRUE, pretty=FALSE)
+  logger.info("returnJSON = %s", outerReturnJSON)
   cat(paste0(contentTypeHeader("json"), outerReturnJSON))
   quit(save="no", status=0, runLast=TRUE)
 }
@@ -64,6 +68,8 @@ result <- try({
   logger.setup(debugLog=file.path(DATABROWSER_PATH, "DEBUG.log"),
                infoLog=file.path(DATABROWSER_PATH, "INFO.log"),
                errorLog=file.path(DATABROWSER_PATH, "ERROR.log"))
+  # Silence warning messages
+  options(warn=-1) # -1=ignore, 0=save/print, 1=print, 2=error
 }, silent=TRUE)
 
 if ( "try-error" %in% class(result) ) {
@@ -77,9 +83,19 @@ if ( "try-error" %in% class(result) ) {
 
 # ----- Parse Request ---------------------------------------------------------
 result <- try({
-  req <- cgiRequest()
-  request <- req$params
   
+  args = commandArgs(trailingOnly=TRUE)
+  
+  # Get request from command CGI environment or command line argument
+  if ( length(args) == 0 ) {
+    req <- cgiRequest()
+    request <- req$params
+  } else {
+    # Must be a json formatted file with request parameters
+    requestJSON <- paste0(readr::read_lines(args[1]), collapse='')
+    request <- jsonlite::fromJSON(requestJSON)
+  }
+
   # # TODO:  Change starttime override
   # request$starttime <- "2017-07-01"
 
@@ -136,25 +152,23 @@ if ( fromCache ) {
 # NOTE:  If we get this far, we need to generate a new result
 
 result <- try({
+  logger.debug("Saving %s", abs_requestJSON)
+  requestJSON <- jsonlite::toJSON(request, auto_unbox=TRUE, pretty=TRUE)
+  readr::write_lines(as.character(requestJSON), path=abs_requestJSON)
+}, silent=TRUE)
+stopOnError(result, "CGI ERROR saving request as .json: ")
+
+result <- try({
   script <- file.path(DATABROWSER_PATH,'__DATABROWSER__.R')
   source(script)
 }, silent=TRUE)
 stopOnError(result, "CGI ERROR sourcing the main script: ")
-
-result <- try({
-  logger.debug("Saving %s", abs_requestJSON)
-  requestJSON <- jsonlite::toJSON(request, auto_unbox=TRUE, pretty=TRUE)
-  save(requestJSON, file=abs_requestJSON)
-}, silent=TRUE)
-stopOnError(result, "CGI ERROR saving request as .json: ")
 
 # ----- Generate a new result -------------------------------------------------
 
 result <- try({
   returnList <- __DATABROWSER__(request)
   returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
-  ###cat(paste0(contentTypeHeader("json"),returnJSON,"\n"))
-  ###quit(save="no", status=0, runLast=TRUE)
 }, silent=TRUE)
 stopOnError(result, "R ERROR: ")
 
@@ -167,6 +181,6 @@ stopOnError(result, "CGI ERROR saving returnJSON")
 stopOnSuccess(rel_base, returnJSON)
 
 
-# JUST IN CASE:
-cat(paste0(contentTypeHeader("txt"),"ERROR:  Ran to the end of the script which should never happen"))
-
+# # JUST IN CASE:
+# cat(paste0(contentTypeHeader("txt"),"ERROR:  Ran to the end of the script which should never happen"))
+# 

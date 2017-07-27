@@ -83,9 +83,9 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     i <- i + 1
   }
   
-  # Add a time axis on the bottom
-  ITT <- irisTickTimes(xlim[1],xlim[2])
-  axis.POSIXct(1, at=ITT$tickTimes, labels=ITT$tickLabels, line=0)
+  # # Add a time axis on the bottom
+  # ITT <- irisTickTimes(xlim[1],xlim[2])
+  # axis.POSIXct(1, at=ITT$tickTimes, labels=ITT$tickLabels, line=0)
   
 
   # ----- Annotations ----------------------------------------------------------

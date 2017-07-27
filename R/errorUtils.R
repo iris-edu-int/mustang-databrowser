@@ -9,8 +9,8 @@
 # Convert programmer error messages into end user error messages
 translateErrors <- function(err_msg,infoList) {
 
-  # Print out error message for debugging. Helps when we need to add more/better string detection.
-  print(paste("err_msg =",err_msg))
+  # Log error message for debugging. Helps when we need to add more/better string detection.
+  logger.warning("err_msg = %s", err_msg)
   
   metricName <- infoList$metricName
   

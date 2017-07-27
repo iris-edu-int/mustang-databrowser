@@ -165,12 +165,14 @@ __DATABROWSER__ <- function(request) {
   plotSecs <- elapsed <- ( (proc.time())[3] - timepoint )
   timepoint <- (proc.time())[3]
   ###print(paste(round(elapsed,4),"seconds to plot the data"))
+  logger.info("%f seconds to plot the data", round(elapsed,4))
 
 
   # ----- Cleanup -------------------------------------------------------------
 
   totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
   ###print(paste("Total elapsed =",round(total_elapsed,4),"seconds"))
+  logger.info("Total elapsed = %f seconds", round(total_elapsed,4))
 
   dev.off()
 
