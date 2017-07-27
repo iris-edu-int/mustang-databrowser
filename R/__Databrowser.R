@@ -189,9 +189,6 @@ __DATABROWSER__ <- function(request) {
                      bssUrl=bssUrl)
 
   return(returnList)  
-  # returnJSON <- toJSON(returnValues, collapse="", .escapeEscapes=FALSE)
-  # 
-  # return(returnJSON)
 
 }
 
