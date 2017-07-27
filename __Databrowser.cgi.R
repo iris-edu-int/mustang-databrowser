@@ -65,11 +65,17 @@ stopOnSuccess <- function(rel_base, returnJSON) {
 
 # ----- Set up Logging --------------------------------------------------------
 result <- try({
-  logger.setup(debugLog=file.path(DATABROWSER_PATH, "DEBUG.log"),
-               infoLog=file.path(DATABROWSER_PATH, "INFO.log"),
-               errorLog=file.path(DATABROWSER_PATH, "ERROR.log"))
   # Silence warning messages
   options(warn=-1) # -1=ignore, 0=save/print, 1=print, 2=error
+  # Set up logging
+  debugFilePath <- file.path(DATABROWSER_PATH, "DEBUG.log")
+  infoFilePath <- file.path(DATABROWSER_PATH, "INFO.log")
+  errorFilePath <- file.path(DATABROWSER_PATH, "ERROR.log")
+  # Start with a new DEBUG log every time
+  dummy <- file.create(debugFilePath, showWarnings=FALSE)
+  logger.setup(debugLog=debugFilePath,
+               infoLog=infoFilePath,
+               errorLog=errorFilePath)
 }, silent=TRUE)
 
 if ( "try-error" %in% class(result) ) {
@@ -132,7 +138,7 @@ if ( request$responseType == 'json' ) {
 if ( fromCache ) {
   
   result <- try({
-    logger.debug("Retrieving %s from cache", abs_file)
+    logger.info("Retrieving %s from cache", abs_file)
     lines <- readr::read_lines(abs_file)
     returnJSON <- paste0(lines, collapse='\n')
     stopOnSuccess(rel_base, returnJSON)
