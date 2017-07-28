@@ -35,14 +35,14 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   metric_DF <- dataList[['metric_DF']]
   
   # Need to remove missing values for boxplot to work properly (seiscode bug #630)
-  missingMask <- is.na(metric_DF[[metricName]])
+  missingMask <- is.na(metric_DF$value)
   metric_DF <- metric_DF[!missingMask,]
 
   ########################################
   # Data Manipulation for plotting
   ########################################
 
-  metricValues <- metric_DF[[metricName]]
+  metricValues <- metric_DF$value
   snclq <- metric_DF$snclq
   sncl <- stringr::str_replace(snclq,"..$","")  # remove last two characters
   
@@ -53,30 +53,30 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   # NOTE:  The second argument keeps an index of the values to their corresponding snclq strings.
   # NOTE:  Rank is then applied to this, returning the ranks of the values in the vector. 
    
-  if (infoList$boxplotOrder == "meanLoHi") {
+  if ( infoList$boxplotOrder == "meanLoHi" ) {
     atValue <- rank(tapply(metricValues, sncl, mean), ties.method = "first")
-  } else if (infoList$boxplotOrder == "meanHiLo") {
+  } else if ( infoList$boxplotOrder == "meanHiLo" ) {
     atValue <- rank(tapply(-metricValues, sncl, mean), ties.method = "first")
     
-  } else if (infoList$boxplotOrder == "medianLoHi") {
+  } else if ( infoList$boxplotOrder == "medianLoHi" ) {
     atValue <- rank(tapply(metricValues, sncl, median), ties.method = "first")
-  } else if (infoList$boxplotOrder == "medianHiLo") {
+  } else if ( infoList$boxplotOrder == "medianHiLo" ) {
     atValue <- rank(tapply(-metricValues, sncl, median), ties.method = "first")
     
-  } else if (infoList$boxplotOrder == "sd") {
+  } else if ( infoList$boxplotOrder == "sd" ) {
     atValue <- rank(tapply(metricValues, sncl, sd), ties.method = "first")
   
-  } else if (infoList$boxplotOrder == "minLoHi") {
+  } else if ( infoList$boxplotOrder == "minLoHi" ) {
     atValue <- rank(tapply(metricValues, sncl, min), ties.method = "first")
-  } else if (infoList$boxplotOrder == "minHiLo") {
+  } else if ( infoList$boxplotOrder == "minHiLo" ) {
     atValue <- rank(tapply(-metricValues, sncl, max), ties.method = "first")
     
-  } else if (infoList$boxplotOrder == "maxLoHi") {
+  } else if ( infoList$boxplotOrder == "maxLoHi" ) {
     atValue <- rank(tapply(metricValues, sncl, max), ties.method = "first")
-  } else if (infoList$boxplotOrder == "maxHiLo") {
+  } else if ( infoList$boxplotOrder == "maxHiLo" ) {
     atValue <- rank(tapply(-metricValues, sncl, min), ties.method = "first")
     
-  } else if (infoList$boxplotOrder == "alphaLoHi") {
+  } else if ( infoList$boxplotOrder == "alphaLoHi" ) {
     atValue <- seq(length(unique(sncl)),1)
   # aplhaHiLo last
   } else {
@@ -87,7 +87,7 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   # Plotting        
   ########################################
   
-  if (metricName == "percent_availability") {
+  if  (metricName == "percent_availability" ) {
     ylim <- c(0,100)
   } else {
     ylim <- NULL

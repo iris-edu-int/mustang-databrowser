@@ -37,11 +37,11 @@ createDataList <- function(infoList) {
   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
   if ( metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff' ) {
     metricName <- c("transfer_function")
-    # Special behavior for transfer funciton 'location'
-    if (location == '00')
-      location <- '10:00'
-    else
-      location <- paste(location,'00',sep=':')
+    #REC# Special behavior for transfer funciton 'location'
+    #REC#if (location == '00')
+    #REC#  location <- '10:00'
+    #REC#else
+    #REC#  location <- paste(location,'00',sep=':')
   }
   
   ########################################
@@ -71,7 +71,7 @@ createDataList <- function(infoList) {
     
   } else if ( infoList$plotType == 'metricTimeseries' ) {
 
-    if  (infoList$timeseriesChannelSet ) {
+    if  ( infoList$timeseriesChannelSet ) {
       # NOTE:  infoList$channel will only have two characters so we add '.' as a wildcard character
       channel <- paste0(channel,'?')
       # Get the single dataframe including metric for an entire channelSet
@@ -89,7 +89,6 @@ createDataList <- function(infoList) {
         index <- index + 1
       }
     } else {
-      ###dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)      
       logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
       dataList <- split(dataDF, dataDF$metricName)
@@ -146,7 +145,7 @@ createDataList <- function(infoList) {
     dataList[['bssUrl']] <- createBssUrl(iris,network,station,location,channel,starttime,endtime,actualMetricNames)      
 
     
-  } else if (infoList$plotType == 'networkBoxplot' ) {
+  } else if ( infoList$plotType == 'networkBoxplot' ) {
     
     # getNetwork returns network description
     dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime)
@@ -156,7 +155,7 @@ createDataList <- function(infoList) {
     ###dataList[['metric_DF']] <- metricList[[1]]
     dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
     metricList <- split(dataDF, dataDF$metricName)
-    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code, we could just use dataDF
+    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
     
     # transferFunctionCoherenceThreshold should only come in if metricName is one of the transfer metrics
     if (infoList$transferFunctionCoherenceThreshold) {
@@ -169,22 +168,21 @@ createDataList <- function(infoList) {
     dataList[['bssUrl']] <- createBssUrl(iris,network,'',location,channel,starttime,endtime,metricName)      
 
 
-  } else if (infoList$plotType == 'stationBoxplot' ) {
+  } else if ( infoList$plotType == 'stationBoxplot' ) {
     
-    # getNetwork returns station description
+    # get the station description
     dataList[['station_DF']] <- getStation(iris,network,station,'','',starttime,endtime)
 
     # loads single values for all seismic channels
-    ###allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN."
-    allSeismicChannels <- "LH?|LL?|LG?|LM?|LN?|MH?|ML?|MG?|MM?|MN?|BH?|BL?|BG?|BM?|BN?|HH?|HL?|HG?|HM?|HN?"
-    ###metricList <- getSingleValueMeasurements(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
-    ###dataList[['metric_DF']] <- metricList[[1]]
+    # NOTE:  Here, we need to use '.' instead of '?'.
+    # TODO:  IRISMustangMetrics::getSingleValueMetrics should settle on '.' or '?' as the single character wildcard or should support both.
+    allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN."
     dataDF <- getSingleValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
     metricList <- split(dataDF, dataDF$metricName)
-    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code, we could just use dataDF
+    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
     
     # transferFunctionCoherenceThreshold should only come in if metricName is one of the transfer metrics
-    if (infoList$transferFunctionCoherenceThreshold) {
+    if ( infoList$transferFunctionCoherenceThreshold ) {
       dfTemp <- dataList[['metric_DF']]
       dfTemp <- dfTemp[dfTemp$ms_coherence > 0.999,]
       dataList[['metric_DF']] <- dfTemp
@@ -256,7 +254,7 @@ createDataList <- function(infoList) {
 
   } else if (infoList$plotType == 'pdf' ) {
   
-    url <- "http://service.iris.edu/mustangbeta/noise/pdf/1/query?"
+    url <- "http://service.iris.edu/mustang/noise/pdf/1/query?"
     url <- paste(url,"network=",infoList$network,sep="")
     url <- paste(url,"&station=",infoList$station,sep="")
     # TODO:  Do I need to convert location="" to location="--"?

@@ -35,14 +35,14 @@ stationBoxplotPlot <- function(dataList,infoList,textList) {
   metric_DF <- dataList[['metric_DF']]
 
   # Need to remove missing values for boxplot to work properly (seiscode bug #630)
-  missingMask <- is.na(metric_DF[[metricName]])
+  missingMask <- is.na(metric_DF$value)
   metric_DF <- metric_DF[!missingMask,]
 
   ########################################
   # Data Manipulation for plotting
   ########################################
 
-  metricValues <- metric_DF[[metricName]]
+  metricValues <- metric_DF$value
   snclq <- metric_DF$snclq
   sncl <- stringr::str_replace(snclq,"..$","")  # remove last two characters
   
