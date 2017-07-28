@@ -1,4 +1,4 @@
-# errorUtils.R
+# translateErrors.R
 #
 # Adam Wisch
 # November 2013

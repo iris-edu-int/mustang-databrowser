@@ -23,7 +23,7 @@ createInfoList <- function(request) {
   # NOTE:  "metric" is is used in the API to match other web services.
   # NOTE:  Internally, I vastly prefer "metricName" to communicate that this is
   # NOTE:  a character string identifier.
-  infoList$metricName <- infoList$metric
+  infoList$metricName <- ifelse(is.null(infoList$metric),'',infoList$metric)
   metricName <- infoList$metricName
 
   # Convert incoming parameters to appropriate type

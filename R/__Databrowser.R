@@ -14,7 +14,8 @@ source("__DATABROWSER_PATH__/R/createInfoList.R")
 source("__DATABROWSER_PATH__/R/createTextList_en.R")
 source("__DATABROWSER_PATH__/R/createDataList.R")
 
-source("__DATABROWSER_PATH__/R/errorUtils.R")
+# Help normalizing errors
+source("__DATABROWSER_PATH__/R/translateErrors.R")
 
 # Plotting functions
 source("__DATABROWSER_PATH__/R/plotUtils.R")

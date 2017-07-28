@@ -65,8 +65,6 @@ stopOnSuccess <- function(rel_base, returnJSON) {
 
 # ----- Set up Logging --------------------------------------------------------
 result <- try({
-  # Silence warning messages
-  options(warn=-1) # -1=ignore, 0=save/print, 1=print, 2=error
   # Set up logging
   debugFilePath <- file.path(DATABROWSER_PATH, "DEBUG.log")
   infoFilePath <- file.path(DATABROWSER_PATH, "INFO.log")
@@ -101,9 +99,6 @@ result <- try({
     requestJSON <- paste0(readr::read_lines(args[1]), collapse='')
     request <- jsonlite::fromJSON(requestJSON)
   }
-
-  # # TODO:  Change starttime override
-  # request$starttime <- "2017-07-01"
 
   # Defaults
   request$responseType <- ifelse(is.null(request$responseType), 'json', request$responseType)
