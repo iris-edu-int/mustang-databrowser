@@ -61,7 +61,6 @@ createDataList <- function(infoList) {
 
   } else if ( infoList$plotType == 'metricTest' ) {
 
-    ###dataList <- getSingleValueMeasurements(iris,network,station,location,channel,starttime,endtime,metricName)
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
     dataList <- split(dataDF, dataDF$metricName)
 
@@ -151,8 +150,6 @@ createDataList <- function(infoList) {
     dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime)
 
     # loads single values for each station based on whatever metric we ask for
-    ######metricList <- getSingleValueMeasurements(iris,network,'',location,channel,starttime,endtime,metricName)
-    ###dataList[['metric_DF']] <- metricList[[1]]
     dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
     metricList <- split(dataDF, dataDF$metricName)
     dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
@@ -201,14 +198,12 @@ createDataList <- function(infoList) {
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    ###print(paste(round(elapsed,4),"seconds to load getNetwork"))
     logger.debug("%f seconds to load getNetwork", round(elapsed,4))
     
     dataList[['station_DF']] <- getStation(iris,network,'','','',starttime,endtime)
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    ###print(paste(round(elapsed,4),"seconds to load getStation"))
     logger.debug("%f seconds to load getStation", round(elapsed,4))
     
     if (showEvents) {
@@ -219,7 +214,6 @@ createDataList <- function(infoList) {
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    ###print(paste(round(elapsed,4),"seconds to load getEvent"))
     logger.debug("%f seconds to load getEvent", round(elapsed,4))
     
     # Loading world_countries dataframe for use in generating maps
@@ -229,7 +223,6 @@ createDataList <- function(infoList) {
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    ###print(paste(round(elapsed,4),"seconds to load simpleMap.RData"))    
     logger.debug("%f seconds to load simplemap.RData", round(elapsed,4))
     
     # get individual station measurements
@@ -241,74 +234,13 @@ createDataList <- function(infoList) {
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    ###print(paste(round(elapsed,4),"seconds to load getSingleValueMeasurements"))
     logger.debug("%f seconds to load getSingleValueMetrics", round(elapsed,4))
     
     total_elapsed <- ( (proc.time())[3] - start )
-    ###print(paste("Total elapsed =",round(total_elapsed,4),"seconds"))
     logger.debug("Total elapsed = %f seconds to load getSingleValueMetrics", round(elapsed,4))
     
     # Return BSS URL
     dataList[['bssUrl']] <- ''
-
-
-  } else if (infoList$plotType == 'pdf' ) {
-  
-    url <- "http://service.iris.edu/mustang/noise/pdf/1/query?"
-    url <- paste(url,"network=",infoList$network,sep="")
-    url <- paste(url,"&station=",infoList$station,sep="")
-    # TODO:  Do I need to convert location="" to location="--"?
-    url <- paste(url,"&location=",infoList$location,sep="")
-    url <- paste(url,"&channel=",infoList$channel,sep="")
-    url <- paste(url,"&quality=M",sep="")
-    url <- paste(url,"&startday=",infoList$startdate,sep="")
-    url <- paste(url,"&endday=",infoList$enddate,sep="")
-    
-    print(paste("pdf url = ",url))  
-          
-    # Get data from pdf webservice
-    df <- read.csv(url,header=FALSE,skip=9,col.names=c("freq","power","count"),colClasses=c("numeric","integer","integer"))
-
-    # Check for no data
-    if (nrow(df) == 0) {
-      stop("No data found.", call.=FALSE)
-    }
-    
-    # TODO:  Remove power level check in data from pdf web service?
-    # Retain only rows with power levels <= -50 db (bug in web service as of 2013-11-25)
-    df <- df[df$power <= -50,]
-    
-    # TODO:  Some older PSDs in the database have a slightly offset set of frequencies.
-    # TODO:  To be usable, we need to put the counts in a uniform set of bins.
-    
-    # Add variables with the row and column indices
-    # i=row, j=column
-    df$i <- 201 + df$power
-    df$j <- as.numeric(as.factor(df$freq))
-    
-    freq <- sort(unique(df$freq))
-    power <- seq(-200,-50,1)
-      
-#     # Sanity check until rebinning is in place
-#     if (length(freq) > 100) {
-#       stop(paste("Found",length(freq),"frequencies -- indicative of misaligned PSDs"))      
-#     }
-    
-    # Create the pdfMatrix
-    pdfMatrix <- matrix(data=0,nrow=length(power),ncol=length(freq))
-    
-    for (k in seq(nrow(df))) {
-      pdfMatrix[df$i[k],df$j[k]] <- df$count[k]     
-    }
-    
-    
-    dataList[['pdfMatrix']] <- pdfMatrix
-    dataList[['pdfFreq']] <- freq
-    dataList[['pdfPower']] <- power
-
-    # Return BSS URL
-    dataList[['bssUrl']] <- url
-
 
   }
 

@@ -43,6 +43,9 @@ include config/Makefile_vars_$(location)
 ################################################################################
 # Targets related to databrowser installation
 
+clear: clear_logs clear_cache 
+
+
 ###install: install_UI install_data install_cache install_packages
 install: install_UI install_data install_cache
 

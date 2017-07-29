@@ -23,8 +23,6 @@ source("__DATABROWSER_PATH__/R/metricTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/channelSetTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/stackedMetricTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/tracePlot.R")
-source("__DATABROWSER_PATH__/R/pdfPlot.R")
-source("__DATABROWSER_PATH__/R/webservicePdfPlot.R")
 source("__DATABROWSER_PATH__/R/networkBoxplotPlot.R")
 source("__DATABROWSER_PATH__/R/networkMapPlot.R")
 source("__DATABROWSER_PATH__/R/stationBoxplotPlot.R")
@@ -51,6 +49,61 @@ __DATABROWSER__ <- function(request) {
   infoList$scriptDir <- "__DATABROWSER_PATH__/R/"
   infoList$dataDir <- "__DATABROWSER_PATH__/data/"
   infoList$outputDir <- "__DATABROWSER_PATH__/__OUTPUT_DIR__/"
+
+  # ----- PDF plots use a web service ----------------------------------------
+  
+  if ( infoList$plotType == 'pdf' ) {
+    
+    # First create the text response for the bssUrl
+    pdfServiceUrl <- 'http://service.iris.edu/mustang/noise-pdf/1/query?'
+    serviceParameters <- list(network=infoList$network,
+                              station=infoList$station,
+                              location=infoList$location,
+                              channel=infoList$channel,
+                              starttime=strftime(infoList$starttime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
+                              endtime=strftime(infoList$endtime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
+                              quality='M',
+                              format='text')
+    parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
+    bssUrl <- paste0(pdfServiceUrl,parameterString)
+    
+    # Now create the plot url which requires some extra parameters
+    serviceParameters$format='plot'
+    serviceParameters$plot.interpolation='bicubic'
+    serviceParameters$plot.power.min='-200'
+    serviceParameters$plot.power.max='-50'
+    parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
+    plotUrl <- paste0(pdfServiceUrl,parameterString)
+    
+    destfile <- paste0(infoList$outputDir,infoList$outputFileBase,'.png')
+
+    result <- try( download.file(plotUrl, destfile, quiet=TRUE, method='cur', mode='wb'),
+                   silent=TRUE )
+    
+    if ( "try-error" %in% class(result) ) {
+      err_msg <- geterrmessage()
+      logger.error(err_msg)
+      stop(err_msg, call.=FALSE)
+    }
+
+    totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
+    logger.info("Total elapsed = %f seconds", round(total_elapsed,4))
+
+    returnValues <- c(0.0,0.0,0.0,0.0) # Dummy values. returnValues is required by the UI
+    
+    returnList <- list(loadSecs=as.numeric(totalSecs),
+                       plotSecs=as.numeric(0),
+                       totalSecs=as.numeric(totalSecs),
+                       returnValues=returnValues,
+                       bssUrl=bssUrl)
+    
+    return(returnList)  
+    
+  }
+
+    
+  # If we made it to here, we need to generate a plot in R
+  
 
   # ----- Read in the data ----------------------------------------------------
 
@@ -138,11 +191,6 @@ __DATABROWSER__ <- function(request) {
 
     returnValues <- tracePlot(dataList,infoList,textList)
 
-  } else if (infoList$plotType == 'pdf') {
-
-    ###returnValues <- pdfPlot(dataList,infoList,textList)
-    returnValues <- webservicePdfPlot(dataList,infoList,textList)
-
   } else if (infoList$plotType == 'networkBoxplot') {
 
     returnValues <- networkBoxplotPlot(dataList,infoList,textList)
@@ -165,14 +213,12 @@ __DATABROWSER__ <- function(request) {
 
   plotSecs <- elapsed <- ( (proc.time())[3] - timepoint )
   timepoint <- (proc.time())[3]
-  ###print(paste(round(elapsed,4),"seconds to plot the data"))
   logger.info("%f seconds to plot the data", round(elapsed,4))
 
 
   # ----- Cleanup -------------------------------------------------------------
 
   totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
-  ###print(paste("Total elapsed =",round(total_elapsed,4),"seconds"))
   logger.info("Total elapsed = %f seconds", round(total_elapsed,4))
 
   dev.off()

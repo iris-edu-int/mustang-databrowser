@@ -79,7 +79,6 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   # ----- Plotting -------------------------------------------------------------
   
   # number of figures to plot
-  ###plotCount <- length(dataList)
   plotCount <- length(actualMetricNames)
   
   mat <- matrix(c(seq(1,plotCount)), plotCount, 1)
