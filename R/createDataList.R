@@ -138,7 +138,16 @@ createDataList <- function(infoList) {
     actualMetricNames <- paste0(actualMetricNames, collapse=",")
     logger.debug("location = '%s', metrics = '%s'", location, actualMetricNames)
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
-    dataList <- split(dataDF, dataDF$metricName)
+    
+    # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
+    # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
+    # NOTE:  See stackedMetricTimeseriesPlot.R
+    if ( metricName == 'transfer_function' ) {
+      dataList <- list()
+      dataList[['transfer_function']] <- dataDF
+    } else {
+      dataList <- split(dataDF, dataDF$metricName)
+    }
     
     # Return BSS URL
     dataList[['bssUrl']] <- createBssUrl(iris,network,station,location,channel,starttime,endtime,actualMetricNames)      
