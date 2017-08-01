@@ -37,11 +37,6 @@ createDataList <- function(infoList) {
   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
   if ( metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff' ) {
     metricName <- c("transfer_function")
-    #REC# Special behavior for transfer funciton 'location'
-    #REC#if (location == '00')
-    #REC#  location <- '10:00'
-    #REC#else
-    #REC#  location <- paste(location,'00',sep=':')
   }
   
   ########################################

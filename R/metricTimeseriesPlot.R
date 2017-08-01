@@ -52,11 +52,14 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
       metricName == 'missing_padded_data' ||
       metricName == 'suspect_tim_gat' ||
       metricName == 'telemetry_sync_error' ||
-      metricName == 'timing_correction') {
+      metricName == 'timing_correction' ||
+      metricname == 'sample_unique') {
 
     yStyle <- 'zeroScaled' 
 
-  } else if (metricName == 'percent_availability') {
+  } else if (metricName == 'percent_availability' ||
+             metricName == 'pct_above_nhnm' ||
+             metricName == 'pct_below_nlnm') {
 
     yStyle <- 'percent' 
 
@@ -71,10 +74,6 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   
   timeseriesPlot(df$starttime, df[[metricName]], style, xlim, yStyle)
 
-#  # Add a time axis on the bottom
-#  ITT <- irisTickTimes(starttime,endtime)
-#  axis.POSIXct(1, at=ITT$tickTimes, labels=ITT$tickLabels, line=0)
-  
 
   # ----- Annnotation ----------------------------------------------------------
 

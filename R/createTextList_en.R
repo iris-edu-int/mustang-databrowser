@@ -18,47 +18,10 @@ createTextList <- function(dataList, infoList) {
 
   # ----- Common annotations ---------------------------------------------------
   
-# ----- Here are Mary Templeton's preferred names for metric variables ---------
-#
-#'amplifier_saturation': 'Daily Flag Count: Amplifier Saturation Detected',
-#'calibration_signal': 'Daily Flag Count: Calibration Signals Present',
-#'clock_locked': 'Daily Flag Count: Clock locked',
-#'cross_talk': 'Cross-Talk Check: Channel Cross-Correlation Coefficient',
-#'data_latency': 'Time Since Last Data Sample Was Acquired',
-#'dc_offset_times': 'Times of DC Offsets Detected',
-#'digital_filter_charging': 'Daily Flag Count: Digital Filter Charging',
-#'digitizer_clipping': 'Daily Flag Count: Digitizer Clipping Detected',
-#'event_begin': 'Daily Flag Count: Beginning of Event (Trigger)',
-#'event_end': 'Daily Flag Count: End of Event (Detrigger)',
-#'event_in_progress': 'Daily Flag Count: Event in Progress',
-#'feed_latency': 'Time Since Latest Data Was Received',
-#'glitches': 'Daily Flag Count: Glitches Detected',
-#'max_gap': 'Daily Maximum Gap Length',
-#'max_overlap': 'Daily Maximum Overlap Length',
-#'max_stalta': 'Maximum Daily Short-Term Average/Long-Term Average Amplitude Ratio',
-#'missing_padded_data': 'Daily Flag instances: Missing/Padded Data Present',
-#'num_gaps': 'Gaps Per Day',
-#'num_overlaps': 'Overlaps Per Day',
-#'num_spikes': 'Spikes Per Day',
-#'percent_availability': 'Channel Percent Data Available Per Day',
-#'pressure_effects': 'Atmospheric Pressure Check: Barometer-Seismometer Cross-Correlation Coefficient',
-#'sample_max': 'Daily Maximum Amplitude',
-#'sample_mean': 'Daily Mean Amplitude',
-#'sample_median': 'Daily Median Amplitude',
-#'sample_min': 'Daily Minimum Amplitude',
-#'sample_rms': 'Daily Root Mean Squared Variance of Amplitudes',
-#'sample_snr': 'P-Wave Signal-To-Noise Ratio',
-#'spikes': 'Daily Flag Count: Spikes Detected',
-#'station_completeness': 'Station Percent Data Available Per Day',
-#'station_up_down_times': 'Station Up/Down Time Spans',
-#'suspect_time_tag': 'Daily Flag Count: Time Tag Questionable',
-#'telemetry_sync_error': 'Daily Flag Count: Telemetry Synchronization Error',
-#'timing_correction': 'Daily Flag Count: Timing Correction Applied',
-#'timing_quality': 'Daily Average Timing Quality',
-#'total_latency': 'Total Latency',
-#'up_down_times': 'Channel Up/Down Time Spans',
-
-  # TODO:  Update metric title list (last updated on 2013-11-16)
+  # NOTE:  Metrics are described here:
+  # NOTE:  
+  # NOTE:  http://service.iris.edu/mustang/metrics/1/query
+  
   # Add a metric title
   metricTitles <- list(amplifier_saturation='Daily Flag Count: Amplifier Saturation Detected',
                        calibration_signal='Daily Flag Count: Calibration Signals Present',
@@ -66,6 +29,9 @@ createTextList <- function(dataList, infoList) {
                        cross_talk='Cross-Talk Check: Channel Cross-Correlation Coefficient',
                        data_latency='Time Since Last Data Sample Was Acquired',
                        dc_offset_times='Times of DC Offsets Detected',
+                       dead_channel_exp='Dead Channel Metric: Exponential Fit',
+                       dead_channel_gsn='Dead Channel Metric: GSN',
+                       dead_channel_lin='Dead Channel Metric: Linear Fit',
                        digital_filter_charging='Daily Flag Count: Digital Filter Charging',
                        digitizer_clipping='Daily Flag Count: Digitizer Clipping Detected',
                        event_begin='Daily Flag Count: Beginning of Event (Trigger)',
@@ -80,6 +46,8 @@ createTextList <- function(dataList, infoList) {
                        num_gaps='Gaps Per Day',
                        num_overlaps='Overlaps Per Day',
                        num_spikes='Spikes Per Day',
+                       pct_above_nhnm='Percent Above New High Noise Model',
+                       pct_below_nlnm='Percent Below New Low Noise Model',
                        percent_availability='Channel Percent Data Available Per Day',
                        pressure_effects='Atmospheric Pressure Check: Barometer-Seismometer Cross-Correlation Coefficient',
                        sample_max='Daily Maximum Amplitude',
@@ -88,6 +56,7 @@ createTextList <- function(dataList, infoList) {
                        sample_min='Daily Minimum Amplitude',
                        sample_rms='Daily Root Mean Squared Variance of Amplitudes',
                        sample_snr='P-Wave Signal-To-Noise Ratio',
+                       sample_unique='Daily Count of Unique Sample Values',
                        spikes='Daily Flag Count: Spikes Detected',
                        station_completeness='Station Percent Data Available Per Day',
                        station_up_down_times='Station Up/Down Time Spans',
