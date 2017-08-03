@@ -35,8 +35,9 @@ createDataList <- function(infoList) {
 
   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
+  # NOTE:  To access any individual value, we must request and parse the data for 'transfer_function'
   if ( metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff' ) {
-    metricName <- c("transfer_function")
+    metricName <- 'transfer_function'
   }
   
   ########################################
@@ -57,6 +58,7 @@ createDataList <- function(infoList) {
   } else if ( infoList$plotType == 'metricTest' ) {
 
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
     dataList <- split(dataDF, dataDF$metricName)
 
     # Return BSS URL
@@ -66,26 +68,37 @@ createDataList <- function(infoList) {
   } else if ( infoList$plotType == 'metricTimeseries' ) {
 
     if  ( infoList$timeseriesChannelSet ) {
-      # NOTE:  infoList$channel will only have two characters so we add '.' as a wildcard character
+      # NOTE:  infoList$channel will only have two characters so we add '?' as a wildcard character
       channel <- paste0(channel,'?')
       # Get the single dataframe including metric for an entire channelSet
       logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
-      df <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
-      # Check if any data is returned
-      if ( nrow(df) == 0 ) {
-        stop("No data found.", call.=FALSE)
-      }
+      dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+      if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
       # Then fill the dataList with as many dataframes as there are unique snclqs
-      snclqs <- sort(unique(df$snclq))
-      index <- 1
-      for (snclq in snclqs) {
-        dataList[[index]] <- df[df$snclq == snclq,]
-        index <- index + 1
-      }
+      # TODO:  Can we replace this with split()? Will it retain alphabetization
+      # snclqs <- sort(unique(dataDF$snclq))
+      # index <- 1
+      # for (snclq in snclqs) {
+      #   dataList[[index]] <- dataDF[dataDF$snclq == snclq,]
+      #   index <- index + 1
+      # }
+      dataList <- split(dataDF, dataDF$snclq)
     } else {
       logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
-      dataList <- split(dataDF, dataDF$metricName)
+      if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+      if ( metricName == 'max_stalta' ) {
+        # NOTE:  max_stalta is unique in that a request for it returns a single dataframe
+        # NOTE:  with no 'metricName' column.
+        dataList <- list('max_stalta'=dataDF)
+      } else if ( metricName == 'transfer_function' ) {
+        # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
+        # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
+        # NOTE:  See stackedMetricTimeseriesPlot.R
+        dataList <- list('transfer_function'=dataDF)
+      } else {
+        dataList <- split(dataDF, dataDF$metricName)
+      }
     }
 
     # Return BSS URL
@@ -133,13 +146,17 @@ createDataList <- function(infoList) {
     actualMetricNames <- paste0(actualMetricNames, collapse=",")
     logger.debug("location = '%s', metrics = '%s'", location, actualMetricNames)
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
     
-    # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
-    # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-    # NOTE:  See stackedMetricTimeseriesPlot.R
-    if ( metricName == 'transfer_function' ) {
-      dataList <- list()
-      dataList[['transfer_function']] <- dataDF
+    if ( metricName == 'max_stalta' ) {
+      # NOTE:  max_stalta is unique in that a request for it returns a single dataframe
+      # NOTE:  with no 'metricName' column.
+      dataList <- list('max_stalta'=dataDF)
+    } else if ( metricName == 'transfer_function' ) {
+      # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
+      # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
+      # NOTE:  See stackedMetricTimeseriesPlot.R
+      dataList <- list('transfer_function'=dataDF)
     } else {
       dataList <- split(dataDF, dataDF$metricName)
     }
@@ -155,6 +172,8 @@ createDataList <- function(infoList) {
 
     # loads single values for each station based on whatever metric we ask for
     dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+
     metricList <- split(dataDF, dataDF$metricName)
     dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
     
@@ -179,6 +198,8 @@ createDataList <- function(infoList) {
     # TODO:  IRISMustangMetrics::getSingleValueMetrics should settle on '.' or '?' as the single character wildcard or should support both.
     allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN."
     dataDF <- getSingleValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+
     metricList <- split(dataDF, dataDF$metricName)
     dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
     
@@ -230,9 +251,9 @@ createDataList <- function(infoList) {
     logger.debug("%f seconds to load simplemap.RData", round(elapsed,4))
     
     # get individual station measurements
-    ###metricList <- getSingleValueMeasurements(iris,network,'',location,channel,starttime,endtime,metricName)
-    ###dataList[['metric_DF']] <- metricList[[1]]
     dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+
     metricList <- split(dataDF, dataDF$metricName)
     dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code, we could just use dataDF
     

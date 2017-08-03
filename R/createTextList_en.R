@@ -83,6 +83,60 @@ createTextList <- function(dataList, infoList) {
 
   textList$metricTitle <- metricTitles[[metricName]]
 
+  # Add a metric Y-axis label
+  metricYlabs <- list(amplifier_saturation='flag count (number of occurrences)',
+                      calibration_signal='flag count (number of occurrences)',
+                      clock_locked='flag count (number of occurrences)',
+                      cross_talk='correlation coefficient', # no units
+                      data_latency='latency (seconds)',
+                      dc_offset='value', # no units
+                      dead_channel_exp='standard deviation of residuals (log10(dB))',
+                      dead_channel_gsn='indicator (0,1)',
+                      dead_channel_lin='standard deviation of residuals (dB)',
+                      digital_filter_charging='flag count (number of occurrences)',
+                      digitizer_clipping='flag count (number of occurrences)',
+                      event_begin='flag count (number of occurrences)',
+                      event_end='flag count (number of occurrences)',
+                      event_in_progress='flag count (number of occurrences)',
+                      feed_latency='latency (seconds)',
+                      glitches='flag count (number of occurrences)',
+                      max_gap='gap length (seconds)',
+                      max_overlap='overlap length (seconds)',
+                      max_stalta='short-term average / long-term average', # no units
+                      missing_padded_data='flag count (number of occurrences)',
+                      num_gaps='gap count (number of occurrences)',
+                      num_overlaps='overlap count (number of occurrences)',
+                      num_spikes='outlier count (number of occurrences)',
+                      pct_above_nhnm='PSD values above New High Noise Model (%)',
+                      pct_below_nlnm='PSD values below New Low Noise Model (%)',
+                      percent_availability='availability (%)',
+                      polarity_check='maximum cross-correlation function', # no units
+                      pressure_effects='zero-lag cross-correlation function', # no units
+                      sample_max='maximum amplitude (counts)',
+                      sample_mean='mean amplitude (counts)',
+                      sample_median='median amplitude (counts)',
+                      sample_min='minimum amplitude (counts)',
+                      sample_rms='root-mean-square variance (counts)',
+                      sample_snr='signal-to-noise ratio', # no units
+                      sample_unique='unique sample values (number of occurrences)',
+                      spikes='flag count (number of occurrences)',
+                      suspect_time_tag='flag count (number of occurrences)',
+                      telemetry_sync_error='flag count (number of occurrences)',
+                      timing_correction='flag count (number of occurrences)',
+                      timing_quality='average timing quality (%)',
+                      total_latency='latency (seconds)',
+                      
+                      # transfer_function:
+                      gain_ratio='data/metadata gain ratio', # no units
+                      phase_diff='data-metadata phase difference (degrees)',
+                      ms_coherence='coherence function', # no units
+                      xxx='xxx')
+  
+  textList$metricYlabsList <- metricYlabs
+  
+  textList$metricYlab <- metricYlabs[[metricName]]
+  
+
 
   # Adjust location as needed
   if (metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff') {

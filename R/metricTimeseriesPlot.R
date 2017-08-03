@@ -27,7 +27,7 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   
   # Save current par() settings
   oldPar <- par()
-  par(bg='gray95', mar=c(.5,3,.5,3), oma=c(5,2,4,0))
+  par(bg='gray95', mar=c(.5,3,.5,3), oma=c(5,3,4,0))
   
   style <- 'matlab'
 
@@ -53,10 +53,19 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
       metricName == 'suspect_tim_gat' ||
       metricName == 'telemetry_sync_error' ||
       metricName == 'timing_correction' ||
-      metricname == 'sample_unique') {
+      metricName == 'sample_unique' ||
+      metricName == 'dead_channel_lin' ||
+      metricName == 'xxx') {
 
     yStyle <- 'zeroScaled' 
 
+  } else if (metricName == 'dead_channel_exp' ||
+             metricName == 'dead_channel_gsn' ||
+             metricName == 'ms_coherence' ||
+             metricName == 'gain_ratio') {
+    
+    yStyle <- 'zeroScaled1' 
+    
   } else if (metricName == 'percent_availability' ||
              metricName == 'pct_above_nhnm' ||
              metricName == 'pct_below_nlnm') {
@@ -72,12 +81,12 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
 
   # ----- Plotting -------------------------------------------------------------
   
-  timeseriesPlot(df$starttime, df[[metricName]], style, xlim, yStyle)
-
+  timeseriesPlot(df$starttime, df$value, style, xlim, yStyle)
+  
 
   # ----- Annnotation ----------------------------------------------------------
 
-  # add title and x-axis on bottom plot
+  # Title 
   text <- paste(textList$snclName,'--',textList$metricTitle)
   title(text, outer=TRUE)
     
@@ -85,6 +94,10 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   line <- par('oma')[1] - 1.5  # 1.5 lines off the outer margin bottom
   mtext(textList$dataRange, side=1, line=line, cex=1.3)
 
+  # # Y axis label
+  line <- par('oma')[2] + 1.0  # 
+  mtext(textList$metricYlab, side=2, line=line, cex=1.0)
+  
   
   # Restore old par() settings
   par(oldPar)

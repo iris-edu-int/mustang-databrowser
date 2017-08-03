@@ -138,7 +138,7 @@ timeseriesPlot <- function(time, metric,
 
   ylo <- min(metric, na.rm=TRUE)
   yhi <- max(metric, na.rm=TRUE)
-  if (yStyle == 'zeroScaled') {
+  if (yStyle == 'zeroScaled') { # 0:10 or 0:max, whichever is larger
     ylo <- 0
     yhi <- max(10,yhi)
     yrange <- yhi-ylo
@@ -153,7 +153,7 @@ timeseriesPlot <- function(time, metric,
       yAxLabels <- NULL
     }
     horizLine <- 0
-  } else if (yStyle == 'zeroScaled1') {
+  } else if (yStyle == 'zeroScaled1') { # 0:1 or 0:max, whichever is larger
     ylo <- 0
     yhi <- max(1,yhi)
     yrange <- yhi-ylo
@@ -168,7 +168,7 @@ timeseriesPlot <- function(time, metric,
       yAxLabels <- NULL
     }
     horizLine <- 0
-  } else if (yStyle == 'percent') {
+  } else if (yStyle == 'percent') { # 0:100
     ylo <- 0
     yhi <- 100
     yrange <- yhi-ylo
@@ -183,7 +183,7 @@ timeseriesPlot <- function(time, metric,
       yAxLabels <- NULL
     }
     horizLine <- 0
-  } else if (yStyle == 'float') {
+  } else if (yStyle == 'float') { # min:max
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
@@ -196,7 +196,7 @@ timeseriesPlot <- function(time, metric,
       yAxLabels <- NULL
     }
     horizLine <- NA
-  } else {
+  } else { # min:max
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
