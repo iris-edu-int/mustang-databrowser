@@ -88,7 +88,13 @@ if ( "try-error" %in% class(result) ) {
 # ----- Parse Request ---------------------------------------------------------
 result <- try({
   
-  args = commandArgs(trailingOnly=TRUE)
+  # NOTE:  So that we can debug from RStudio by defining "debugArgs" or at the command line
+  # NOTE:  debugArgs or the first argument should be the path of the request JSON copied form the log file
+  if ( exists("debugArgs") ) {
+    args <- debugArgs
+  } else {
+    args = commandArgs(trailingOnly=TRUE)
+  }
   
   # Get request from command CGI environment or command line argument
   if ( length(args) == 0 ) {
@@ -129,6 +135,9 @@ if ( request$responseType == 'json' ) {
 } else {
   fromCache <- file.exists(abs_file)
 }
+
+# NOTE:  Bypass the cache if we're debugging
+if ( length(args) > 0 ) fromCache <- FALSE
 
 if ( fromCache ) {
   

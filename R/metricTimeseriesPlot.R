@@ -62,9 +62,16 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   } else if (metricName == 'dead_channel_exp' ||
              metricName == 'dead_channel_gsn' ||
              metricName == 'ms_coherence' ||
-             metricName == 'gain_ratio') {
+             metricName == 'gain_ratio' ||
+             metricName == 'xxx') {
     
     yStyle <- 'zeroScaled1' 
+    
+  } else if (metricName == 'cross_talk' ||
+             metricName == 'polarity_check' ||
+             metricName == 'xxx') {
+    
+    yStyle <- 'zeroCentered1'
     
   } else if (metricName == 'percent_availability' ||
              metricName == 'pct_above_nhnm' ||
@@ -86,7 +93,9 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
 
   # ----- Annnotation ----------------------------------------------------------
 
-  # Title 
+  # Annotations are created in createTextList_en.R
+  
+  # Title at the top
   text <- paste(textList$snclName,'--',textList$metricTitle)
   title(text, outer=TRUE)
     
@@ -94,10 +103,9 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   line <- par('oma')[1] - 1.5  # 1.5 lines off the outer margin bottom
   mtext(textList$dataRange, side=1, line=line, cex=1.3)
 
-  # # Y axis label
+  # Y axis label
   line <- par('oma')[2] + 1.0  # 
   mtext(textList$metricYlab, side=2, line=line, cex=1.0)
-  
   
   # Restore old par() settings
   par(oldPar)

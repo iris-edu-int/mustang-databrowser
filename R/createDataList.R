@@ -68,34 +68,24 @@ createDataList <- function(infoList) {
   } else if ( infoList$plotType == 'metricTimeseries' ) {
 
     if  ( infoList$timeseriesChannelSet ) {
-      # NOTE:  infoList$channel will only have two characters so we add '?' as a wildcard character
-      channel <- paste0(channel,'?')
       # Get the single dataframe including metric for an entire channelSet
       logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
       if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
-      # Then fill the dataList with as many dataframes as there are unique snclqs
-      # TODO:  Can we replace this with split()? Will it retain alphabetization
-      # snclqs <- sort(unique(dataDF$snclq))
-      # index <- 1
-      # for (snclq in snclqs) {
-      #   dataList[[index]] <- dataDF[dataDF$snclq == snclq,]
-      #   index <- index + 1
-      # }
       dataList <- split(dataDF, dataDF$snclq)
     } else {
       logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
       if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
-      if ( metricName == 'max_stalta' ) {
-        # NOTE:  max_stalta is unique in that a request for it returns a single dataframe
-        # NOTE:  with no 'metricName' column.
-        dataList <- list('max_stalta'=dataDF)
-      } else if ( metricName == 'transfer_function' ) {
-        # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
-        # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-        # NOTE:  See stackedMetricTimeseriesPlot.R
-        dataList <- list('transfer_function'=dataDF)
+      if ( metricName == 'max_stalta' ||
+           metricName == 'polarity_check' ||
+           metricName == 'transfer_function') {
+        dataList[[metricName]] <- dataDF
+      # } else if ( metricName == 'transfer_function' ) {
+      #   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
+      #   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
+      #   # NOTE:  See stackedMetricTimeseriesPlot.R
+      #   dataList <- list('transfer_function'=dataDF)
       } else {
         dataList <- split(dataDF, dataDF$metricName)
       }
@@ -148,15 +138,16 @@ createDataList <- function(infoList) {
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
     
-    if ( metricName == 'max_stalta' ) {
-      # NOTE:  max_stalta is unique in that a request for it returns a single dataframe
-      # NOTE:  with no 'metricName' column.
-      dataList <- list('max_stalta'=dataDF)
-    } else if ( metricName == 'transfer_function' ) {
-      # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
-      # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-      # NOTE:  See stackedMetricTimeseriesPlot.R
-      dataList <- list('transfer_function'=dataDF)
+    if ( metricName == 'max_stalta' ||
+         metricName == 'polarity_check' ||
+         metricName == 'transfer_function' ) {
+      # NOTE:  These metrics are unique in that a request returns a single dataframe with no 'metricName' column.
+      dataList[[metricName]] <- dataDF
+    # } else if ( metricName == 'transfer_function' ) {
+    #   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
+    #   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
+    #   # NOTE:  See stackedMetricTimeseriesPlot.R
+    #   dataList <- list('transfer_function'=dataDF)
     } else {
       dataList <- split(dataDF, dataDF$metricName)
     }
@@ -174,11 +165,25 @@ createDataList <- function(infoList) {
     dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
 
+    # if ( metricName == 'max_stalta' ||
+    #      metricName == 'polarity_check' ||
+    #      metricName == 'transfer_function' ) {
+    #   # NOTE:  These metrics are unique in that a request returns a single dataframe with no 'metricName' column.
+    #   dataList[[metricName]] <- dataDF
+    #   # } else if ( metricName == 'transfer_function' ) {
+    #   #   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
+    #   #   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
+    #   #   # NOTE:  See stackedMetricTimeseriesPlot.R
+    #   #   dataList <- list('transfer_function'=dataDF)
+    # } else {
+    #   dataList <- split(dataDF, dataDF$metricName)
+    # }
+    
     metricList <- split(dataDF, dataDF$metricName)
     dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
     
     # transferFunctionCoherenceThreshold should only come in if metricName is one of the transfer metrics
-    if (infoList$transferFunctionCoherenceThreshold) {
+    if ( infoList$transferFunctionCoherenceThreshold ) {
       dfTemp <- dataList[['metric_DF']]
       dfTemp <- dfTemp[dfTemp$ms_coherence > 0.999,]
       dataList[['metric_DF']] <- dfTemp
@@ -200,6 +205,20 @@ createDataList <- function(infoList) {
     dataDF <- getSingleValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
 
+    # if ( metricName == 'max_stalta' ||
+    #      metricName == 'polarity_check' ||
+    #      metricName == 'transfer_function' ) {
+    #   # NOTE:  These metrics are unique in that a request returns a single dataframe with no 'metricName' column.
+    #   dataList[[metricName]] <- dataDF
+    #   # } else if ( metricName == 'transfer_function' ) {
+    #   #   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
+    #   #   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
+    #   #   # NOTE:  See stackedMetricTimeseriesPlot.R
+    #   #   dataList <- list('transfer_function'=dataDF)
+    # } else {
+    #   dataList <- split(dataDF, dataDF$metricName)
+    # }
+    
     metricList <- split(dataDF, dataDF$metricName)
     dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
     

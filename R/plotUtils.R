@@ -168,6 +168,21 @@ timeseriesPlot <- function(time, metric,
       yAxLabels <- NULL
     }
     horizLine <- 0
+  } else if (yStyle == 'zeroCentered1') { # -1:1
+    ylo <- -1
+    yhi <- 1
+    yrange <- yhi-ylo
+    if (style == 'minimalA') {
+      ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
+      yAxTicks <- c(ylo,yhi)
+      yAxLabels <- format(yAxTicks,nsmall=0)
+    } else {
+      ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
+      ylim=c(ylo,yhi)
+      yAxTicks <- NULL
+      yAxLabels <- NULL
+    }
+    horizLine <- 0
   } else if (yStyle == 'percent') { # 0:100
     ylo <- 0
     yhi <- 100
