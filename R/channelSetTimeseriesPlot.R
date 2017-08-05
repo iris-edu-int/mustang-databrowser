@@ -95,7 +95,15 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   for (i in seq(plotCount)) {
     df <- dataList[[i]]
     # NOTE:  dataframes returned by getSingleValueMetric have "metricName|value|snclq|starttime|endtime|loadtime"
-    timeseriesPlot(df$starttime, df$value, style, xlim, yStyle)
+    # NOTE:  transfer function metrics phase_diff and ms_coherence are in their own columns rather than 'value'
+    if ( infoList$metricName == 'phase_diff' ) {
+      metricValues <- df$phase_diff
+    } else if ( infoList$metricName == 'ms_coherence' ) {
+      metricValues <- df$ms_coherence
+    } else {
+      metricValues <- df$value
+    }
+    timeseriesPlot(df$starttime, metricValues, style, xlim, yStyle)
     # NOTE:  For polarity_check we need to include the second station
     if ( metricName == 'polarity_check' ) {
       snclq <- paste0(df$snclq[1],":",df$snclq2[1])

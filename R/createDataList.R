@@ -25,14 +25,13 @@ createDataList <- function(infoList) {
   endtime <- infoList$endtime
   metricName  <- infoList$metricName
 
-  # Default settings for optional parameters associated with different plot types
-  if ( infoList$plotType == "networkMap" ) {
-    # showEvents toggles the display of seismic events when creating maps
-    showEvents  <- as.logical(ifelse(is.null(infoList$showEvents),'TRUE',infoList$showEvents))    
-    # minmag specifies the minimum magnitude for querying for events when creating maps
-    minmag  <- as.numeric(ifelse(is.null(infoList$minmag),'5.3',infoList$minmag))  
-  }
-
+  # # Default settings for optional parameters associated with different plot types
+  # if ( infoList$plotType == "networkMap" ) { 
+  #   # showEvents toggles the display of seismic events when creating maps
+  #   showEvents  <- as.logical(ifelse(is.null(infoList$showEvents),'TRUE',infoList$showEvents))    
+  #   minmag  <- as.numeric(ifelse(is.null(infoList$minmag),'5.3',infoList$minmag))  
+  # }
+  
   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
   # NOTE:  To access any individual value, we must request and parse the data for 'transfer_function'
@@ -143,11 +142,6 @@ createDataList <- function(infoList) {
          metricName == 'transfer_function' ) {
       # NOTE:  These metrics are unique in that a request returns a single dataframe with no 'metricName' column.
       dataList[[metricName]] <- dataDF
-    # } else if ( metricName == 'transfer_function' ) {
-    #   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
-    #   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-    #   # NOTE:  See stackedMetricTimeseriesPlot.R
-    #   dataList <- list('transfer_function'=dataDF)
     } else {
       dataList <- split(dataDF, dataDF$metricName)
     }
@@ -165,30 +159,13 @@ createDataList <- function(infoList) {
     dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
 
-    # if ( metricName == 'max_stalta' ||
-    #      metricName == 'polarity_check' ||
-    #      metricName == 'transfer_function' ) {
-    #   # NOTE:  These metrics are unique in that a request returns a single dataframe with no 'metricName' column.
-    #   dataList[[metricName]] <- dataDF
-    #   # } else if ( metricName == 'transfer_function' ) {
-    #   #   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
-    #   #   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-    #   #   # NOTE:  See stackedMetricTimeseriesPlot.R
-    #   #   dataList <- list('transfer_function'=dataDF)
-    # } else {
-    #   dataList <- split(dataDF, dataDF$metricName)
-    # }
-    
-    metricList <- split(dataDF, dataDF$metricName)
-    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
-    
-    # transferFunctionCoherenceThreshold should only come in if metricName is one of the transfer metrics
-    if ( infoList$transferFunctionCoherenceThreshold ) {
-      dfTemp <- dataList[['metric_DF']]
-      dfTemp <- dfTemp[dfTemp$ms_coherence > 0.999,]
-      dataList[['metric_DF']] <- dfTemp
+    # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
+    if ( metricName == 'transfer_function' && infoList$transferFunctionCoherenceThreshold ) {
+      dataList[['metric_DF']] <- dataDF[dataDF$ms_coherence > 0.999,]
+    } else {
+      dataList[['metric_DF']] <- dataDF
     }
-
+    
     # Return BSS URL
     dataList[['bssUrl']] <- createBssUrl(iris,network,'',location,channel,starttime,endtime,metricName)      
 
@@ -205,28 +182,11 @@ createDataList <- function(infoList) {
     dataDF <- getSingleValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
 
-    # if ( metricName == 'max_stalta' ||
-    #      metricName == 'polarity_check' ||
-    #      metricName == 'transfer_function' ) {
-    #   # NOTE:  These metrics are unique in that a request returns a single dataframe with no 'metricName' column.
-    #   dataList[[metricName]] <- dataDF
-    #   # } else if ( metricName == 'transfer_function' ) {
-    #   #   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
-    #   #   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-    #   #   # NOTE:  See stackedMetricTimeseriesPlot.R
-    #   #   dataList <- list('transfer_function'=dataDF)
-    # } else {
-    #   dataList <- split(dataDF, dataDF$metricName)
-    # }
-    
-    metricList <- split(dataDF, dataDF$metricName)
-    dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code. We could just use dataDF.
-    
-    # transferFunctionCoherenceThreshold should only come in if metricName is one of the transfer metrics
-    if ( infoList$transferFunctionCoherenceThreshold ) {
-      dfTemp <- dataList[['metric_DF']]
-      dfTemp <- dfTemp[dfTemp$ms_coherence > 0.999,]
-      dataList[['metric_DF']] <- dfTemp
+    # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
+    if ( metricName == 'transfer_function' && infoList$transferFunctionCoherenceThreshold ) {
+      dataList[['metric_DF']] <- dataDF[dataDF$ms_coherence > 0.999,]
+    } else {
+      dataList[['metric_DF']] <- dataDF
     }
 
     # Return BSS URL

@@ -87,8 +87,17 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
 
 
   # ----- Plotting -------------------------------------------------------------
+ 
+  # NOTE:  transfer function metrics phase_diff and ms_coherence are in their own columns rather than 'value'
+  if ( infoList$metricName == 'phase_diff' ) {
+    metricValues <- df$phase_diff
+  } else if ( infoList$metricName == 'ms_coherence' ) {
+    metricValues <- df$ms_coherence
+  } else {
+    metricValues <- df$value
+  }
   
-  timeseriesPlot(df$starttime, df$value, style, xlim, yStyle)
+  timeseriesPlot(df$starttime, metricValues, style, xlim, yStyle)
   
 
   # ----- Annnotation ----------------------------------------------------------

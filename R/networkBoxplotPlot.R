@@ -42,7 +42,14 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   # Data Manipulation for plotting
   ########################################
 
-  metricValues <- metric_DF$value
+  # NOTE:  transfer function metrics phase_diff and ms_coherence are in their own columns rather than 'value'
+  if ( infoList$metricName == 'phase_diff' ) {
+    metricValues <- metric_DF$phase_diff
+  } else if ( infoList$metricName == 'ms_coherence' ) {
+    metricValues <- metric_DF$ms_coherence
+  } else {
+    metricValues <- metric_DF$value
+  }
   snclq <- metric_DF$snclq
   sncl <- stringr::str_replace(snclq,"..$","")  # remove last two characters
   
