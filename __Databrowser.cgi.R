@@ -3,13 +3,11 @@
 # TODO:  use configurable item instead of /usr/local/bin/Rscript
 #
 # Name:
-#       MUSTANGDatabrowser.R
+#       MUSTANGDatabrowser.cgi.R
 #
 # Author:
 #       Jonathan Callahan <jonathan@mazamascience.com>
 #
-# SECURITY: 1) All incoming parameter names and values are validated before being used.
-# SECURITY: 2) All commands are run inside try().
 
 library(methods)              # always included for Rscripts
 library(MazamaWebUtils)       # logging, cache management and cgi support
@@ -93,8 +91,8 @@ if ( "try-error" %in% class(result) ) {
 # ----- Parse Request ---------------------------------------------------------
 result <- try({
   
-  # NOTE:  So that we can debug from RStudio by defining "debugArgs" or at the command line
-  # NOTE:  debugArgs or the first argument should be the path of the request JSON copied form the log file
+  # NOTE:  So that we can debug from RStudio by defining "debugArgs" or at the command line by passing an argument.
+  # NOTE:  Either debugArgs or the first argument should be the path of the request JSON copied form the log file.
   if ( exists("debugArgs") ) {
     args <- debugArgs
   } else {
@@ -196,6 +194,5 @@ stopOnError(result, "CGI ERROR saving returnJSON")
 stopOnSuccess(rel_base, returnJSON)
 
 
-# # JUST IN CASE:
-# cat(paste0(contentTypeHeader("txt"),"ERROR:  Ran to the end of the script which should never happen"))
-# 
+# ----- THE END ---------------------------------------------------------------
+

@@ -24,7 +24,7 @@ source("__DATABROWSER_PATH__/R/channelSetTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/stackedMetricTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/tracePlot.R")
 source("__DATABROWSER_PATH__/R/networkBoxplotPlot.R")
-source("__DATABROWSER_PATH__/R/networkMapPlot.R")
+###source("__DATABROWSER_PATH__/R/networkMapPlot.R")
 source("__DATABROWSER_PATH__/R/stationBoxplotPlot.R")
 
 # Temporary metric testing scripts
