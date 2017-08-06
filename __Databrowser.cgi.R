@@ -46,6 +46,11 @@ stopOnError <- function(result, errorPrefix="", useErrorMessage=TRUE, contentTyp
   if ( "try-error" %in% class(result) ) {
     err_msg <- ifelse(useErrorMessage, paste0(errorPrefix, geterrmessage()), errorPrefix)
     logger.error(err_msg)
+    # NOTE:  The UI uses the modal alert() alert function to displaly error messages >80
+    # NOTE:  characters long. To avoid this modal UI we simply truncate at this point.
+    if ( stringr::str_count(err_msg) > 80 ) {
+      err_msg <- paste0(stringr::str_sub(err_msg,1,76),'...')
+    }
     returnList <- list(status="ERROR", error_text=err_msg)
     returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
     cat(paste0(contentTypeHeader("json"), returnJSON))
