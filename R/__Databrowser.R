@@ -113,7 +113,8 @@ __DATABROWSER__ <- function(request) {
   # Handle error response
   if (class(result) == "try-error" ) {
     err_msg <- translateErrors(geterrmessage(),infoList)
-    stop(err_msg, call.=FALSE)
+    if ( stringr::str_detect(err_msg, "no lines available in input") ) stop("No data found.", call.=FALSE)
+    else stop(err_msg, call.=FALSE)
   }
   
   # Extract 'bssUrl' and remove it from dataList so it doesn't interfere with plotting functions

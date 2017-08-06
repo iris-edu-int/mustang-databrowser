@@ -107,6 +107,13 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   # Title at the top
   text <- paste(textList$snclName,'--',textList$metricTitle)
   title(text, outer=TRUE)
+  
+  # For polarity_check, add snclq2 underneath the title
+  if ( metricName == 'polarity_check' ) {
+    snclq2s <- paste0(unique(df$snclq2), collapse=", ")
+    text <- paste0('Nearest stations: ',snclq2s)
+    mtext(text, side=3, line=0.5, cex=1.3)
+  }
     
   # Dates of available data at the bottom
   line <- par('oma')[1] - 1.5  # 1.5 lines off the outer margin bottom
