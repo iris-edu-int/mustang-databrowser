@@ -55,12 +55,15 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     yStyle <- 'zeroScaled' 
     
   } else if (metricName == 'dead_channel_exp' ||
-             metricName == 'dead_channel_gsn' ||
              metricName == 'ms_coherence' ||
              metricName == 'gain_ratio' ||
              metricName == 'xxx') {
     
     yStyle <- 'zeroScaled1' 
+    
+  } else if (metricName == 'dead_channel_gsn') {
+    
+    yStyle <- 'zeroOrOne' 
     
   } else if (metricName == 'cross_talk' ||
              metricName == 'polarity_check' ||
@@ -113,7 +116,7 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     mtext(snclq, line=0.5, adj=0.05, cex=1.3)
     i <- i + 1
     # Y axis label
-    line <- par('oma')[2] + 1.0  # 
+    line <- par('oma')[2] + 1.5  # 
     mtext(textList$metricYlab, side=2, line=line, cex=1.0)
   }
   

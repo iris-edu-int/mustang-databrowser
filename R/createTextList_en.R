@@ -92,7 +92,7 @@ createTextList <- function(dataList, infoList) {
                       data_latency='latency (seconds)',
                       dc_offset='value', # no units
                       dead_channel_exp='standard deviation of residuals (log10(dB))',
-                      dead_channel_gsn='indicator (0,1)',
+                      dead_channel_gsn='indicator',
                       dead_channel_lin='standard deviation of residuals (dB)',
                       digital_filter_charging='flag count (number of occurrences)',
                       digitizer_clipping='flag count (number of occurrences)',
@@ -108,8 +108,8 @@ createTextList <- function(dataList, infoList) {
                       num_gaps='gap count (number of occurrences)',
                       num_overlaps='overlap count (number of occurrences)',
                       num_spikes='outlier count (number of occurrences)',
-                      pct_above_nhnm='PSD values above New High Noise Model (%)',
-                      pct_below_nlnm='PSD values below New Low Noise Model (%)',
+                      pct_above_nhnm='PDF matrix above New High Noise Model (%)',
+                      pct_below_nlnm='PDF matrix below New Low Noise Model (%)',
                       percent_availability='availability (%)',
                       polarity_check='maximum cross-correlation function', # no units
                       pressure_effects='zero-lag cross-correlation function', # no units

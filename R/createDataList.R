@@ -57,7 +57,7 @@ createDataList <- function(infoList) {
   } else if ( infoList$plotType == 'metricTest' ) {
 
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
-    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
     dataList <- split(dataDF, dataDF$metricName)
 
     # Return BSS URL
@@ -70,12 +70,12 @@ createDataList <- function(infoList) {
       # Get the single dataframe including metric for an entire channelSet
       logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
-      if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+      if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
       dataList <- split(dataDF, dataDF$snclq)
     } else {
       logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
-      if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+      if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
       if ( metricName == 'max_stalta' ||
            metricName == 'polarity_check' ||
            metricName == 'transfer_function') {
@@ -135,7 +135,7 @@ createDataList <- function(infoList) {
     actualMetricNames <- paste0(actualMetricNames, collapse=",")
     logger.debug("location = '%s', metrics = '%s'", location, actualMetricNames)
     dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
-    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
     
     if ( metricName == 'max_stalta' ||
          metricName == 'polarity_check' ||
@@ -157,7 +157,7 @@ createDataList <- function(infoList) {
 
     # loads single values for each station based on whatever metric we ask for
     dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
-    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
     if ( metricName == 'transfer_function' && infoList$transferFunctionCoherenceThreshold ) {
@@ -180,7 +180,7 @@ createDataList <- function(infoList) {
     # TODO:  IRISMustangMetrics::getSingleValueMetrics should settle on '.' or '?' as the single character wildcard or should support both.
     allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN."
     dataDF <- getSingleValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
-    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
     if ( metricName == 'transfer_function' && infoList$transferFunctionCoherenceThreshold ) {
@@ -231,7 +231,7 @@ createDataList <- function(infoList) {
     
     # get individual station measurements
     dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
-    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop("No data found.", call.=FALSE)
+    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     metricList <- split(dataDF, dataDF$metricName)
     dataList[['metric_DF']] <- metricList[[1]] # just to match the previous code, we could just use dataDF
@@ -252,7 +252,7 @@ createDataList <- function(infoList) {
   for (i in seq(length(dataList))) {
     if (class(dataList[[i]]) == "data.frame") {
       if ( nrow(dataList[[i]]) == 0 ) {
-        stop("No data found.", call.=FALSE)
+        stop(paste0("No ",metricName," values found."), call.=FALSE)
       }
     }
   }

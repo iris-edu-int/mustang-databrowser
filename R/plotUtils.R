@@ -90,13 +90,16 @@ irisTickTimes <- function(starttime, endtime) {
 # TODO:  I need to send in the requested starttime and endtime so I can create the
 # TODO:  proper axes even if half the data are missing.
 
-timeseriesPlot <- function(time, metric,
+timeseriesPlot <- function(time,
+                           metric,
                            style='matlab',
                            xlim="",
                            yStyle='zeroScaled',
                            ...) {
   
   logger.info("----- timeseriesPlot -----")
+  
+  logger.debug("style = %s, yStyle = %s", style, yStyle)
   
   # ----- Style ------------------------
   
@@ -147,8 +150,8 @@ timeseriesPlot <- function(time, metric,
       yAxTicks <- c(ylo,yhi)
       yAxLabels <- format(yAxTicks,nsmall=0)
     } else {
-      ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
-      ylim=c(ylo,yhi)
+      ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
+      ylim <- c(ylo,yhi)
       yAxTicks <- NULL
       yAxLabels <- NULL
     }
@@ -162,10 +165,25 @@ timeseriesPlot <- function(time, metric,
       yAxTicks <- c(ylo,yhi)
       yAxLabels <- format(yAxTicks,nsmall=0)
     } else {
-      ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
-      ylim=c(ylo,yhi)
+      ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
+      ylim <- c(ylo,yhi)
       yAxTicks <- NULL
       yAxLabels <- NULL
+    }
+    horizLine <- 0
+  } else if (yStyle == 'zeroOrOne') { # 0:1
+    ylo <- 0
+    yhi <- 1
+    yrange <- yhi-ylo
+    if (style == 'minimalA') {
+      ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
+      yAxTicks <- c(ylo,yhi)
+      yAxLabels <- c("FALSE","TRUE")
+    } else {
+      ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
+      ylim <- c(ylo,yhi)
+      yAxTicks <- c(ylo,yhi)
+      yAxLabels <- c("FALSE","TRUE")
     }
     horizLine <- 0
   } else if (yStyle == 'zeroCentered1') { # -1:1
@@ -177,7 +195,7 @@ timeseriesPlot <- function(time, metric,
       yAxTicks <- c(ylo,yhi)
       yAxLabels <- format(yAxTicks,nsmall=0)
     } else {
-      ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
+      ## <- ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
       ylim=c(ylo,yhi)
       yAxTicks <- NULL
       yAxLabels <- NULL
@@ -192,8 +210,8 @@ timeseriesPlot <- function(time, metric,
       yAxTicks <- c(ylo,yhi)
       yAxLabels <- format(yAxTicks,nsmall=0)
     } else {
-      ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
-      ylim=c(ylo,yhi)
+      ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
+      ylim <- c(ylo,yhi)
       yAxTicks <- NULL
       yAxLabels <- NULL
     }
@@ -205,8 +223,8 @@ timeseriesPlot <- function(time, metric,
       yAxTicks <- c(ylo,yhi)
       yAxLabels <- format(yAxTicks,scientific=TRUE,digits=2)  
     } else {
-      ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
-      ylim=c(ylo,yhi)
+      ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
+      ylim <- c(ylo,yhi)
       yAxTicks <- NULL
       yAxLabels <- NULL
     }
@@ -218,8 +236,8 @@ timeseriesPlot <- function(time, metric,
       yAxTicks <- c(ylo,yhi)
       yAxLabels <- format(yAxTicks,scientific=TRUE,digits=2) 
     } else {
-      ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
-      ylim=c(ylo,yhi)
+      ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
+      ylim <- c(ylo,yhi)
       yAxTicks <- NULL
       yAxLabels <- NULL
     }
@@ -235,16 +253,17 @@ timeseriesPlot <- function(time, metric,
        axes=FALSE, xlab="", ylab="",
        ...)
 
-  # Create ticks and tables if they aren't already defined
+  # Create ticks and labels if they aren't already defined
   if (is.null(yAxTicks)) {
     yAxTicks <- axTicks(2)
-    if (max(yAxTicks) >= 1e5) {
-      yAxLabels <- format(yAxTicks,scientific=TRUE,digits=2)
+    if (max(abs(yAxTicks)) >= 1e7) {
+      ###yAxLabels <- format(yAxTicks,scientific=TRUE,digits=2)
+      yAxLabels <- formatC(yAxTicks, digits=2, format="e")
     } else {
       yAxLabels <- yAxTicks
     }
   }
-  
+
   if (showBox) { box() }
 
   abline(h=horizLine)
@@ -263,7 +282,6 @@ timeseriesPlot <- function(time, metric,
   }
   
   # Y axis and grid
-
   if (showYAxis) {
     axis(side=2, las=1, at=yAxTicks, labels=yAxLabels)
   }

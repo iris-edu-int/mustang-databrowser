@@ -9,103 +9,128 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
-/****  Here are Mary Templeton's preferred names for metric variables *********
- *
-'amplifier_saturation': 'Daily Flag Count: Amplifier Saturation Detected',
-'calibration_signal': 'Daily Flag Count: Calibration Signals Present',
-'clock_locked': 'Daily Flag Count: Clock locked',
-'cross_talk': 'Cross-Talk Check: Channel Cross-Correlation Coefficient',
-'data_latency': 'Time Since Last Data Sample Was Acquired',
-'dc_offset_times': 'Times of DC Offsets Detected',
-'digital_filter_charging': 'Daily Flag Count: Digital Filter Charging',
-'digitizer_clipping': 'Daily Flag Count: Digitizer Clipping Detected',
-'event_begin': 'Daily Flag Count: Beginning of Event (Trigger)',
-'event_end': 'Daily Flag Count: End of Event (Detrigger)',
-'event_in_progress': 'Daily Flag Count: Event in Progress',
-'feed_latency': 'Time Since Latest Data Was Received',
-'glitches': 'Daily Flag Count: Glitches Detected',
-'max_gap': 'Daily Maximum Gap Length',
-'max_overlap': 'Daily Maximum Overlap Length',
-'max_stalta': 'Maximum Daily Short-Term Average/Long-Term Average Amplitude Ratio',
-'missing_padded_data': 'Daily Flag instances: Missing/Padded Data Present',
-'num_gaps': 'Gaps Per Day',
-'num_overlaps': 'Overlaps Per Day',
-###'num_spikes': 'Spikes Per Day',
-'percent_availability': 'Channel Percent Data Available Per Day',
-'pressure_effects': 'Atmospheric Pressure Check: Barometer-Seismometer Cross-Correlation Coefficient',
-'sample_max': 'Daily Maximum Amplitude',
-'sample_mean': 'Daily Mean Amplitude',
-'sample_median': 'Daily Median Amplitude',
-'sample_min': 'Daily Minimum Amplitude',
-'sample_rms': 'Daily Root Mean Squared Variance of Amplitudes',
-'sample_snr': 'P-Wave Signal-To-Noise Ratio',
-'spikes': 'Daily Flag Count: Spikes Detected',
-'station_completeness': 'Station Percent Data Available Per Day',
-'station_up_down_times': 'Station Up/Down Time Spans',
-'suspect_time_tag': 'Daily Flag Count: Time Tag Questionable',
-'telemetry_sync_error': 'Daily Flag Count: Telemetry Synchronization Error',
-'timing_correction': 'Daily Flag Count: Timing Correction Applied',
-'timing_quality': 'Daily Average Timing Quality',
-'total_latency': 'Total Latency',
-'up_down_times': 'Channel Up/Down Time Spans',
-*
+/****  Here are Gillian's 2017-08-15 preferred names for metric variables *********
+
+simple metrics (daily)
+  max_gap: maximum gap duration
+  max_overlap: maximum overlap duration
+  max_stalta: maximum STA/LTA amplitude ratio
+  num_gaps: number of gaps
+  num_overlaps: number of overlaps
+  num_spikes: number of spikes detected
+  percent_availability: percentage data available
+  sample_min: minimum amplitude
+  sample_max: maximum amplitude
+  sample_mean: mean amplitude
+  sample_median: median amplitude
+  sample_rms: root-mean- square variance of amplitudes
+  sample_unique: count of unique sample values
+latency metrics
+  data_latency: time between latest data acquisition and receipt
+  feed_latency: time since latest data was received
+  total_latency: total data latency
+PSD metrics (daily)
+  dead_channel_exp: residuals of exponential fit to PSD mean
+  dead_channel_gsn: TRUE/FALSE
+  dead_channel_lin: residuals of linear fit to PSD mean
+  pct_above_nhnm: percent of PDF matrix above New High Noise Model
+  pct_below_nlnm: percent of PDF matrix below New Low Noise Model
+event based metrics
+  cross_talk: channel cross-correlation
+  polarity_check: near neighbor station cross-correlation
+  sample_snr: P-wave signal-to- noise ratio
+transfer function metrics
+  ms_coherence: coherence
+  gain_ratio: gain ratio
+  phase_diff: phase difference
+miniSEED state-of- health metrics (daily flag count)
+  amplifier_saturation: amplifier saturation detected
+  calibration_signal: calibration signals present
+  clock_locked: clock locked
+  digital_filter_charging: digital filter may be charging
+  digitizer_clipping: digitizer clipping detected
+  event_begin: beginning of an event, station trigger
+  event_end: end of an event, station detrigger
+  glitches: glitches detected
+  missing_padded_data: missing/padded data present
+  spikes: spikes detected
+  suspect_time_tag: time tag is questionable
+  telemetry_sync_error: telemetry synchronization error
+  timing_correction: time correction applied
+miniSEED state-of- health metrics (other)
+  timing_quality: average timing quality
+
 */
 
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
-// G_multiMetrics just has options
-var G_multiMetrics = {'basic_stats':'Min-Max-Mean',
-                      'latency':'Latency',
-                      'gaps_and_overlaps':'Gaps and Overlaps',
-                      'SOH_flags':'State-of-Health flag Counts',
-                      'transfer_function':'Transfer function'};
 
-// G_singleMetrics has optgroups and options
-var G_singleMetrics = {'simple metrics':{'sample_min': 'Daily Minimum Amplitude',
-                                         'sample_max': 'Daily Maximum Amplitude',
-                                         'sample_mean': 'Daily Mean Amplitude',
-                                         'sample_median': 'Daily Median Amplitude',
-                                         'sample_rms': 'Daily Root Mean Squared Variance of Amplitudes',
-                                         'num_gaps': 'Gaps Per Day',
-                                         'max_gap': 'Daily Maximum Gap Length',
-                                         'num_overlaps': 'Overlaps Per Day',
-                                         'max_overlap': 'Daily Maximum Overlap Length',
-                                         'percent_availability': 'Channel Percent Data Available Per Day',
-                                         'data_latency': 'Time Since Last Data Sample Was Acquired',
-                                         'feed_latency': 'Time Since Latest Data Was Received',
-                                         'total_latency': 'Total Latency'},
-                       'transfer function metrics':{'ms_coherence': 'Coherence',
-                                                    'gain_ratio': 'Gain Ratio',
-                                                    'phase_diff': 'Phase Difference'},
-                       'derived metrics':{'max_stalta': 'Maximum Daily STA/LTA Amplitude Ratio',
-                                          'sample_unique': 'Daily Count of Unique Sample Values',
-                                          'num_spikes': 'Spikes Per Day',
-                                          'pct_above_nhnm': 'Percent Above New High Noise Model',
-                                          'pct_below_nlnm': 'Percent Below New Low Noise Model',
-                                          'dead_channel_exp': 'Dead Channel Metric: Exponential Fit',
-                                          'dead_channel_gsn': 'Dead Channel Metric: GSN',
-                                          'dead_channel_lin': 'Dead Channel Metric: Linear Fit'},
-                       'event based metrics':{'cross_talk': 'Cross-Talk Check: Channel Cross-Correlation Coefficient',
-                                              //'data_resp_gain_ratio': 'Data Resp Gain Ratio',
-                                              //'data_resp_phase_diff': 'Data Resp Phase Diff',
-                                              //'magnitude_squared_coherence': 'Magnitude Squared Coherence',
-                                              //'pressure_effects': 'Pressure Effects',
-                                              'polarity_check': 'Cross-correlation Check for Parity Reversals',
-                                              'sample_snr': 'P-Wave Signal-To-Noise Ratio'},
-// TODO:  timing_quality is a state-of-health flag and not a daily average
-                       'state-of-health flag counts':{'timing_quality': 'Daily Average Timing Quality',
-                                                      'amplifier_saturation': 'Daily Flag Count: Amplifier Saturation Detected',
-                                                      'calibration_signal': 'Daily Flag Count: Calibration Signals Present',
-                                                      'clock_locked': 'Daily Flag Count: Clock locked',
-                                                      'digital_filter_charging': 'Daily Flag Count: Digital Filter Charging',
-                                                      'digitizer_clipping': 'Daily Flag Count: Digitizer Clipping Detected',
-                                                      'event_begin': 'Daily Flag Count: Beginning of Event (Trigger)',
-                                                      'event_end': 'Daily Flag Count: End of Event (Detrigger)',
-                                                      'event_in_progress': 'Daily Flag Count: Event in Progress',
-                                                      'missing_padded_data': 'Daily Flag instances: Missing/Padded Data Present',
-                                                      'suspect_time_tag': 'Daily Flag Count: Time Tag Questionable',
-                                                      'telemetry_sync_error': 'Daily Flag Count: Telemetry Synchronization Error',
-                                                      'timing_correction': 'Daily Flag Count: Timing Correction Applied'}
-                      };
+// G_multiMetrics just has options
+var G_multiMetrics = {
+  'basic_stats':'min-max-mean',
+  'latency':'latency',
+  'gaps_and_overlaps':'gaps and overlaps',
+  'SOH_flags':'state-of-health flag counts',
+  'transfer_function':'transfer function'
+};
+
+// G_singleMetrics has both optgroups and options
+var G_singleMetrics = {
+  'simple metrics (daily)': {
+    'max_gap': 'max_gap: maximum gap duration',
+    'max_overlap': 'max_overlap: maximum overlap duration',
+    'max_stalta': 'max_stalta: maximum STA/LTA amplitude ratio',
+    'num_gaps': 'num_gaps: number of gaps',
+    'num_overlaps': 'num_overlaps: number of overlaps',
+    'num_spikes': 'num_spikes: number of spikes detected',
+    'percent_availability': 'percent_availability: percentage data available',
+    'sample_min': 'sample_min: minimum amplitude',
+    'sample_max': 'sample_max: maximum amplitude',
+    'sample_mean': 'sample_mean: mean amplitude',
+    'sample_median': 'sample_median: median amplitude',
+    'sample_rms': 'sample_rms: root-mean-square variance of amplitudes',
+    'sample_unique': 'sample_unique: count of unique sample values'
+  },
+  'latency metrics': {
+    'data_latency': 'data_latency: time between latest data acquisition and receipt',
+    'feed_latency': 'feed_latency: time since latest data was received',
+    'total_latency': 'total_latency: total data latency'
+  },
+  'PSD metrics (daily)': {
+    'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
+    'dead_channel_gsn': 'dead_channel_gsn: TRUE/FALSE',
+    'dead_channel_lin': 'dead_channel_lin: residuals of linear fit to PSD mean',
+    'pct_above_nhnm': 'pct_above_nhnm: percent of PDF matrix above New High Noise Model',
+    'pct_below_nlnm': 'pct_below_nlnm: percent of PDF matrix below New Low Noise Model'
+  },
+  'event based metrics': {
+    'cross_talk': 'cross_talk: channel cross-correlation',
+    'polarity_check': 'polarity_check: near neighbor station cross-correlation',
+    'sample_snr': 'sample_snr: P-wave signal-to-noise ratio'
+  },
+  'transfer function metrics': {
+    'ms_coherence': 'ms_coherence: coherence',
+    'gain_ratio': 'grain_ratio: gain ratio',
+    'phase_diff': 'phase_diff: phase difference'
+  },
+  'miniSEED state-of-health metrics (daily flag count)': {
+    'amplifier_saturation': 'amplifier_saturation: amplifier saturation detected',
+    'calibration_signal': 'calibration_signal: calibration signals present',
+    'clock_locked': 'clock_locked: clock locked',
+    'digital_filter_charging': 'digital_filter_charging: digital filter may be charging',
+    'digitizer_clipping': 'digitizer_clipping: digitizer clipping detected',
+    'event_begin': 'event_begin: beginning of an event, station trigger',
+    'event_end': 'event_end: end of an event, station detrigger',
+    'glitches': 'glitches: glitches detected',
+    'missing_padded_data': 'missing_padded_data: missing/padded data present',
+    'spikes': 'spikes: spikes detected',
+    'suspect_time_tag': 'suspect_time_tag: time tag is questionable',
+    'telemetry_sync_error': 'telemetry_sync_error: telemetry synchronization error',
+    'timing_correction': 'timing_correction: time correction applied'
+  },
+  'miniSEED state-of- health metrics (other)': {
+    'timing_quality': 'timing_quality: average timing quality'
+  }
+};
 
 // G_networks is defined in networks.js which is loaded by the html page.
 // SNCL selector associative arrays are load by the html page:  G_networks, G_stations, G_locations, G_channels

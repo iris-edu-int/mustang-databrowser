@@ -41,7 +41,7 @@ translateErrors <- function(err_msg,infoList) {
   if (stringr::str_detect(err_msg,"No targets were found after filtering")) {
     
     # handles getSingleValueMeasurements problems with parameters.
-    return(paste("No",metricName,"data found for",snclName))
+    return(paste("No",metricName,"values found for",snclName))
     
   } else if (stringr::str_detect(err_msg,"cannot open the connection")) {
     
@@ -50,7 +50,7 @@ translateErrors <- function(err_msg,infoList) {
     # endtime is too early
     # also this happens if it can't connect to the server and getEvent fails
     # also this happens if it can't connect to the server and getNetwork fails
-    return(paste("No",metricName,"data found for",snclName))
+    return(paste("No",metricName,"values found for",snclName))
     
   } else if (stringr::str_detect(err_msg,"miniseed2Stream: No data found")) {
     
@@ -78,14 +78,14 @@ translateErrors <- function(err_msg,infoList) {
   } else if (stringr::str_detect(err_msg,"measurementName : replacement has length zero")) {
 
     # This happens when measurement service returns with header columns but no data
-    return(paste("No",metricName,"data found for",snclName))
+    return(paste("No",metricName,"values found for",snclName))
 
   } else if (stringr::str_detect(err_msg,"getEvent.IrisClient: No Data") ||
                stringr::str_detect(err_msg,"No data found")) {
     
     # getEvent could not get any data since minmag is too large
     # also this happens if it can't connect to the server and getEvent fails
-    return(paste("No",metricName,"data found for",snclName))
+    return(paste("No",metricName,"values found for",snclName))
     
   } else {
     
