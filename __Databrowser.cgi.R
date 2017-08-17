@@ -51,7 +51,7 @@ stopOnError <- function(result, errorPrefix="", useErrorMessage=TRUE, contentTyp
     }
     returnList <- list(status="ERROR", error_text=err_msg)
     returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
-    cat(paste0(contentTypeHeader("json"), returnJSON))
+    cat(paste0(httpResponse.header("json"), returnJSON))
     quit(save="no", status=0, runLast=TRUE)
   }
 }
@@ -62,7 +62,7 @@ stopOnSuccess <- function(rel_base, returnJSON) {
   outerReturnList <- list(status="OK", rel_base=rel_base, return_json=returnJSON)
   outerReturnJSON <- jsonlite::toJSON(outerReturnList, auto_unbox=TRUE, pretty=FALSE)
   logger.info("returnJSON = %s", outerReturnJSON)
-  cat(paste0(contentTypeHeader("json"), outerReturnJSON))
+  cat(paste0(httpResponse.header("json"), outerReturnJSON))
   quit(save="no", status=0, runLast=TRUE)
 }
 
@@ -84,7 +84,7 @@ if ( "try-error" %in% class(result) ) {
   err_msg <- paste0("CGI ERROR during logging setup: ", geterrmessage())
   returnList <- list(status="ERROR", error_text=err_msg)
   returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
-  cat(paste0(contentTypeHeader("json"),returnJSON))
+  cat(paste0(httpResponse.header("json"),returnJSON))
   quit(save="no", status=0, runLast=TRUE)
 }
 
