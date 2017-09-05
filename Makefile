@@ -82,9 +82,9 @@ install_UI: FORCE
 	-chmod 755 $(CGI_PATH)/$(DATABROWSER).cgi
 	cp $(CGI_PATH)/$(DATABROWSER).cgi ./DEBUG_$(DATABROWSER).cgi.R
 	# copy in javascript files
-	cp -r behavior $(DATABROWSER_PATH)
-	sed $(DATABROWSER_SED_SCRIPT) behavior/__Mazama_databrowser.js > $(DATABROWSER_PATH)/behavior/Mazama_databrowser.js
-	rm $(DATABROWSER_PATH)/behavior/__*
+	cp -r js $(DATABROWSER_PATH)
+	sed $(DATABROWSER_SED_SCRIPT) js/__Mazama_databrowser.js > $(DATABROWSER_PATH)/js/Mazama_databrowser.js
+	rm $(DATABROWSER_PATH)/js/__*
 	# make debugging files
 	touch $(DATABROWSER_PATH)/ERROR.log
 	touch $(DATABROWSER_PATH)/INFO.log

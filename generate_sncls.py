@@ -10,10 +10,10 @@ used in the creation of SNCL selectors:
  * locations.js -- defines G_locations:  dictionary of {net1.sta1:[loc1,loc2,loc3,...],...}
  * channels.js  -- defines G_channels:  dictionary of {net1.sta1.loc1:[cha1,cha2,cha3,...],...}
 
-These are used in behavior/__Databrowser.js for the dynamic creation of SNCL selectors.
+These are used in js/__Databrowser.js for the dynamic creation of SNCL selectors.
 
 The intention is for this script to be run regulary by a cron job witho utput
-going to the databrowser behavior/ directory.
+going to the databrowser js/ directory.
 
 A single argument is accepted specifying the location of the directory in which these files
 should be placed.
