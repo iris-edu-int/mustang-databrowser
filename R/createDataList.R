@@ -56,7 +56,7 @@ createDataList <- function(infoList) {
 
   } else if ( infoList$plotType == 'metricTest' ) {
 
-    dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+    dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
     dataList <- split(dataDF, dataDF$metricName)
 
@@ -68,13 +68,13 @@ createDataList <- function(infoList) {
 
     if  ( infoList$timeseriesChannelSet ) {
       # Get the single dataframe including metric for an entire channelSet
-      logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
-      dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+      logger.debug("getGeneralValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
+      dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
       if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
       dataList <- split(dataDF, dataDF$snclq)
     } else {
-      logger.debug("getSingleValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
-      dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+      logger.debug("getGeneralValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
+      dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
       if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
       if ( metricName == 'max_stalta' ||
            metricName == 'polarity_check' ||
@@ -134,7 +134,7 @@ createDataList <- function(infoList) {
     }
     actualMetricNames <- paste0(actualMetricNames, collapse=",")
     logger.debug("location = '%s', metrics = '%s'", location, actualMetricNames)
-    dataDF <- getSingleValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
+    dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
     
     if ( metricName == 'max_stalta' ||
@@ -156,7 +156,7 @@ createDataList <- function(infoList) {
     dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime)
 
     # loads single values for each station based on whatever metric we ask for
-    dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    dataDF <- getGeneralValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
@@ -177,9 +177,9 @@ createDataList <- function(infoList) {
 
     # loads single values for all seismic channels
     # NOTE:  Here, we need to use '.' instead of '?'.
-    # TODO:  IRISMustangMetrics::getSingleValueMetrics should settle on '.' or '?' as the single character wildcard or should support both.
+    # TODO:  IRISMustangMetrics::getGeneralValueMetrics should settle on '.' or '?' as the single character wildcard or should support both.
     allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN."
-    dataDF <- getSingleValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
+    dataDF <- getGeneralValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
@@ -230,7 +230,7 @@ createDataList <- function(infoList) {
     logger.debug("%f seconds to load simplemap.RData", round(elapsed,4))
     
     # get individual station measurements
-    dataDF <- getSingleValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    dataDF <- getGeneralValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     metricList <- split(dataDF, dataDF$metricName)
@@ -238,10 +238,10 @@ createDataList <- function(infoList) {
     
     elapsed <- ( (proc.time())[3] - timepoint )
     timepoint <- (proc.time())[3]
-    logger.debug("%f seconds to load getSingleValueMetrics", round(elapsed,4))
+    logger.debug("%f seconds to load getGeneralValueMetrics", round(elapsed,4))
     
     total_elapsed <- ( (proc.time())[3] - start )
-    logger.debug("Total elapsed = %f seconds to load getSingleValueMetrics", round(elapsed,4))
+    logger.debug("Total elapsed = %f seconds to load getGeneralValueMetrics", round(elapsed,4))
     
     # Return BSS URL
     dataList[['bssUrl']] <- ''
