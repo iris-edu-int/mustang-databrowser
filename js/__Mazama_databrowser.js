@@ -504,39 +504,94 @@ function selectChannel(){
 
 /**** PREV/NEXT STATION BUTTONS ***********************************************/
 
-// Figure out the index of the currently selected station and decrement if possible
+// Move to the previous available location/station that shares the current channel
 function prevStation() {
 
   var plotType = $('#plotType').val();
 
   if (plotType == 'networkBoxplot') {
-    var currentOption = $('#network').val();
-    var allOptions = $('#network option').map(function() {return $(this).val();}).get();
-  } else {
-    var currentOption = $('#station').val();
-    var allOptions = $('#station option').map(function() {return $(this).val();}).get();
-  }
 
-  var index = 0;
-  for (i=0; i<allOptions.length; i++) {
-    if (allOptions[i] == currentOption) {
-      index = i;
-      break;
-    }
-  }
+    // networkBoxplots increment the network
 
-  if (index == 0) {
-    $('#prevStation').prop('disabled',true);
-  } else {
-    index--;
-    if (plotType == 'networkBoxplot') {
-      G_network = allOptions[index];
-      $('#network').val(G_network);
+    var currentNetwork = $('#network').val();
+    var allNetworks = $('#network option').map(function() {return $(this).val();}).get();
+    var networkIndex = allNetworks.indexOf(currentNetwork);
+    if (networkIndex == 0) {
+      $('#prevStation').prop('disabled',true);
     } else {
-      G_station = allOptions[index];
-      $('#station').val(G_station);
+      networkIndex--;
+      G_network = allNetworks[networkIndex];
+      $('#network').val(G_network); // trigger the cascading selectors
     }
-  }
+
+  } else {
+
+    // all other plot types decrement the location and then the station
+
+    var currentNetwork = $('#network').val();
+    var currentStation = $('#station').val();
+    var currentLocation = $('#location').val();
+    var currentChannel = $('#channel').val();
+
+    var N = currentNetwork;
+    var NS = N + '.' + currentStation;
+    var NSL = NS + '.' + currentLocation;
+
+    var allStations = G_stations[N].sort();
+    var allLocations = G_locations[NS].sort();
+    var allChannels = G_channels[NSL].sort();
+
+    var stationIndex = allStations.indexOf(currentStation);
+    var locationIndex = allLocations.indexOf(currentLocation);
+
+    // Try to decrement the location if possible
+    if (locationIndex > 0) {
+
+      locationIndex--;
+      for (locationIndex; locationIndex>0; locationIndex--) {
+       NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+       allChannels = G_channels[NSL].sort();
+       if (allChannels.indexOf(currentChannel) >= 0) {
+         G_location = allLocations[locationIndex];
+         $('#location').val(G_location); // trigger the cascading selectors
+         break;
+        } 
+      }
+
+    }
+
+    // If we have run out of locations, try to decrement the station
+    if (locationIndex < 0) {
+
+      if (stationIndex == 0) {
+
+        $('#nextStation').prop('disabled',true);
+
+      } else {
+
+        // Decrement the station
+        stationIndex--;
+        G_station = allStations[stationIndex];
+        $('#station').val(G_station); // trigger the cascading selectors
+        // Now find the first location with the currentChannel
+        currentStation = $('#station').val();
+        allLocations = $('#location option').map(function() {return $(this).val();}).get();
+        locationIndex = allLocations.length-1;
+        for (locationIndex; locationIndex>0; locationIndex--) {
+         var NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+         var allChannels = G_channels[NSL].sort();
+         if (allChannels.indexOf(currentChannel) >= 0) {
+           G_location = allLocations[locationIndex];
+           $('#location').val(G_location); // trigger the cascading selectors
+           break;
+          } 
+        }
+
+      }
+
+    } // END increment station
+
+  } // END plotType
 
   $('#nextStation').prop('disabled',false);
 
@@ -544,39 +599,94 @@ function prevStation() {
 }
 
 
-// Figure out the index of the currently selected station and increment if possible
+// Move to the next available location/station that shares the current channel
 function nextStation() {
 
   var plotType = $('#plotType').val();
 
   if (plotType == 'networkBoxplot') {
-    var currentOption = $('#network').val();
-    var allOptions = $('#network option').map(function() {return $(this).val();}).get();
-  } else {
-    var currentOption = $('#station').val();
-    var allOptions = $('#station option').map(function() {return $(this).val();}).get();
-  }
 
-  var index = 0;
-  for (i=0; i<allOptions.length; i++) {
-    if (allOptions[i] == currentOption) {
-      index = i;
-      break;
-    }
-  }
+    // networkBoxplots increment the network
 
-  if (index == allOptions.length-1) {
-    $('#nextStation').prop('disabled',true);
-  } else {
-    index++;
-    if (plotType == 'networkBoxplot') {
-      G_network = allOptions[index];
-      $('#network').val(G_network);
+    var currentNetwork = $('#network').val();
+    var allNetworks = $('#network option').map(function() {return $(this).val();}).get();
+    var networkIndex = allNetworks.indexOf(currentNetwork);
+    if (networkIndex == allNetworks.length-1) {
+      $('#nextStation').prop('disabled',true);
     } else {
-      G_station = allOptions[index];
-      $('#station').val(G_station);
+      networkIndex++;
+      G_network = allNetworks[networkIndex];
+      $('#network').val(G_network); // trigger the cascading selectors
     }
-  }
+
+  } else {
+
+    // all other plot types increment the location and then the station
+
+    var currentNetwork = $('#network').val();
+    var currentStation = $('#station').val();
+    var currentLocation = $('#location').val();
+    var currentChannel = $('#channel').val();
+
+    var N = currentNetwork;
+    var NS = N + '.' + currentStation;
+    var NSL = NS + '.' + currentLocation;
+
+    var allStations = G_stations[N].sort();
+    var allLocations = G_locations[NS].sort();
+    var allChannels = G_channels[NSL].sort();
+
+    var stationIndex = allStations.indexOf(currentStation);
+    var locationIndex = allLocations.indexOf(currentLocation);
+
+    // Try to increment the location if possible
+    if (locationIndex < allLocations.length-1) {
+
+      locationIndex++;
+      for (locationIndex; locationIndex<allLocations.length; locationIndex++) {
+       NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+       allChannels = G_channels[NSL].sort();
+       if (allChannels.indexOf(currentChannel) >= 0) {
+         G_location = allLocations[locationIndex];
+         $('#location').val(G_location); // trigger the cascading selectors
+         break;
+        } 
+      }
+
+    }
+
+    // If we have run out of locations, try to increment the station
+    if (locationIndex == allLocations.length) {
+
+      if (stationIndex == allStations.length) {
+
+        $('#nextStation').prop('disabled',true);
+
+      } else {
+
+        // Increment the station
+        stationIndex++;
+        G_station = allStations[stationIndex];
+        $('#station').val(G_station); // trigger the cascading selectors
+        // Now find the first location with the currentChannel
+        currentStation = $('#station').val();
+        allLocations = $('#location option').map(function() {return $(this).val();}).get();
+        locationIndex = 0;
+        for (locationIndex; locationIndex<allLocations.length; locationIndex++) {
+         var NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+         var allChannels = G_channels[NSL].sort();
+         if (allChannels.indexOf(currentChannel) >= 0) {
+           G_location = allLocations[locationIndex];
+           $('#location').val(G_location); // trigger the cascading selectors
+           break;
+          } 
+        }
+
+      }
+
+    } // END increment station
+
+  } // END plotType
 
   $('#prevStation').prop('disabled',false);
 
