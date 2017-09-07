@@ -48,7 +48,7 @@ createDataList <- function(infoList) {
   
   if ( infoList$plotType == 'trace' ) {
     
-    dataList[['dataselect_DF']] <- getDataselect(iris,network,station,location,channel,starttime,endtime)
+    dataList[['dataselect_DF']] <- getDataselect(iris,network,station,location,channel,starttime,endtime,ignoreEpoch=TRUE)
     
     # Return BSS URL
     dataList[['bssUrl']] <- ''

@@ -91,16 +91,20 @@ var G_singleMetrics = {
     'sample_unique': 'sample_unique: count of unique sample values'
   },
   'latency metrics': {
-    'data_latency': 'data_latency: time between latest data acquisition and receipt',
+    'data_latency': 'data_latency: time between data acquisition and receipt',
+    // 'data_latency': 'data_latency: time between latest data acquisition and receipt',
     'feed_latency': 'feed_latency: time since latest data was received',
     'total_latency': 'total_latency: total data latency'
   },
   'PSD metrics (daily)': {
-    'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
+    'dead_channel_exp': 'dead_channel_exp: residuals of exp fit to PSD mean',
+    // 'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
     'dead_channel_gsn': 'dead_channel_gsn: TRUE/FALSE',
     'dead_channel_lin': 'dead_channel_lin: residuals of linear fit to PSD mean',
-    'pct_above_nhnm': 'pct_above_nhnm: percent of PDF matrix above New High Noise Model',
-    'pct_below_nlnm': 'pct_below_nlnm: percent of PDF matrix below New Low Noise Model'
+    'pct_above_nhnm': 'pct_above_nhnm: percent of PDF above New High Noise Model',
+    'pct_below_nlnm': 'pct_below_nlnm: percent of PDF below New Low Noise Model'
+    // 'pct_above_nhnm': 'pct_above_nhnm: percent of PDF matrix above New High Noise Model',
+    // 'pct_below_nlnm': 'pct_below_nlnm: percent of PDF matrix below New Low Noise Model'
   },
   'event based metrics': {
     'cross_talk': 'cross_talk: channel cross-correlation',
@@ -113,10 +117,12 @@ var G_singleMetrics = {
     'phase_diff': 'phase_diff: phase difference'
   },
   'miniSEED state-of-health metrics (daily flag count)': {
-    'amplifier_saturation': 'amplifier_saturation: amplifier saturation detected',
+    'amplifier_saturation': 'amplifier_saturation: saturation detected',
+    // 'amplifier_saturation': 'amplifier_saturation: amplifier saturation detected',
     'calibration_signal': 'calibration_signal: calibration signals present',
     'clock_locked': 'clock_locked: clock locked',
-    'digital_filter_charging': 'digital_filter_charging: digital filter may be charging',
+    'digital_filter_charging': 'digital_filter_charging: filter may be charging',
+    // 'digital_filter_charging': 'digital_filter_charging: digital filter may be charging',
     'digitizer_clipping': 'digitizer_clipping: digitizer clipping detected',
     'event_begin': 'event_begin: beginning of an event, station trigger',
     'event_end': 'event_end: end of an event, station detrigger',
@@ -124,7 +130,8 @@ var G_singleMetrics = {
     'missing_padded_data': 'missing_padded_data: missing/padded data present',
     'spikes': 'spikes: spikes detected',
     'suspect_time_tag': 'suspect_time_tag: time tag is questionable',
-    'telemetry_sync_error': 'telemetry_sync_error: telemetry synchronization error',
+    // 'telemetry_sync_error': 'telemetry_sync_error: telemetry synchronization error',
+    'telemetry_sync_error': 'telemetry_sync_error: telemetry sync error',
     'timing_correction': 'timing_correction: time correction applied'
   },
   'miniSEED state-of- health metrics (other)': {
