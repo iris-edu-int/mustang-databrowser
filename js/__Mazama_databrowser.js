@@ -395,6 +395,11 @@ function generateNetworks(){
   // Get the list of options
   var options = G_networks
 
+  // If the current network is not in the list of networks, choose the first available
+  if (options.indexOf(G_network) < 0) {
+    G_network = options[0];
+  }
+
   // Empty the selector
   var sel = $('#network');
   sel.empty();
@@ -408,8 +413,12 @@ function generateNetworks(){
     }
   }
 
-  // Reset the gobal network in case anything changed
-  G_network = $('#network').val(); // TODO:  This is removed in Robert's version
+ // If the current station is not in the network, choose the first available
+  var N = G_network;
+  var allStations = G_stations[N].sort();
+  if (allStations.indexOf(G_station) < 0) {
+    G_station = allStations[0];
+  } 
   
   generateStations();
 }
@@ -420,6 +429,11 @@ function generateNetworks(){
 function generateStations(){
   // Get the list of options
   var options = G_stations[G_network].sort();
+
+  // If the current station is not in the network, choose the first available
+  if (options.indexOf(G_station) < 0) {
+    G_station = options[0];
+  }
 
   // Empty the selector
   var sel = $('#station');
@@ -434,8 +448,12 @@ function generateStations(){
     }
   }
   
-  // Reset the gobal station in case anything changed
-  G_station = $('#station').val(); // TODO:  This is removed in Robert's version
+ // If the current location is not in the station, choose the first available
+  var NS = G_network + '.' + G_station;
+  var allLocations = G_locations[NS].sort();
+  if (allLocations.indexOf(G_location) < 0) {
+    G_location = allLocations[0];
+  } 
   
   generateLocations();
 }
@@ -445,8 +463,13 @@ function generateStations(){
 
 function generateLocations(){
   // Get the list of options
-  var netSta = G_network + '.' + G_station;
-  var options = G_locations[netSta].sort();
+  var NS = G_network + '.' + G_station;
+  var options = G_locations[NS].sort();
+
+  // If the current location is not in the station, choose the first available
+  if (options.indexOf(G_location) < 0) {
+    G_location = options[0];
+  }
 
   // Empty the selector
   var sel = $('#location');
@@ -461,8 +484,12 @@ function generateLocations(){
     }
   }
   
-  // Reset the gobal location in case anything changed
-  G_location = $('#location').val();
+ // If the current channel is not in the location, choose the first available
+  var NSL = G_network + '.' + G_station + '.' + G_location;
+  var allChannels = G_channels[NSL].sort();
+  if (allChannels.indexOf(G_channel) < 0) {
+    G_channel = allChannels[0];
+  } 
   
   generateChannels();
 }
@@ -471,13 +498,23 @@ function generateLocations(){
 
 function generateChannels(){
   // Get the list of options
-  var netStaLoc = G_network + '.' + G_station + '.' + G_location;
-  var options = G_channels[netStaLoc].sort();
+  var NSL = G_network + '.' + G_station + '.' + G_location;
+  var options = G_channels[NSL].sort();
   
+  // If the current location is not in the station, choose the first available
+  if (options.indexOf(G_channel) < 0) {
+    G_channel = options[0];
+  }
+
   // Empty the selector
   var sel = $('#channel');
   sel.empty();
   
+  // If this channel is not in the location, choose the first available
+  if (options.indexOf(G_channel) < 0) {
+    G_channel = options[0];
+  }
+
   for (var i=0; i<options.length; i++) {
     if (options[i] == G_channel) {
       sel.append('<option selected="selected" value="' + options[i] + '">' + options[i] + '</option>');
@@ -485,9 +522,6 @@ function generateChannels(){
       sel.append('<option value="' + options[i] + '">' + options[i] + '</option>');
     }
   }
-
-  // Reset the gobal channel in case anything changed
-  selectChannel();
 
   if (G_firstPlot) {
     updatePlot();
@@ -497,8 +531,24 @@ function generateChannels(){
 
 // Set the global channel variable ---------------------------------------------
 
+function selectNetwork(){
+  G_network = $('#network').val();
+  generateNetworks();
+}
+
+function selectStation(){
+  G_station = $('#station').val();
+  generateStations();
+}
+
+function selectLocation(){
+  G_location = $('#location').val();
+  generateLocations();
+}
+
 function selectChannel(){
   G_channel = $('#channel').val();
+  generateChannels();
 }
 
 
@@ -522,7 +572,9 @@ function prevStation() {
       networkIndex--;
       G_network = allNetworks[networkIndex];
       generateNetworks(); // trigger the cascading selectors
-      // // //$('#network').val(G_network); // trigger the cascading selectors
+      $('#nextStation').prop('disabled',false);
+      updatePlot();
+      return;
     }
 
   } else {
@@ -535,8 +587,8 @@ function prevStation() {
     var currentChannel = $('#channel').val();
 
     var N = currentNetwork;
-    var NS = N + '.' + currentStation;
-    var NSL = NS + '.' + currentLocation;
+    var NS = currentNetwork + '.' + currentStation;
+    var NSL = currentNetwork + '.' + currentStation + '.' + currentLocation;
 
     var allStations = G_stations[N].sort();
     var allLocations = G_locations[NS].sort();
@@ -546,68 +598,51 @@ function prevStation() {
     var locationIndex = allLocations.indexOf(currentLocation);
 
     // Try to decrement the location if possible
-    if (locationIndex > 0) {
+    while (locationIndex > 0) {
 
       locationIndex--;
-      for (locationIndex; locationIndex>0; locationIndex--) {
-        NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
-        allChannels = G_channels[NSL].sort();
-        if (allChannels.indexOf(currentChannel) >= 0) {
-          G_location = allLocations[locationIndex];
-          generateLocations(); // trigger the cascading selectors
-          // // //$('#location').val(G_location); // trigger the cascading selectors
-          locationIndex--;
-          break; // break without decrementing
-        } 
-      }
+      NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+      allChannels = G_channels[NSL].sort();
+      if (allChannels.indexOf(currentChannel) >= 0) {
+        G_location = allLocations[locationIndex];
+        generateLocations(); // trigger the cascading selectors
+        $('#prevStation').prop('disabled',false);
+        updatePlot();
+        return;
+      } 
 
     }
 
     // If we have run out of locations, try to decrement the station
-    if (locationIndex < 0) {
+    while (stationIndex > 0) {
 
-      if (stationIndex == 0) {
+      stationIndex--;
+      currentStation = allStations[stationIndex];
+      NS = currentNetwork + '.' + currentStation;
+      allLocations = G_locations[NS].sort();
+      locationIndex = allLocations.length;
 
-        $('#nextStation').prop('disabled',true);
+      while (locationIndex > 0) {
 
-      } else {
+        locationIndex--;
+        NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+        allChannels = G_channels[NSL].sort();
 
-        var keepSearching = true;
-        while (stationIndex > 0 && keepSearching) {
-
-          // Decrement the station
-          stationIndex--;
-          G_station = allStations[stationIndex];
+        if (allChannels.indexOf(currentChannel) >= 0) {
+          G_station = currentStation;
+          G_location = allLocations[locationIndex];
           generateStations(); // trigger the cascading selectors
-          // // //$('#station').val(G_station); // trigger the cascading selectors
-          // Now find the first location with the currentChannel
-          currentStation = $('#station').val();
-          allLocations = $('#location option').map(function() {return $(this).val();}).get();
-          locationIndex = allLocations.length-1;
-          for (locationIndex; locationIndex>0; locationIndex--) {
-            var NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
-            var allChannels = G_channels[NSL].sort();
-            if (allChannels.indexOf(currentChannel) >= 0) {
-              G_location = allLocations[locationIndex];
-              generateLocations(); // trigger the cascading selectors
-              // // //$('#location').val(G_location); // trigger the cascading selectors
-              locationIndex--;
-              keepSearching = false;
-              break; // break without decrementing
-            } 
-          } // END locationIndex for loop
+          $('#nextStation').prop('disabled',false);
+          updatePlot();
+          return;
+        } 
 
-        } // END stationIndex while loop
+      } // END locationIndex while loop
 
-      } // END else
-
-    } // END run out of locations, try to decrement the station
+    } // END stationIndex while loop
 
   } // END plotType
 
-  $('#nextStation').prop('disabled',false);
-
-  updatePlot();
 }
 
 
@@ -858,9 +893,9 @@ $(function() {
   generateSingleMetricsSelector();
   
   // Cascading SNCL selectors
-  $('#network').change(generateStations);
-  $('#station').change(generateLocations);
-  $('#location').change(generateChannels);
+  $('#network').change(selectNetwork);
+  $('#station').change(selectStation);
+  $('#location').change(selectLocation);
   $('#channel').change(selectChannel);
   
   // Set up datepicker
