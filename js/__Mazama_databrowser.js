@@ -487,7 +487,7 @@ function generateChannels(){
   }
 
   // Reset the gobal channel in case anything changed
-  G_channel = $('#channel').val();
+  selectChannel();
 
   if (G_firstPlot) {
     updatePlot();
@@ -521,7 +521,8 @@ function prevStation() {
     } else {
       networkIndex--;
       G_network = allNetworks[networkIndex];
-      $('#network').val(G_network); // trigger the cascading selectors
+      generateNetworks(); // trigger the cascading selectors
+      // // //$('#network').val(G_network); // trigger the cascading selectors
     }
 
   } else {
@@ -549,12 +550,14 @@ function prevStation() {
 
       locationIndex--;
       for (locationIndex; locationIndex>0; locationIndex--) {
-       NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
-       allChannels = G_channels[NSL].sort();
-       if (allChannels.indexOf(currentChannel) >= 0) {
-         G_location = allLocations[locationIndex];
-         $('#location').val(G_location); // trigger the cascading selectors
-         break;
+        NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+        allChannels = G_channels[NSL].sort();
+        if (allChannels.indexOf(currentChannel) >= 0) {
+          G_location = allLocations[locationIndex];
+          generateLocations(); // trigger the cascading selectors
+          // // //$('#location').val(G_location); // trigger the cascading selectors
+          locationIndex--;
+          break; // break without decrementing
         } 
       }
 
@@ -569,27 +572,36 @@ function prevStation() {
 
       } else {
 
-        // Decrement the station
-        stationIndex--;
-        G_station = allStations[stationIndex];
-        $('#station').val(G_station); // trigger the cascading selectors
-        // Now find the first location with the currentChannel
-        currentStation = $('#station').val();
-        allLocations = $('#location option').map(function() {return $(this).val();}).get();
-        locationIndex = allLocations.length-1;
-        for (locationIndex; locationIndex>0; locationIndex--) {
-         var NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
-         var allChannels = G_channels[NSL].sort();
-         if (allChannels.indexOf(currentChannel) >= 0) {
-           G_location = allLocations[locationIndex];
-           $('#location').val(G_location); // trigger the cascading selectors
-           break;
-          } 
-        }
+        var keepSearching = true;
+        while (stationIndex > 0 && keepSearching) {
 
-      }
+          // Decrement the station
+          stationIndex--;
+          G_station = allStations[stationIndex];
+          generateStations(); // trigger the cascading selectors
+          // // //$('#station').val(G_station); // trigger the cascading selectors
+          // Now find the first location with the currentChannel
+          currentStation = $('#station').val();
+          allLocations = $('#location option').map(function() {return $(this).val();}).get();
+          locationIndex = allLocations.length-1;
+          for (locationIndex; locationIndex>0; locationIndex--) {
+            var NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+            var allChannels = G_channels[NSL].sort();
+            if (allChannels.indexOf(currentChannel) >= 0) {
+              G_location = allLocations[locationIndex];
+              generateLocations(); // trigger the cascading selectors
+              // // //$('#location').val(G_location); // trigger the cascading selectors
+              locationIndex--;
+              keepSearching = false;
+              break; // break without decrementing
+            } 
+          } // END locationIndex for loop
 
-    } // END increment station
+        } // END stationIndex while loop
+
+      } // END else
+
+    } // END run out of locations, try to decrement the station
 
   } // END plotType
 
@@ -613,10 +625,14 @@ function nextStation() {
     var networkIndex = allNetworks.indexOf(currentNetwork);
     if (networkIndex == allNetworks.length-1) {
       $('#nextStation').prop('disabled',true);
+      return;
     } else {
       networkIndex++;
       G_network = allNetworks[networkIndex];
-      $('#network').val(G_network); // trigger the cascading selectors
+      generateNetworks(); // trigger the cascading selectors
+      $('#prevStation').prop('disabled',false);
+      updatePlot();
+      return;
     }
 
   } else {
@@ -629,8 +645,8 @@ function nextStation() {
     var currentChannel = $('#channel').val();
 
     var N = currentNetwork;
-    var NS = N + '.' + currentStation;
-    var NSL = NS + '.' + currentLocation;
+    var NS = currentNetwork + '.' + currentStation;
+    var NSL = currentNetwork + '.' + currentStation + '.' + currentLocation;
 
     var allStations = G_stations[N].sort();
     var allLocations = G_locations[NS].sort();
@@ -640,57 +656,51 @@ function nextStation() {
     var locationIndex = allLocations.indexOf(currentLocation);
 
     // Try to increment the location if possible
-    if (locationIndex < allLocations.length-1) {
+    while (locationIndex < allLocations.length-1) {
 
       locationIndex++;
-      for (locationIndex; locationIndex<allLocations.length; locationIndex++) {
-       NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
-       allChannels = G_channels[NSL].sort();
-       if (allChannels.indexOf(currentChannel) >= 0) {
-         G_location = allLocations[locationIndex];
-         $('#location').val(G_location); // trigger the cascading selectors
-         break;
-        } 
-      }
+      NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+      allChannels = G_channels[NSL].sort();
+      if (allChannels.indexOf(currentChannel) >= 0) {
+        G_location = allLocations[locationIndex];
+        generateLocations(); // trigger the cascading selectors
+        $('#prevStation').prop('disabled',false);
+        updatePlot();
+        return;
+      } 
 
     }
 
     // If we have run out of locations, try to increment the station
-    if (locationIndex == allLocations.length) {
+    while (stationIndex < allStations.length-1) {
 
-      if (stationIndex == allStations.length) {
+      stationIndex++;
+      currentStation = allStations[stationIndex];
+      NS = currentNetwork + '.' + currentStation;
+      allLocations = G_locations[NS].sort();
+      locationIndex = -1;
 
-        $('#nextStation').prop('disabled',true);
+      while (locationIndex < allLocations.length) {
 
-      } else {
+        locationIndex++;
+        NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
+        allChannels = G_channels[NSL].sort();
 
-        // Increment the station
-        stationIndex++;
-        G_station = allStations[stationIndex];
-        $('#station').val(G_station); // trigger the cascading selectors
-        // Now find the first location with the currentChannel
-        currentStation = $('#station').val();
-        allLocations = $('#location option').map(function() {return $(this).val();}).get();
-        locationIndex = 0;
-        for (locationIndex; locationIndex<allLocations.length; locationIndex++) {
-         var NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
-         var allChannels = G_channels[NSL].sort();
-         if (allChannels.indexOf(currentChannel) >= 0) {
-           G_location = allLocations[locationIndex];
-           $('#location').val(G_location); // trigger the cascading selectors
-           break;
-          } 
-        }
+        if (allChannels.indexOf(currentChannel) >= 0) {
+          G_station = currentStation;
+          G_location = allLocations[locationIndex];
+          generateStations(); // trigger the cascading selectors
+          $('#prevStation').prop('disabled',false);
+          updatePlot();
+          return;
+        } 
 
-      }
+      } // END locationIndex while loop
 
-    } // END increment station
+    } // END stationIndex while loop
 
   } // END plotType
 
-  $('#prevStation').prop('disabled',false);
-
-  updatePlot();
 }
 
 
