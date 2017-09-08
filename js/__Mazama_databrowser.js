@@ -1001,7 +1001,5 @@ $(function() {
   // set the initial plot type
   $('#plotType').val("metricTimeseries");
 
-  $('#combobox').combobox();
-
 });
 

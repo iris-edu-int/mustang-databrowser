@@ -39,12 +39,37 @@ img#spinner {
 
 /* .... .... DATA SOURCE AND TIMESPAN ........................................*/
 
-.doNotSerialize{ 
+.doNotSerialize { 
   color: #AAA;
+}
+
+#snclSelectors {
+  width: fit-content;
+}
+
+#snclSelectors td {
+  padding: 0 0 0 5px;
+}
+
+#snclSelectors span.label {
+  width: 2em;
+  text-align: right;
+}
+
+#snclSelectors input {
+  width: 6em;
 }
 
 .ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
     width: 40%;
+}
+
+#datepickers {
+  width: fit-content;
+}
+
+#datepickers td {
+  padding: 0 0 0 5px; 
 }
 
 #datepickers input {
