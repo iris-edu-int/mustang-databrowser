@@ -426,7 +426,12 @@ function generateNetworks(){
   if (allStations.indexOf(G_station) < 0) {
     G_station = allStations[0];
   } 
-  
+
+  // // //$('#network.my_combobox').combobox();
+  $( "#network-auto" ).autocomplete({
+      source: options
+    });
+ 
   generateStations();
 }
 
@@ -556,6 +561,12 @@ function selectLocation(){
 function selectChannel(){
   G_channel = $('#channel').val();
   generateChannels();
+}
+
+// Set the global channel variable from auto-complete box -----------------------
+function selectNetworkAuto(event, ui){
+  G_network = ui.item.value;
+  generateNetworks();
 }
 
 
@@ -904,6 +915,15 @@ $(function() {
   $('#station').change(selectStation);
   $('#location').change(selectLocation);
   $('#channel').change(selectChannel);
+
+  // SNCL auto-complete fields
+  // $( "#network-auto .selector" ).autocomplete({
+  //   select: selectNetworkAuto
+  //   // select: function( event, ui ) {
+  //   //   selectNetwork();
+  //   // }
+  // });
+  $( "#network-auto").on( "autocompleteselect", selectNetworkAuto );
   
   // Set up datepicker
   // NOTE:  Date object months start with 0, hence the '9-1' notation for September

@@ -105,8 +105,8 @@
         <input id="starttime" type="hidden" name="starttime" value="1900-01-01">
         <input id="endtime"   type="hidden" name="endtime"   value="2500-01-01">
 
-        <!--------------------------------------------------------------------->
-        <!--------------------------------------------------------------------->
+
+
 
         <div id="plot_options_container" class="control_container">
 
@@ -167,40 +167,10 @@
 
           </fieldset>
 
-          <div class="ui-widget">
-            <label>Your preferred programming language: </label>
-            <select id="combobox">
-              <option value="">Select one...</option>
-              <option value="ActionScript">ActionScript</option>
-              <option value="AppleScript">AppleScript</option>
-              <option value="Asp">Asp</option>
-              <option value="BASIC">BASIC</option>
-              <option value="C">C</option>
-              <option value="C++">C++</option>
-              <option value="Clojure">Clojure</option>
-              <option value="COBOL">COBOL</option>
-              <option value="ColdFusion">ColdFusion</option>
-              <option value="Erlang">Erlang</option>
-              <option value="Fortran">Fortran</option>
-              <option value="Groovy">Groovy</option>
-              <option value="Haskell">Haskell</option>
-              <option value="Java">Java</option>
-              <option value="JavaScript">JavaScript</option>
-              <option value="Lisp">Lisp</option>
-              <option value="Perl">Perl</option>
-              <option value="PHP">PHP</option>
-              <option selected value="Python">Python</option>
-              <option value="Ruby">Ruby</option>
-              <option value="Scala">Scala</option>
-              <option value="Scheme">Scheme</option>
-            </select>
-          </div>
-
         </div>
         <!-- END of plot_options_container -->
 
-        <!--------------------------------------------------------------------->
-        <!--------------------------------------------------------------------->
+
 
 
         <div id="data_source_container" class="control_container">
@@ -215,9 +185,25 @@
             </legend>
             
             <!-- Cascading dropdowns for SNCL selection -->
+            <!--
+            <div class="ui-widget">
+              <label>Network: </label>
+              <select id="network" name="network" class="my_combobox">
+              </select>
+            </div>
+            -->
+            <div class="ui-widget">
+              <label for="network">Network: </label>
+              <select id="network" name="network" type="text"></select>
+              <input id="network-auto" width="3">
+           </div>
+
+
             <label for="snclSelectors">Network - Station - Location - Channel</label><br>
             <div id="snclSelectors">
+            <!-- ORIGINAL
               <select id="network" name="network" type="text"></select>
+              -->
               <select id="station" name="station" type="text"></select>
               <select id="location" name="location" type="text"></select>
               <select id="channel" name="channel" type="text"></select>
@@ -244,8 +230,38 @@
         </div>
         <!-- END of data_source_conainer -->
 
-        <!--------------------------------------------------------------------->
-        <!--------------------------------------------------------------------->
+        <div class="ui-widget">
+          <label>Your preferred programming language: </label>
+          <select id="combobox">
+            <option value="">Select one...</option>
+            <option value="ActionScript">ActionScript</option>
+            <option value="AppleScript">AppleScript</option>
+            <option value="Asp">Asp</option>
+            <option value="BASIC">BASIC</option>
+            <option value="C">C</option>
+            <option value="C++">C++</option>
+            <option value="Clojure">Clojure</option>
+            <option value="COBOL">COBOL</option>
+            <option value="ColdFusion">ColdFusion</option>
+            <option value="Erlang">Erlang</option>
+            <option value="Fortran">Fortran</option>
+            <option value="Groovy">Groovy</option>
+            <option value="Haskell">Haskell</option>
+            <option value="Java">Java</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="Lisp">Lisp</option>
+            <option value="Perl">Perl</option>
+            <option value="PHP">PHP</option>
+            <option selected value="Python">Python</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Scala">Scala</option>
+            <option value="Scheme">Scheme</option>
+          </select>
+        </div>
+
+
+
+
 
       </form>
       <!-- END of controls_form -->
