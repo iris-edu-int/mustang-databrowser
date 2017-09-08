@@ -1,0 +1,14 @@
+{
+  "name": "mustang-databrowser",
+  "version": "1.0.0",
+  "authors": [
+    "Mazama Science"
+  ],
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "jquery": "1.8.3",
+    "jquery-ui": "1.8.23",
+    "jquery.hoverIntent": "*"
+  }
+}
