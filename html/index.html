@@ -12,16 +12,21 @@
   <!--
   The databrowser relies on javascript functionality found in the jquery javascript library.
   -->
-  <!--
+  <!-- ORIGINAL
   <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
   <script type="text/javascript" src="js/jquery-ui-1.8.7.custom.min.js"></script>
    -->
+   <!-- WORKS
   <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
   <script type="text/javascript" src="js/jquery-ui-1.8.23.min.js"></script>
+  -->
+  <script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="https://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
   <script type="text/javascript" src="js/jquery.hoverIntent.minified.js"></script>
+  <!-- ORIGINAL
   <script type="text/javascript" src="js/jquery.bgiframe.min.js"></script>
+  -->
   <script type="text/javascript" src="js/jquery.cluetip.min.js"></script>
-
   <script type="text/javascript" src="js/my_combobox.js"></script>
   
   <!-- 
@@ -40,11 +45,13 @@
   <![endif]-->
 
   <!-- jquery UI elements like datepicker. -->
+  <!-- WORKS
   <link type="text/css" href="style/ui-lightness/jquery-ui-1.8.7.custom.css" rel="stylesheet" />  
+  -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.1/themes/ui-lightness/jquery-ui.css">
 
   <!-- CSS associated with jQuery plugins.  -->
   <link rel="stylesheet" href="style/jquery.cluetip.css">
-
   <link rel="stylesheet" href="style/my_combobox.css">
 
   <!--
@@ -159,6 +166,35 @@
             <!-- END of plotTypeOptionsDiv -->
 
           </fieldset>
+
+          <div class="ui-widget">
+            <label>Your preferred programming language: </label>
+            <select id="combobox">
+              <option value="">Select one...</option>
+              <option value="ActionScript">ActionScript</option>
+              <option value="AppleScript">AppleScript</option>
+              <option value="Asp">Asp</option>
+              <option value="BASIC">BASIC</option>
+              <option value="C">C</option>
+              <option value="C++">C++</option>
+              <option value="Clojure">Clojure</option>
+              <option value="COBOL">COBOL</option>
+              <option value="ColdFusion">ColdFusion</option>
+              <option value="Erlang">Erlang</option>
+              <option value="Fortran">Fortran</option>
+              <option value="Groovy">Groovy</option>
+              <option value="Haskell">Haskell</option>
+              <option value="Java">Java</option>
+              <option value="JavaScript">JavaScript</option>
+              <option value="Lisp">Lisp</option>
+              <option value="Perl">Perl</option>
+              <option value="PHP">PHP</option>
+              <option selected value="Python">Python</option>
+              <option value="Ruby">Ruby</option>
+              <option value="Scala">Scala</option>
+              <option value="Scheme">Scheme</option>
+            </select>
+          </div>
 
         </div>
         <!-- END of plot_options_container -->
