@@ -427,10 +427,9 @@ function generateNetworks(){
     G_station = allStations[0];
   } 
 
-  // // //$('#network.my_combobox').combobox();
-  $( "#network-auto" ).autocomplete({
-      source: options
-    });
+  // Update the associated autocomplete box
+  $("#network-auto").autocomplete({source: options});
+  $("#network-auto").val("");
  
   generateStations();
 }
@@ -467,6 +466,10 @@ function generateStations(){
     G_location = allLocations[0];
   } 
   
+  // Update the associated autocomplete box
+  $("#station-auto").autocomplete({source: options});
+  $("#station-auto").val("");
+ 
   generateLocations();
 }
 
@@ -503,6 +506,10 @@ function generateLocations(){
     G_channel = allChannels[0];
   } 
   
+  // Update the associated autocomplete box
+  $("#location-auto").autocomplete({source: options});
+  $("#location-auto").val("");
+ 
   generateChannels();
 }
 
@@ -539,9 +546,14 @@ function generateChannels(){
     updatePlot();
     G_firstPlot = false;
   }
+
+    // Update the associated autocomplete box
+  $("#channel-auto").autocomplete({source: options});
+  $("#channel-auto").val("");
+ 
 }
 
-// Set the global channel variable ---------------------------------------------
+// Set the global channel variable from selector -------------------------------
 
 function selectNetwork(){
   G_network = $('#network').val();
@@ -563,10 +575,26 @@ function selectChannel(){
   generateChannels();
 }
 
-// Set the global channel variable from auto-complete box -----------------------
+// Set the global channel variable from auto-complete box ----------------------
+
 function selectNetworkAuto(event, ui){
   G_network = ui.item.value;
   generateNetworks();
+}
+
+function selectStationAuto(event, ui){
+  G_station = ui.item.value;
+  generateStations();
+}
+
+function selectLocationAuto(event, ui){
+  G_location = ui.item.value;
+  generateLocations();
+}
+
+function selectChannelAuto(event, ui){
+  G_channel = ui.item.value;
+  generateChannels();
 }
 
 
@@ -916,14 +944,11 @@ $(function() {
   $('#location').change(selectLocation);
   $('#channel').change(selectChannel);
 
-  // SNCL auto-complete fields
-  // $( "#network-auto .selector" ).autocomplete({
-  //   select: selectNetworkAuto
-  //   // select: function( event, ui ) {
-  //   //   selectNetwork();
-  //   // }
-  // });
+  // Assoociated SNCL autocompletes
   $( "#network-auto").on( "autocompleteselect", selectNetworkAuto );
+  $( "#station-auto").on( "autocompleteselect", selectStationAuto );
+  $( "#location-auto").on( "autocompleteselect", selectLocationAuto );
+  $( "#channel-auto").on( "autocompleteselect", selectChannelAuto );
   
   // Set up datepicker
   // NOTE:  Date object months start with 0, hence the '9-1' notation for September

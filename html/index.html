@@ -185,36 +185,39 @@
             </legend>
             
             <!-- Cascading dropdowns for SNCL selection -->
-            <!--
-            <div class="ui-widget">
-              <label>Network: </label>
-              <select id="network" name="network" class="my_combobox">
-              </select>
-            </div>
-            -->
-            <div class="ui-widget">
-              <label for="network">Network: </label>
-              <select id="network" name="network" type="text"></select>
-              <input id="network-auto" width="3">
-           </div>
-
-
             <label for="snclSelectors">Network - Station - Location - Channel</label><br>
             <div id="snclSelectors">
-            <!-- ORIGINAL
+              <div class="ui-widget">
+                <label for="network">Network: </label>
+                <select id="network" name="network"></select>
+                <input id="network-auto" type="text">
+             </div>
+              <div class="ui-widget">
+                <label for="station">Station: </label>
+                <select id="station" name="station"></select>
+                <input id="station-auto" type="text">
+             </div>
+              <div class="ui-widget">
+                <label for="location">Location: </label>
+                <select id="location" name="location"></select>
+                <input id="location-auto" type="text">
+             </div>
+              <div class="ui-widget">
+                <label for="channel">Channel: </label>
+                <select id="channel" name="channel"></select>
+                <input id="channel-auto" type="text">
+             </div>
+           </div>
+
+<!--
+            <label for="snclSelectors">Network - Station - Location - Channel</label><br>
+            <div id="snclSelectors">
               <select id="network" name="network" type="text"></select>
-              -->
               <select id="station" name="station" type="text"></select>
               <select id="location" name="location" type="text"></select>
               <select id="channel" name="channel" type="text"></select>
-              <!--
-              <select id="quality" name="quality" type="text">
-                <option selected value="M">M</option>
-                <option value="B">B</option>
-                <option value="*">*</option>
-              </select>
-              -->
             </div>
+-->
       
             <label for="datepickers">Time Span</label>
             <div id="datepickers">
