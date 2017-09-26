@@ -831,6 +831,10 @@ function postPlotActions(JSONResponse) {
   $('#spinner').hide();
   $('#profiling_container').show();
   $('#dataLink_container').show();
+
+  // TODO:  REMOVE ME
+  a = getVirtualNetworks();
+  b = 1;
 }
 
 
@@ -858,7 +862,7 @@ function createTimeSpan() {
 }
 
 
-/**** REQUEST HANDLERS ********************************************************/
+/**** CGI REQUEST HANDLER *****************************************************/
 
 // Serialize the form and send it to the CGI.
 // Note that some UI elements have no bearing on the product generated and
@@ -921,6 +925,42 @@ function handleJSONResponse(JSONResponse) {
 
   }
   postPlotActions();
+}
+
+/**** IRIS WEBSERVICE HANDLERS ************************************************/
+
+// Get virtual networks
+function getVirtualNetworks(vnet) {
+  var url = 'http://service.iris.edu/irisws/virtualnetwork/1/query';
+  var data = {code:"_GSN",
+              starttime:"2017-01-01",
+              endtime:"2017-06-01",
+              format:"xml"};
+  $.get(url, data, handleVirtualNetworkResponse, "xml");
+}
+
+function handleVirtualNetworkResponse(serviceResponse) {
+  // This is an XML response from which we need to extract networks and associated stations
+  // local versions arrays that will be copied to G_~ once filled in
+  var networks = [];
+  var stations = {};
+
+  // Get network xml nodes
+  var networkNodes = serviceResponse.getElementsByTagName("network");
+  // Iterate over this array of network nodes to extract the network and station codes
+  $.each(networkNodes, function(i, netNode) { 
+    var stationCodes = [];
+    var stationNodes = netNode.getElementsByTagName("station");
+    $.each(stationNodes, function(j, staNode) {
+      stationCodes[j] = staNode.getAttribute("code");
+    });
+    // Assign values to local arrays
+    networks[i] = netNode.getAttribute("code");
+    stations[networks[i]] = stationCodes;
+  } );
+  
+  var a = serviceResponse;
+  var b = 1;
 }
 
 
