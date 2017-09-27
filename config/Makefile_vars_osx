@@ -21,7 +21,7 @@ CGI_PATH=/Library/Webserver/CGI-Executables
 DATABROWSER_PATH=/Library/Webserver/Documents/MUSTANGDatabrowser
 DATABROWSER=MUSTANGDatabrowser
 DATA_DIR=data_local
-OUTPUT_DIR=output_en
+OUTPUT_DIR=output
 CACHE_SIZE=1000
 
 # sed scripts applied to *.in files

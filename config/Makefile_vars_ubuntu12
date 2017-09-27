@@ -21,7 +21,7 @@ CGI_PATH=/usr/lib/cgi-bin
 DATABROWSER_PATH=/var/www/GenericDatabrowser
 DATABROWSER=GenericDatabrowser
 DATA_DIR=data_local
-OUTPUT_DIR=output_en
+OUTPUT_DIR=output
 CACHE_SIZE=0.5
 
 # sed scripts applied to *.in files

@@ -834,7 +834,7 @@ function postPlotActions(JSONResponse) {
 
   // TODO:  REMOVE ME
   a = getVirtualNetworks();
-  b = 1;
+  b = getStationMetadata("IU");
 }
 
 
@@ -962,6 +962,44 @@ function handleVirtualNetworkResponse(serviceResponse) {
   var a = serviceResponse;
   var b = 1;
 }
+
+// Get station metadata
+function getStationMetadata(net) {
+  var url = 'http://service.iris.edu/fdsnws/station/1/query';
+  var data = {net:net,
+              starttime:"2017-01-01",
+              endtime:"2017-06-01",
+              level:"station",
+              nodata:"404",
+              format:"text"};
+  $.get(url, data, handleStationMetadataResponse, "text");
+}
+
+function handleStationMetadataResponse(serviceResponse) {
+  // Response is a '|' separated file with a hedaer like this:
+  // #Network | Station | Latitude | Longitude | Elevation | SiteName | StartTime | EndTime 
+  // Read it in with PapaParse
+  var result = Papa.parse(serviceResponse);
+  // TODO:  Could handler errors or parsing issues here
+
+  // Extract columns of data
+  var header = result.data.slice(0,1);
+  var data = result.data.slice(1);
+  var net = $.map(data, function(row, i) { return(row[0]); } );
+  var sta = $.map(data, function(row, i) { return(row[1]); } );
+  var starttime = $.map(data, function(row, i) { return(row[6]); } );
+  var endtime = $.map(data, function(row, i) { return(row[7]); } );
+
+  // Find rows which overlap the currently selected time range
+  var validStart = $.map(starttime, function(elem, i) { return(elem < $('#endtime').val()); } );
+  var validEnd = $.map(endtime, function(elem, i) { return(elem > $('#starttime').val()); } );
+  var validDate = $.map(validStart, function(elem, i) { return(validStart[i] & validEnd[i]); } );
+
+  var validNet = net.filter( function(val, i) { return(validDate[i]); } );
+  var validSta = sta.filter( function(val, i) { return(validDate[i]); } );
+
+}
+
 
 
 /**** INITIALIZATION **********************************************************/
