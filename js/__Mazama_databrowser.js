@@ -140,10 +140,13 @@ var G_singleMetrics = {
 };
 
 // G_networks is defined in networks.js which is loaded by the html page.
-// SNCL selector associative arrays are load by the html page:  G_networks, G_stations, G_locations, G_channels
+// SNCL selector associative arrays are loaded by the html page:  G_networks, G_stations, G_locations, G_channels
 
 var G_firstPlot = true;
 
+var G_virtualNetworks = [];
+
+var G_virtualNetwork = "No virtual network";
 var G_network = "IU";
 var G_station = "ANMO";
 var G_location = "00";
@@ -394,6 +397,35 @@ function generateMultiMetricsSelector(){
 
 
 /**** CASCADING SNCL SELECTORS ************************************************/
+
+
+// Generate Virtual Network selector -------------------------------------------
+// NOTE:  Should only be called once during startup
+
+function generateVirtualNetworks(){
+  // Get the list of options
+  var options = G_virtualNetworks;
+  options.splice(0,0,"No virtual network");
+
+  // If the current virtual network is not in the list of virtual networks, choose the first available
+  if (options.indexOf(G_virtualNetwork) < 0) {
+    G_virtualNetwork = options[0];
+  }
+
+  // Empty the selector
+  var sel = $('#virtualNetwork');
+  sel.empty();
+
+  // Repopulate the selector
+  for (var i=0; i<options.length; i++) {
+    if (options[i] == G_virtualNetwork) {
+      sel.append('<option selected="selected" value="' + options[i] + '">' + options[i] + '</option>');
+    } else {
+      sel.append('<option value="' + options[i] + '">' + options[i] + '</option>');
+    }
+  }
+
+}
 
 
 // Generate Network selector ---------------------------------------------------
@@ -833,7 +865,7 @@ function postPlotActions(JSONResponse) {
   $('#dataLink_container').show();
 
   // TODO:  REMOVE ME
-  a = getVirtualNetworks();
+  a = getVirtualNetwork();
   b = getStationMetadata("IU");
 }
 
@@ -929,14 +961,32 @@ function handleJSONResponse(JSONResponse) {
 
 /**** IRIS WEBSERVICE HANDLERS ************************************************/
 
+// Get a list of virtual network codes
+function getVirtualNetworks() {
+  var url = 'http://service.iris.edu/irisws/virtualnetwork/1/codes';
+  $.get(url, handleVirtualNetworksResponse, "xml");
+  // Can be chained with .done().fail().always()
+}
+
+// NOTE:  This is a 'promise' so we regenerate the selector whenever it returns
+function handleVirtualNetworksResponse(serviceResponse) {
+  // XML response
+  var vnetNodes = serviceResponse.getElementsByTagName("virtualNetwork");
+  var vnetCodes = $.map(vnetNodes, function(elem, i) { return(elem.getAttribute("code")); } );
+  // var vnetDescriptions = $.map(vnetNodes, function(elem, i) { return(elem.firstElementChild.textContent); } );
+  G_virtualNetworks = vnetCodes;
+  generateVirtualNetworks();
+}
+
 // Get virtual networks
-function getVirtualNetworks(vnet) {
+function getVirtualNetwork() {
   var url = 'http://service.iris.edu/irisws/virtualnetwork/1/query';
-  var data = {code:"_GSN",
-              starttime:"2017-01-01",
-              endtime:"2017-06-01",
+  var data = {code:$('#virtualNetwork').val(),
+              starttime:$('#starttime').val(),
+              endtime:$('#endtime').val(),
               format:"xml"};
   $.get(url, data, handleVirtualNetworkResponse, "xml");
+  // Can be chained with .done().fail().always()
 }
 
 function handleVirtualNetworkResponse(serviceResponse) {
@@ -973,6 +1023,7 @@ function getStationMetadata(net) {
               nodata:"404",
               format:"text"};
   $.get(url, data, handleStationMetadataResponse, "text");
+  // Can be chained with .done().fail().always()
 }
 
 function handleStationMetadataResponse(serviceResponse) {
@@ -1072,6 +1123,9 @@ $(function() {
   
   // set the initial plot type
   $('#plotType').val("metricTimeseries");
+
+  // Initial web request to discover virtual networks and populate the selector
+  getVirtualNetworks();
   
   // Initial population of the SNCL selectors (which will generate a request)
   generateNetworks();
