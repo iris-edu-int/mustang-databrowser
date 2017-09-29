@@ -139,30 +139,34 @@ var G_singleMetrics = {
   }
 };
 
-var G_firstPlot = true;
+// NOTE:  Configurable list of channels curently in the MUSTANG database
+var G_mustangChannels = "CH?,DH?,LH?,MH?,SH?,EH?,EL?,BN?,HN?,LN?,BY?,DP?,BH?,HH?,BX?,HX?,VM?";
 
-// DEFAULT_networks is defined in networks.js which is loaded by the html page.
-// SNCL selector associative arrays are loaded by the html page:  DEFAULT_networks, DEFAULT_stations, DEFAULT_locations, DEFAULT_channels
-
+// SNCL selector arrays 
 var G_virtualNetworks = [];
-var G_networks = DEFAULT_networks;
-var G_stations = DEFAULT_stations;
-var G_locations = DEFAULT_locations;
-var G_channels = DEFAULT_channels;
+var G_networks = DEFAULT_networks;                // DEFAULT_networks is defined in networks.js
+var G_stations = DEFAULT_stations;                // DEFAULT_stations is defined in stations.js
+var G_locations = DEFAULT_locations;              // DEFAULT_locations is defined in locations.js
+var G_channels = DEFAULT_channels;                // DEFAULT_channels is defined in channels.js
 
-var G_virtualNetwork = "No virtual network";
+// SNCL selector current choice
+var G_virtualNetwork = G_previous_virtualNetwork = "No virtual network";
 var G_network = "IU";
 var G_station = "ANMO";
 var G_location = "00";
 var G_channel = "BHZ";
 
+// metric selector current choice
 var G_singleMetric = 'sample_rms';
 var G_multiMetric = 'basic_stats';
 
+// response profiling information
 var G_loadSecs;
 var G_plotSecs;
 var G_RSecs;
 
+// state flag
+var G_firstPlot = true;
 
 /**** UTILITY FUNCTIONS *******************************************************/
 
@@ -592,6 +596,7 @@ function generateChannelsSelector(){
 // Set the global channel variable from selector -------------------------------
 
 function selectVirtualNetwork(){
+  G_previousVirtualNetwork = G_virtualNetwork;
   G_virtualNetwork = $('#virtualNetwork').val();
   if (G_virtualNetwork == "No virtual network") {
     G_networks = DEFAULT_networks;
@@ -872,6 +877,8 @@ function prePlotActions() {
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
   $('#requestMessage').removeClass('alert').text('');
+  $('#activityMessage').text("plot request").addClass("info");
+
 }
 
 
@@ -880,6 +887,7 @@ function postPlotActions(JSONResponse) {
   $('#spinner').hide();
   $('#profiling_container').show();
   $('#dataLink_container').show();
+  $('#activityMessage').text("").removeClass("info");
 }
 
 
@@ -974,25 +982,7 @@ function handleJSONResponse(JSONResponse) {
 
 /**** IRIS WEBSERVICE HANDLERS ************************************************/
 
-// // Get a list of virtual network codes
-// function updateVirtualNetworksSelector() {
-//   var url = 'http://service.iris.edu/irisws/virtualnetwork/1/codes';
-//   $.get(url, handleVirtualNetworkCodesResponse, "xml");
-//   // Can be chained with .done().fail().always()
-// }
-
-// function handleVirtualNetworkCodesResponse(serviceResponse) {
-//   // NOTE:  This is a 'promise' so we regenerate the selector whenever it returns
-//   // XML response
-//   var vnetNodes = serviceResponse.getElementsByTagName("virtualNetwork");
-//   var vnetCodes = $.map(vnetNodes, function(elem, i) { return(elem.getAttribute("code")); } );
-//   // var vnetDescriptions = $.map(vnetNodes, function(elem, i) { return(elem.firstElementChild.textContent); } );
-//   // Assign global variable and regenerate virtual networks selector
-//   G_virtualNetworks = vnetCodes;
-//   generateVirtualNetworksSelector();
-// }
-
-// Get a list of virtual network codes
+// Get a list of virtual network codes and repopulate the virtual networks selector
 function updateVirtualNetworksSelector() {
   var url = 'http://service.iris.edu/irisws/virtualnetwork/1/codes'; // response is always XML
   $.get(url, function(serviceResponse) {
@@ -1009,59 +999,27 @@ function updateVirtualNetworksSelector() {
   // Can be chained with .done().fail().always() 
 }
 
-// Get virtual networks
+// Query for station metadata in for this virtual network and repopulate all SNCL selectors
 function updateVirtualNetwork() {
-  if (G_virtualNetwork != "No virtual network") {
-    var url = 'http://service.iris.edu/irisws/virtualnetwork/1/query';
-    var data = {code:$('#virtualNetwork').val(),
-                starttime:$('#starttime').val(),
-                endtime:$('#endtime').val(),
-                format:"xml"};
-    $.get(url, data, function(serviceResponse) {
-      // NOTE:  This function is a 'promise' that gets evaluated asynchronously
-      // NOTE:  https://api.jquery.com/jquery.get/
-      
-      // Get XML "network" nodes
-      var networkNodes = serviceResponse.getElementsByTagName("network");
-      var networks = $.map(networkNodes, function(elem, i) { return(elem.getAttribute("code")); } );
+  if (G_virtualNetwork == "No virtual network") return;
 
-      // Get the array of stations associated with each network
-      var stationsByNetwork = {};
-      $.each(networkNodes, function(i, netNode) { 
-        var stationNodes = netNode.getElementsByTagName("station");
-        stationsByNetwork[networks[i]] = $.map(stationNodes, function(elem, i) { return(elem.getAttribute("code")); } );
-      } );
-      
-      // Combine the networks and stations into single arrays
-      // NOTE:  There is an implicit assumption that station codes are unique, i.e. the same station codee
-      // NOTE:  will not appear in different networks and be associated with different sites.
-      var netString = networks.join(",");
-      var staString = $.map(stationsByNetwork, function(elem, i) { return(elem.join(",")); } ).join(",");
+  $('#activityMessage').text("service.iris.edu/fdsnws/station/1/query").addClass("info");
 
-      getChannelMetadata(netString, staString);
-
-    }).done(function() {
-      var a = 1;
-      // generateNetworksSelector
-    });
-  }
-}
-
-// Get 'channel' level metadata
-function getChannelMetadata(netString, staString) {
   var url = 'http://service.iris.edu/fdsnws/station/1/query';
-  var data = {net:netString,
-              sta:staString,
+  var data = {net:G_virtualNetwork,
+              sta:"*",
+              loc:"*",
+              cha:G_mustangChannels,
               starttime:$('#starttime').val(),
               endtime:$('#endtime').val(),
               level:"channel",
               nodata:"404",
               format:"text"};
   $.get(url, data, function (serviceResponse) {
-    // Response is a '|' separated file with a hedaer like this:
-    // #Network | Station | Location | Channel | Latitude | Longitude | Elevation | Depth | Azimuth | Dip | SensorDescription | Scale | ScaleFreq | ScaleUnits | SampleRate | StartTime | EndTime
 
-    // Read it in with PapaParse
+    $('#activityMessage').text("building selectors");
+
+    // Read in the response with PapaParse
     var config = {
       delimiter: "",  // auto-detect
       newline: "",  // auto-detect
@@ -1085,48 +1043,87 @@ function getChannelMetadata(netString, staString) {
     var result = Papa.parse(serviceResponse, config);
     // TODO:  Could handler errors or parsing issues here
 
-    // Extract columns of data
+    // Response is a '|' separated file with a hedaer like this:
+    // #Network | Station | Location | Channel | Latitude | Longitude | Elevation | Depth | Azimuth | Dip | SensorDescription | Scale | ScaleFreq | ScaleUnits | SampleRate | StartTime | EndTime
+
+    // Separate header from data
     var header = result.data.slice(0,1);
     var data = result.data.slice(1);
-    var nets = $.map(data, function(row, i) { return(row[0]); } );
-    // var stas = $.map(data, function(row, i) { return(row[1]); } );
-    // var locs = $.map(data, function(row, i) { return(row[2]); } );
-    // var chas = $.map(data, function(row, i) { return(row[3]); } );
-    var netStas = $.map(data, function(row, i) { return(row[0] + '.' + row[1]); } );
-    var netStaLocs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2]); } );
-    var starttime = $.map(data, function(row, i) { return(row[15]); } );
-    var endtime = $.map(data, function(row, i) { return(row[16]); } );
 
-    // Find rows which overlap the currently selected time range
-    var validStart = $.map(starttime, function(elem, i) { return(elem < $('#endtime').val()); } );
-    var validEnd = $.map(endtime, function(elem, i) { return(elem > $('#starttime').val()); } );
-    var validDate = $.map(validStart, function(elem, i) { return(validStart[i] && validEnd[i]); } );
+    // NOTE:  By having the timerange in the request, all returned data should be valid
 
-    var validNets = nets.filter( function(val, i) { return(validDate[i]); } );
-    var validNetStas = netStas.filter( function(val, i) { return(validDate[i]); } );
-    var validNetStaLocs = netStaLocs.filter( function(val, i) { return(validDate[i]); } );
+    // Convert returned locations of "" into "--"
+    $.each(data, function(i, row) {
+      if ( row[2] == "" ) data[i][2] = "--";
+    });
 
-    // Create a new G_networks array unique net values
-    var uniqueNetworks = validNets.filter(function(val, i) { return(validNets.indexOf(val)==i); }).sort();
-    var GG_networks = uniqueNetworks;
+    // Extract columns of data
+    var Ns = $.map(data, function(row, i) { return(row[0]); } );
+    var NSs = $.map(data, function(row, i) { return(row[0] + '.' + row[1]); } );
+    var NSLs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2]); } );
+    var NSLCs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2] + '.' + row[3]); } );
 
-    // Create a new G_tations "station by network" associative array
-    var GG_stations = {};
-    var singleNetNetStas = [];
-    var uniqueNetStas = [];
-    $.each(GG_networks, function(i, net) {
-      // Find netStas that start with 'net'
-      // Then create a unique, sorted list of these netStas
-      // Add the sta part to G_stations
-      singleNetNetStas = validNetStas.filter( function(val) { return(val.startsWith(net)); } );
-      uniqueNetStas = singleNetNetStas.filter(function(val, i) { return(singleNetNetStas.indexOf(val)==i); }).sort();
-      GG_stations[net] = $.map(uniqueNetStas, function(elem, i) { return(elem.split('.')[1]); } );
+    // Create unique arrays
+    var uniqueNs = Ns.filter(function(val, i) { return(Ns.indexOf(val)==i); }).sort();
+    var uniqueNSs = NSs.filter(function(val, i) { return(NSs.indexOf(val)==i); }).sort();
+    var uniqueNSLs = NSLs.filter(function(val, i) { return(NSLs.indexOf(val)==i); }).sort();
+    var uniqueNSLCs = NSLCs.filter(function(val, i) { return(NSLCs.indexOf(val)==i); }).sort();
+
+    // Replace the G_networks array
+    G_networks = uniqueNs;
+
+    // Replace the G_stations "station by network" associative array
+    G_stations = {};
+    $.each(uniqueNs, function(i, N) {
+      // Find NSs that start with 'net'
+      // Then create a unique, sorted list of these NSs
+      // Add an array of the 'sta' part to G_stations with 'net' as the key
+      var N_NSs = NSs.filter( function(val) { return(val.startsWith(N)); } );
+      var N_uniqueNSs = N_NSs.filter(function(val, i) { return(N_NSs.indexOf(val)==i); }).sort();
+      G_stations[N] = $.map(N_uniqueNSs, function(elem, i) { return(elem.split('.')[1]); } );
     })
 
-    // Create G_locations {}
-    // Create G_channels {}
+    // Replace the G_locations "location by net.sta" associative array
+    G_locations = {};
+    $.each(uniqueNSs, function(i, NS) {
+      // Find NSLs that start with 'net.sta'
+      // Then create a unique, sorted list of these NSLs
+      // Add an array of the 'loc' part to G_locations with 'net.sta' as the key
+      var NS_NSLs = NSLs.filter( function(val) { return(val.startsWith(NS)); } );
+      var NS_uniqueNSLs = NS_NSLs.filter(function(val, i) { return(NS_NSLs.indexOf(val)==i); }).sort();
+      G_locations[NS] = $.map(NS_uniqueNSLs, function(elem, i) { return(elem.split('.')[2]); } );
+    })
     
-    var dummy = 1;
+    // Replace the G_channels "channel by net.sta.loc" associative array
+    G_channels = {};
+    $.each(uniqueNSLs, function(i, NSL) {
+      // Find NSLCs that start with 'net.sta.loc'
+      // Then create a unique, sorted list of these NSLCs
+      // Add an array of the 'cha' part to G_chananels with 'net.sta.loc' as the key
+      var NSL_NSLCs = NSLCs.filter( function(val) { return(val.startsWith(NSL)); } );
+      var NSL_uniqueNSLCs = NSL_NSLCs.filter(function(val, i) { return(NSL_NSLCs.indexOf(val)==i); }).sort();
+      G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
+    })
+    
+    var a = 1;
+
+  }).done(function(serviceResponse) {
+
+    // Regenerate all selectors based on the new G_~ arrays
+    generateNetworksSelector();
+    $('#activityMessage').text("").removeClass("info");
+
+
+  }).fail(function(serviceResponse) {
+
+    if (serviceResponse.status == 404) {
+      // Service returned "no data found" -- possibly due to an inappropriate time range
+      alert("No station metadata found for the selected virtual network and time range.");
+    }
+    // Restore previous virtual network selection
+    G_virtualNetwork = G_previousVirtualNetwork;
+    generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks   
+    $('#activityMessage').text("").removeClass("info");
 
   });
   // Can be chained with .done().fail().always() 
