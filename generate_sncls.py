@@ -71,13 +71,13 @@ valsliststr = [list(x) for x in valslist]
 stationszip = zip(keysliststr,valsliststr)
 outputFile = destDir + 'networks.js'
 jsontofile = open(outputFile,'w')
-jsontofile.write("var G_networks = %s;\n" % (json.dumps(sorted(dict(stationszip)))))
+jsontofile.write("var DEFAULT_networks = %s;\n" % (json.dumps(sorted(dict(stationszip)))))
 jsontofile.close()
 
 # Stations
 outputFile = destDir + 'stations.js'
 jsontofile = open(outputFile,'w')
-jsontofile.write("var G_stations = %s;\n" % (json.dumps(dict(stationszip))))
+jsontofile.write("var DEFAULT_stations = %s;\n" % (json.dumps(dict(stationszip))))
 jsontofile.close()
 
 # Locations
@@ -88,7 +88,7 @@ valsliststr = [list(x) for x in valslist]
 locationszip = zip(keysliststr,valsliststr)
 outputFile = destDir + 'locations.js'
 jsontofile = open(outputFile,'w')
-jsontofile.write("var G_locations = %s;\n" % (json.dumps(dict(locationszip))))
+jsontofile.write("var DEFAULT_locations = %s;\n" % (json.dumps(dict(locationszip))))
 jsontofile.close()
 
 # Channels
@@ -99,6 +99,6 @@ valsliststr = [list(x) for x in valslist]
 channelszip = zip(keysliststr,valsliststr)
 outputFile = destDir + 'channels.js'
 jsontofile = open(outputFile,'w')
-jsontofile.write("var G_channels = %s;\n" % (json.dumps(dict(channelszip))))
+jsontofile.write("var DEFAULT_channels = %s;\n" % (json.dumps(dict(channelszip))))
 jsontofile.close()
 

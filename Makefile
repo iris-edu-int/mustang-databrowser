@@ -62,8 +62,6 @@ install_UI: FORCE
 	cp html/*.html $(DATABROWSER_PATH)
 	cp -r R style images $(DATABROWSER_PATH)
 	rm -rf $(DATABROWSER_PATH)/R/packages
-	# remove subversion directories
-	-find $(DATABROWSER_PATH) -depth -name .svn -exec rm -rf {} \;
 	# configure __Databrowser.R
 	sed $(DATABROWSER_PATH_SED_SCRIPT) R/__Databrowser.R | \
 		sed $(OUTPUT_DIR_SED_SCRIPT) | \
@@ -98,8 +96,6 @@ install_data: FORCE
 	cp -r data_local $(DATABROWSER_PATH) 
 	# soft link installed 'data' directory
 	ln -fs $(DATA_DIR) $(DATABROWSER_PATH)/data
-	# remove subversion directories
-	-find $(DATABROWSER_PATH) -depth -name .svn -exec rm -rf {} \;
 
 
 uninstall: FORCE
@@ -114,8 +110,6 @@ install_cache: FORCE
 	cp -r output* $(DATABROWSER_PATH)
 	-chown -R $(OWNERSHIP) $(DATABROWSER_PATH)/output*
 	-chmod 777 $(DATABROWSER_PATH)/output*
-	# remove subversion directories
-	-find $(DATABROWSER_PATH) -depth -name .svn -exec rm -rf {} \;
 
 
 uninstall_cache: FORCE
