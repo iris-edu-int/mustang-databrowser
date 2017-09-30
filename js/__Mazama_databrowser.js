@@ -598,15 +598,7 @@ function generateChannelsSelector(){
 function selectVirtualNetwork(){
   G_previousVirtualNetwork = G_virtualNetwork;
   G_virtualNetwork = $('#virtualNetwork').val();
-  if (G_virtualNetwork == "No virtual network") {
-    G_networks = DEFAULT_networks;
-    G_stations = DEFAULT_stations;
-    G_locations = DEFAULT_locations;
-    G_channels = DEFAULT_channels;
-  } else {
-    updateVirtualNetwork();
-  }
-  generateNetworksSelector();
+  updateSNCLSelectors();
 }
 
 function selectNetwork(){
@@ -1000,9 +992,19 @@ function updateVirtualNetworksSelector() {
 }
 
 // Query for station metadata in for this virtual network and repopulate all SNCL selectors
-function updateVirtualNetwork() {
-  if (G_virtualNetwork == "No virtual network") return;
+function updateSNCLSelectors() {
+  if (G_virtualNetwork == "No virtual network") {
+    G_networks = DEFAULT_networks;
+    G_stations = DEFAULT_stations;
+    G_locations = DEFAULT_locations;
+    G_channels = DEFAULT_channels;
+    generateNetworksSelector();
+    return;
+  }
 
+  // UI cues
+  $('#profiling_container').hide();
+  $('#dataLink_container').hide();
   $('#activityMessage').text("service.iris.edu/fdsnws/station/1/query").addClass("info");
 
   var url = 'http://service.iris.edu/fdsnws/station/1/query';
@@ -1111,7 +1113,6 @@ function updateVirtualNetwork() {
 
     // Regenerate all selectors based on the new G_~ arrays
     generateNetworksSelector();
-    $('#activityMessage').text("").removeClass("info");
 
 
   }).fail(function(serviceResponse) {
@@ -1123,10 +1124,14 @@ function updateVirtualNetwork() {
     // Restore previous virtual network selection
     G_virtualNetwork = G_previousVirtualNetwork;
     generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks   
+
+  }).always(function() {
+
     $('#activityMessage').text("").removeClass("info");
+    // $('#profiling_container').show();
+    // $('#dataLink_container').show();
 
   });
-  // Can be chained with .done().fail().always() 
 
 }
 
