@@ -598,6 +598,22 @@ function generateChannelsSelector(){
 function selectVirtualNetwork(){
   G_previousVirtualNetwork = G_virtualNetwork;
   G_virtualNetwork = $('#virtualNetwork').val();
+  if (G_virtualNetwork == "No virtual network") {
+    G_networks = DEFAULT_networks;
+    G_stations = DEFAULT_stations;
+    G_locations = DEFAULT_locations;
+    G_channels = DEFAULT_channels;
+    generateNetworksSelector();
+  } else {
+    updateSNCLSelectors();    
+  }
+}
+
+function updateSNCLsForTimeRange() {
+  // TODO:  Could add logic here to reuse DEFAULT variables in some cases.
+  // TODO:  But it's a user requested activity so for now we let them do this.
+  G_previousVirtualNetwork = G_virtualNetwork;
+  G_virtualNetwork = $('#virtualNetwork').val();
   updateSNCLSelectors();
 }
 
@@ -619,6 +635,14 @@ function selectLocation(){
 function selectChannel(){
   G_channel = $('#channel').val();
   generateChannelsSelector();
+}
+
+function selectStartDate(dateText, inst) {
+    var dayCount = createTimeSpan(); // required to set starttime and endtime fields
+}
+
+function selectEndDate(dateText, inst) {
+    var dayCount = createTimeSpan(); // required to set starttime and endtime fields
 }
 
 // Set the global channel variable from auto-complete box ----------------------
@@ -643,7 +667,7 @@ function selectChannelAuto(event, ui){
   generateChannelsSelector();
 }
 
-
+ 
 /**** PREV/NEXT STATION BUTTONS ***********************************************/
 
 // Move to the previous available location/station that shares the current channel
@@ -838,7 +862,7 @@ function nextStation() {
 // before sending the request.
 function updatePlot() {
 
-  var dayCount = createTimeSpan();
+  var dayCount = createTimeSpan(); // required to set starttime and endtime fields
 
 /***** IGNORE THESE FOR NOW
   if ( $('#plotType').val() == 'networkBoxplot' && $('#network').val() == 'IU' && dayCount > 190 ) {
@@ -883,6 +907,7 @@ function postPlotActions(JSONResponse) {
 }
 
 
+// TODO:  Change this to a better name like validateDate
 // Set up time span 
 function createTimeSpan() {
   var startDate = $('#datepicker1').datepicker("getDate");
@@ -914,13 +939,13 @@ function createTimeSpan() {
 // should be removed from the request to improve our cache hit rate.
 function sendRequest() {
   var url = '/cgi-bin/__DATABROWSER__.cgi';
-  var data = $('#controls_form').serialize();
+  var paramsUrl = $('#controls_form').serialize();
   var removeList = $('.doNotSerialize');
   for (i=0; i<removeList.length; i++) {
      var valueString = $(removeList[i]).serialize();
      if (valueString != '') {
        var removeString = '&' + valueString;
-       data = data.replace(removeString,'');
+       paramsUrl = paramsUrl.replace(removeString,'');
      }
   }
   // Special handling for timseriesChannelSet option -- 10/31/2016
@@ -929,11 +954,12 @@ function sendRequest() {
       !$('#timeseriesChannelSet').hasClass('doNotSerialize')) {
     var channelString = "channel=" + $('#channel').val();
     var chasetString = "channel=" + $('#channel').val().substr(0,2) + "?";
-    data = data.replace(channelString,chasetString);
+    paramsUrl = paramsUrl.replace(channelString,chasetString);
   }
   //  DEBUG
   //displayError("url: " + url + ", data: " + data);
-  $.getJSON(url, data, handleJSONResponse);
+  console.log(url + "?" + paramsUrl);
+  $.getJSON(url, paramsUrl, handleJSONResponse);
 }
 
 
@@ -977,38 +1003,36 @@ function handleJSONResponse(JSONResponse) {
 // Get a list of virtual network codes and repopulate the virtual networks selector
 function updateVirtualNetworksSelector() {
   var url = 'http://service.iris.edu/irisws/virtualnetwork/1/codes'; // response is always XML
-  $.get(url, function(serviceResponse) {
-      // NOTE:  This function is a 'promise' that gets evaluated asynchronously
-      // NOTE:  https://api.jquery.com/jquery.get/
-      var vnetNodes = serviceResponse.getElementsByTagName("virtualNetwork");
-      var vnetCodes = $.map(vnetNodes, function(elem, i) { return(elem.getAttribute("code")); } );
-      // var vnetDescriptions = $.map(vnetNodes, function(elem, i) { return(elem.firstElementChild.textContent); } );
-      G_virtualNetworks = vnetCodes;
-    }
-  ).done(function() {
+  $.get(url).done(function(serviceResponse) {
+    // NOTE:  This function is a 'promise' that gets evaluated asynchronously
+    // NOTE:  https://api.jquery.com/jquery.get/
+    var vnetNodes = serviceResponse.getElementsByTagName("virtualNetwork");
+    var vnetCodes = $.map(vnetNodes, function(elem, i) { return(elem.getAttribute("code")); } );
+    // var vnetDescriptions = $.map(vnetNodes, function(elem, i) { return(elem.firstElementChild.textContent); } );
+    G_virtualNetworks = vnetCodes;
     generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks
+  }).fail(function(jqXHR, textStatus, errorThrown) {
+    var a=1;
+  }).always(function() {
+    var a=1;
   });
-  // Can be chained with .done().fail().always() 
 }
 
 // Query for station metadata in for this virtual network and repopulate all SNCL selectors
 function updateSNCLSelectors() {
-  if (G_virtualNetwork == "No virtual network") {
-    G_networks = DEFAULT_networks;
-    G_stations = DEFAULT_stations;
-    G_locations = DEFAULT_locations;
-    G_channels = DEFAULT_channels;
-    generateNetworksSelector();
-    return;
-  }
 
   // UI cues
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
   $('#activityMessage').text("service.iris.edu/fdsnws/station/1/query").addClass("info");
 
+  var network = G_virtualNetwork;
+  if (G_virtualNetwork == "No virtual network") {
+    network = "*";
+  }
+
   var url = 'http://service.iris.edu/fdsnws/station/1/query';
-  var data = {net:G_virtualNetwork,
+  var data = {net:network,
               sta:"*",
               loc:"*",
               cha:G_mustangChannels,
@@ -1017,7 +1041,8 @@ function updateSNCLSelectors() {
               level:"channel",
               nodata:"404",
               format:"text"};
-  $.get(url, data, function (serviceResponse) {
+  console.log(url + "?" + $.param(data));
+  $.get(url, data).done(function(serviceResponse) {
 
     $('#activityMessage').text("building selectors");
 
@@ -1107,17 +1132,12 @@ function updateSNCLSelectors() {
       G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
     })
     
-    var a = 1;
-
-  }).done(function(serviceResponse) {
-
     // Regenerate all selectors based on the new G_~ arrays
     generateNetworksSelector();
 
+  }).fail(function(jqXHR, textStatus, errorThrown) {
 
-  }).fail(function(serviceResponse) {
-
-    if (serviceResponse.status == 404) {
+    if (jqXHR.status == 404) {
       // Service returned "no data found" -- possibly due to an inappropriate time range
       alert("No station metadata found for the selected virtual network and time range.");
     }
@@ -1170,10 +1190,10 @@ $(function() {
               dateFormat: "yy-mm-dd",
               defaultDate: new Date(2013,9-1,1),
               changeMonth: true,
-              changeYear: true
+              changeYear: true,
+              onClose: selectStartDate
             }
   $('#datepicker1').datepicker(options);
-  //$('#datepicker1').datepicker("setDate","2013-09-01");
   
   // get today's date
   var today = new Date();
@@ -1187,20 +1207,24 @@ $(function() {
               dateFormat: "yy-mm-dd",
               defaultDate: today,
               changeMonth: true,
-              changeYear: true
+              changeYear: true,
+              onClose: selectEndDate
             }
   $('#datepicker2').datepicker(options);
   $('#datepicker2').datepicker("setDate",today);
   
-  // Attach behavior to UI elements
+  // Attach behavior to UI buttons
   $('#prevStation').click(prevStation);
   $('#nextStation').click(nextStation);
   $('#plotData').click(updatePlot);
+  $('#updateSnclsForTimeRange').click(updateSNCLsForTimeRange);
+
+  // Attach behavior to UI selectors
   $('#plotType').change(selectPlotType);
   $('#metric').change(selectMetric);
   
   // Initialize time span
-  var dayCount = createTimeSpan();
+  var dayCount = createTimeSpan(); // required to set starttime and endtime fields
 
   // Activate tooltips
   $('span.tooltip').cluetip({width: '500px', attribute: 'id', hoverClass: 'highlight'});
@@ -1216,6 +1240,13 @@ $(function() {
 
   // set the initial plot type
   $('#plotType').val("metricTimeseries");
+
+  // Prevent accidental form submission associated with default behavior for buttons
+  // https://stackoverflow.com/questions/9347282/using-jquery-preventing-form-from-submitting
+  $(document).on("submit", "form", function(e){
+    e.preventDefault();
+    return  false;
+  });
 
 });
 
