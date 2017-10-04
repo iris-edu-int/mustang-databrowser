@@ -1025,6 +1025,7 @@ function updateSNCLSelectors() {
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
   $('#activityMessage').text("service.iris.edu/fdsnws/station/1/query").addClass("info");
+  $('#updateSnclsForTimeRange').addClass("alert");
 
   var network = G_virtualNetwork;
   if (G_virtualNetwork == "No virtual network") {
@@ -1148,6 +1149,7 @@ function updateSNCLSelectors() {
   }).always(function() {
 
     $('#activityMessage').text("").removeClass("info");
+    $('#updateSnclsForTimeRange').removeClass("alert");
     // $('#profiling_container').show();
     // $('#dataLink_container').show();
 
