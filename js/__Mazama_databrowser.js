@@ -614,6 +614,9 @@ function updateSNCLsForTimeRange() {
   // TODO:  But it's a user requested activity so for now we let them do this.
   G_previousVirtualNetwork = G_virtualNetwork;
   G_virtualNetwork = $('#virtualNetwork').val();
+  if (G_virtualNetwork == "No virtual network") {
+    $('#requestMessage').addClass('alert').text("Updating SNCLs for all networks can take >30s. Please be patient.");
+  }
   updateSNCLSelectors();
 }
 
@@ -1148,6 +1151,7 @@ function updateSNCLSelectors() {
 
   }).always(function() {
 
+    $('#requestMessage').text('').removeClass('alert');
     $('#activityMessage').text("").removeClass("info");
     $('#updateSnclsForTimeRange').removeClass("alert");
     // $('#profiling_container').show();

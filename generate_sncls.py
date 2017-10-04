@@ -5,14 +5,14 @@ Parse a JSON formatted list of SNCL targets for the sample_mean metric and
 use this to create separate javascript files that define global variables
 used in the creation of SNCL selectors:
 
- * networks.js  -- defines G_networks:  array of network names
- * stations.js  -- defines G_stations:  dictionary of {net1:[sta1,sta2,sta3,...],..}
- * locations.js -- defines G_locations:  dictionary of {net1.sta1:[loc1,loc2,loc3,...],...}
- * channels.js  -- defines G_channels:  dictionary of {net1.sta1.loc1:[cha1,cha2,cha3,...],...}
+ * networks.js  -- defines DEFAULT_networks:  array of network names
+ * stations.js  -- defines DEFAULT_stations:  dictionary of {net1:[sta1,sta2,sta3,...],..}
+ * locations.js -- defines DEFAULT_locations:  dictionary of {net1.sta1:[loc1,loc2,loc3,...],...}
+ * channels.js  -- defines DEFAULT_channels:  dictionary of {net1.sta1.loc1:[cha1,cha2,cha3,...],...}
 
 These are used in js/__Databrowser.js for the dynamic creation of SNCL selectors.
 
-The intention is for this script to be run regulary by a cron job witho utput
+The intention is for this script to be run regulary by a cron job with output
 going to the databrowser js/ directory.
 
 A single argument is accepted specifying the location of the directory in which these files
@@ -33,7 +33,7 @@ else:
 		destDir += '/'
 
 # Parse json return from IRIS DMC 'targets' webserivce
-sncls = json.load(urllib2.urlopen("http://service.iris.edu/mustangbeta/targets/1/query?metric=sample_mean&format=json"))
+sncls = json.load(urllib2.urlopen("http://service.iris.edu/mustang/targets/1/query?metric=sample_mean&format=json"))
 
 # Set up empty dictionaries
 stations = {}   # key=net, val=[sta]
