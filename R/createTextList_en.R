@@ -28,6 +28,7 @@ createTextList <- function(dataList, infoList) {
                        clock_locked='Daily Flag Count: Clock locked',
                        cross_talk='Cross-Talk Check: Channel Cross-Correlation Coefficient',
                        data_latency='Time Since Last Data Sample Was Acquired',
+                       dc_offset='Indicator of Likelihood of DC Offset Shift',
                        dc_offset_times='Times of DC Offsets Detected',
                        dead_channel_exp='Dead Channel Metric: Exponential Fit',
                        dead_channel_gsn='Dead Channel Metric: GSN',
@@ -90,7 +91,7 @@ createTextList <- function(dataList, infoList) {
                       clock_locked='flag count (number of occurrences)',
                       cross_talk='correlation coefficient', # no units
                       data_latency='latency (seconds)',
-                      dc_offset='value', # no units
+                      dc_offset='indicator of likelihood of DC offset shift', # no units
                       dead_channel_exp='standard deviation of residuals (log10(dB))',
                       dead_channel_gsn='indicator',
                       dead_channel_lin='standard deviation of residuals (dB)',

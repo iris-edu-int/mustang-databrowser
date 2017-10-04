@@ -76,6 +76,7 @@ var G_multiMetrics = {
 // G_singleMetrics has both optgroups and options
 var G_singleMetrics = {
   'simple metrics (daily)': {
+    'dc_offset': 'dc_offset: indicator of likelihood of DC offset shift',
     'max_gap': 'max_gap: maximum gap duration',
     'max_overlap': 'max_overlap: maximum overlap duration',
     'max_stalta': 'max_stalta: maximum STA/LTA amplitude ratio',
