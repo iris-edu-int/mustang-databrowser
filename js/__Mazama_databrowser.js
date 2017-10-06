@@ -9,59 +9,6 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
-/****  Here are Gillian's 2017-08-15 preferred names for metric variables *********
-
-simple metrics (daily)
-  max_gap: maximum gap duration
-  max_overlap: maximum overlap duration
-  max_stalta: maximum STA/LTA amplitude ratio
-  num_gaps: number of gaps
-  num_overlaps: number of overlaps
-  num_spikes: number of spikes detected
-  percent_availability: percentage data available
-  sample_min: minimum amplitude
-  sample_max: maximum amplitude
-  sample_mean: mean amplitude
-  sample_median: median amplitude
-  sample_rms: root-mean- square variance of amplitudes
-  sample_unique: count of unique sample values
-latency metrics
-  data_latency: time between latest data acquisition and receipt
-  feed_latency: time since latest data was received
-  total_latency: total data latency
-PSD metrics (daily)
-  dead_channel_exp: residuals of exponential fit to PSD mean
-  dead_channel_gsn: TRUE/FALSE
-  dead_channel_lin: residuals of linear fit to PSD mean
-  pct_above_nhnm: percent of PDF matrix above New High Noise Model
-  pct_below_nlnm: percent of PDF matrix below New Low Noise Model
-event based metrics
-  cross_talk: channel cross-correlation
-  polarity_check: near neighbor station cross-correlation
-  sample_snr: P-wave signal-to- noise ratio
-transfer function metrics
-  ms_coherence: coherence
-  gain_ratio: gain ratio
-  phase_diff: phase difference
-miniSEED state-of- health metrics (daily flag count)
-  amplifier_saturation: amplifier saturation detected
-  calibration_signal: calibration signals present
-  clock_locked: clock locked
-  digital_filter_charging: digital filter may be charging
-  digitizer_clipping: digitizer clipping detected
-  event_begin: beginning of an event, station trigger
-  event_end: end of an event, station detrigger
-  glitches: glitches detected
-  missing_padded_data: missing/padded data present
-  spikes: spikes detected
-  suspect_time_tag: time tag is questionable
-  telemetry_sync_error: telemetry synchronization error
-  timing_correction: time correction applied
-miniSEED state-of- health metrics (other)
-  timing_quality: average timing quality
-
-*/
-
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
 
 // G_multiMetrics just has options
@@ -139,6 +86,10 @@ var G_singleMetrics = {
     'timing_quality': 'timing_quality: average timing quality'
   }
 };
+
+// NOTE:  Becuase we are using web services in an asynchronous manner, it is helpful to use
+// NOTE:  state variables so that appropriate action can be taken after the asynchronous ajax
+// NOTE:  calls return.
 
 // NOTE:  Configurable list of channels curently in the MUSTANG database
 var G_mustangChannels = "CH?,DH?,LH?,MH?,SH?,EH?,EL?,BN?,HN?,LN?,BY?,DP?,BH?,HH?,BX?,HX?,VM?";
@@ -472,7 +423,7 @@ function generateNetworksSelector(){
   $("#network-auto").autocomplete({source: options});
   $("#network-auto").val("");
  
-  generateStationsSelector();
+  updateSNCLSelectors(); // ends with generateStationsSelector()
 }
 
 
@@ -599,15 +550,7 @@ function generateChannelsSelector(){
 function selectVirtualNetwork(){
   G_previousVirtualNetwork = G_virtualNetwork;
   G_virtualNetwork = $('#virtualNetwork').val();
-  if (G_virtualNetwork == "No virtual network") {
-    G_networks = DEFAULT_networks;
-    G_stations = DEFAULT_stations;
-    G_locations = DEFAULT_locations;
-    G_channels = DEFAULT_channels;
-    generateNetworksSelector();
-  } else {
-    updateSNCLSelectors();    
-  }
+  updateNetworks(); // ends with generateNetworksSelector()
 }
 
 function updateSNCLsForTimeRange() {
@@ -1013,7 +956,7 @@ function updateVirtualNetworksSelector() {
     var vnetNodes = serviceResponse.getElementsByTagName("virtualNetwork");
     var vnetCodes = $.map(vnetNodes, function(elem, i) { return(elem.getAttribute("code")); } );
     // var vnetDescriptions = $.map(vnetNodes, function(elem, i) { return(elem.firstElementChild.textContent); } );
-    G_virtualNetworks = vnetCodes;
+    G_virtualNetworks = vnetCodes.sort();
     generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks
   }).fail(function(jqXHR, textStatus, errorThrown) {
     var a=1;
@@ -1022,8 +965,10 @@ function updateVirtualNetworksSelector() {
   });
 }
 
-// Query for station metadata in for this virtual network and repopulate all SNCL selectors
-function updateSNCLSelectors() {
+/* ------------------------------------------------------------------------- */
+// Query for level=station metadata for this virtual network and repopulate all NSLC selectors
+// This happens whenever a new virtual network is selected
+function updateNetworks() {
 
   // UI cues
   $('#profiling_container').hide();
@@ -1038,6 +983,103 @@ function updateSNCLSelectors() {
 
   var url = 'http://service.iris.edu/fdsnws/station/1/query';
   var data = {net:network,
+              sta:"*",
+              starttime:$('#starttime').val(),
+              endtime:$('#endtime').val(),
+              level:"station",
+              nodata:"404",
+              format:"text"};
+  console.log(url + "?" + $.param(data));
+  $.get(url, data).done(function(serviceResponse) {
+
+    $('#activityMessage').text("building selectors");
+
+    // Read in the response with PapaParse
+    var config = {
+      delimiter: "",  // auto-detect
+      newline: "",  // auto-detect
+      quoteChar: '"',
+      header: false, // NOTE:  When 'true', each row becomes an associative array and it all gets more complicated
+      dynamicTyping: false,
+      preview: 0,
+      encoding: "",
+      worker: false,
+      comments: false,
+      step: undefined,
+      complete: undefined,
+      error: undefined,
+      download: false,
+      skipEmptyLines: true, // false,
+      chunk: undefined,
+      fastMode: undefined,
+      beforeFirstChunk: undefined,
+      withCredentials: undefined
+    }
+    var result = Papa.parse(serviceResponse, config);
+    // TODO:  Could handler errors or parsing issues here
+
+    // Response is a '|' separated file with a hedaer like this:
+    // #Network | Station | Latitude | Longitude | Elevation | SiteName | StartTime | EndTime 
+
+    // Separate header from data
+    var header = result.data.slice(0,1);
+    var data = result.data.slice(1);
+
+    // NOTE:  By having the timerange in the request, all returned data should be valid
+
+    // Convert returned locations of "" into "--"
+    $.each(data, function(i, row) {
+      if ( row[2] == "" ) data[i][2] = "--";
+    });
+
+    // Extract columns of data
+    var Ns = $.map(data, function(row, i) { return(row[0]); } );
+    var NSs = $.map(data, function(row, i) { return(row[0] + '.' + row[1]); } );
+
+    // Create unique arrays
+    var uniqueNs = Ns.filter(function(val, i) { return(Ns.indexOf(val)==i); }).sort();
+    var uniqueNSs = NSs.filter(function(val, i) { return(NSs.indexOf(val)==i); }).sort();
+
+    // Replace the G_networks array
+    G_networks = uniqueNs;
+
+    // Trigger the cascading  selectors
+    generateNetworksSelector();
+
+  }).fail(function(jqXHR, textStatus, errorThrown) {
+
+    if (jqXHR.status == 404) {
+      // Service returned "no data found" -- possibly due to an inappropriate time range
+      alert("No station metadata found for the selected virtual network and time range.");
+    }
+    // Restore previous virtual network selection
+    G_virtualNetwork = G_previousVirtualNetwork;
+    generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks   
+
+  }).always(function() {
+
+    $('#requestMessage').text('').removeClass('alert');
+    $('#activityMessage').text("").removeClass("info");
+    $('#updateSnclsForTimeRange').removeClass("alert");
+    // $('#profiling_container').show();
+    // $('#dataLink_container').show();
+
+  });
+
+}
+
+/* ------------------------------------------------------------------------- */
+// Query for level=channel metadata for the current network and repopulate all SNCL selectors
+function updateSNCLSelectors() {
+
+  // UI cues
+  $('#profiling_container').hide();
+  $('#dataLink_container').hide();
+  $('#activityMessage').text("service.iris.edu/fdsnws/station/1/query").addClass("info");
+  $('#updateSnclsForTimeRange').addClass("alert");
+
+  var url = 'http://service.iris.edu/fdsnws/station/1/query';
+  var data = {net:G_network,
               sta:"*",
               loc:"*",
               cha:G_mustangChannels,
@@ -1090,23 +1132,18 @@ function updateSNCLSelectors() {
     });
 
     // Extract columns of data
-    var Ns = $.map(data, function(row, i) { return(row[0]); } );
     var NSs = $.map(data, function(row, i) { return(row[0] + '.' + row[1]); } );
     var NSLs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2]); } );
     var NSLCs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2] + '.' + row[3]); } );
 
     // Create unique arrays
-    var uniqueNs = Ns.filter(function(val, i) { return(Ns.indexOf(val)==i); }).sort();
     var uniqueNSs = NSs.filter(function(val, i) { return(NSs.indexOf(val)==i); }).sort();
     var uniqueNSLs = NSLs.filter(function(val, i) { return(NSLs.indexOf(val)==i); }).sort();
     var uniqueNSLCs = NSLCs.filter(function(val, i) { return(NSLCs.indexOf(val)==i); }).sort();
 
-    // Replace the G_networks array
-    G_networks = uniqueNs;
-
     // Replace the G_stations "station by network" associative array
     G_stations = {};
-    $.each(uniqueNs, function(i, N) {
+    $.each(G_networks, function(i, N) {
       // Find NSs that start with 'net'
       // Then create a unique, sorted list of these NSs
       // Add an array of the 'sta' part to G_stations with 'net' as the key
@@ -1138,7 +1175,7 @@ function updateSNCLSelectors() {
     })
     
     // Regenerate all selectors based on the new G_~ arrays
-    generateNetworksSelector();
+    generateStationsSelector();
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
 
@@ -1146,9 +1183,6 @@ function updateSNCLSelectors() {
       // Service returned "no data found" -- possibly due to an inappropriate time range
       alert("No station metadata found for the selected virtual network and time range.");
     }
-    // Restore previous virtual network selection
-    G_virtualNetwork = G_previousVirtualNetwork;
-    generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks   
 
   }).always(function() {
 
