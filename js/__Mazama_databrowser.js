@@ -535,7 +535,7 @@ function generateChannelsSelector(){
   }
 
   if (G_firstPlot) {
-    updatePlot();
+    sendPlotRequest();
     G_firstPlot = false;
   }
 
@@ -551,17 +551,6 @@ function selectVirtualNetwork(){
   G_previousVirtualNetwork = G_virtualNetwork;
   G_virtualNetwork = $('#virtualNetwork').val();
   updateNetworks(); // ends with generateNetworksSelector()
-}
-
-function updateSNCLsForTimeRange() {
-  // TODO:  Could add logic here to reuse DEFAULT variables in some cases.
-  // TODO:  But it's a user requested activity so for now we let them do this.
-  G_previousVirtualNetwork = G_virtualNetwork;
-  G_virtualNetwork = $('#virtualNetwork').val();
-  if (G_virtualNetwork == "No virtual network") {
-    $('#requestMessage').addClass('alert').text("Updating SNCLs for all networks can take >30s. Please be patient.");
-  }
-  updateSNCLSelectors();
 }
 
 function selectNetwork(){
@@ -585,11 +574,13 @@ function selectChannel(){
 }
 
 function selectStartDate(dateText, inst) {
-    var dayCount = createTimeSpan(); // required to set starttime and endtime fields
+  validateDates(); // required to set starttime and endtime fields
+  updateSNCLSelectors();
 }
 
 function selectEndDate(dateText, inst) {
-    var dayCount = createTimeSpan(); // required to set starttime and endtime fields
+  validateDates(); // required to set starttime and endtime fields
+  updateSNCLSelectors();
 }
 
 // Set the global channel variable from auto-complete box ----------------------
@@ -636,7 +627,7 @@ function prevStation() {
       G_network = allNetworks[networkIndex];
       generateNetworksSelector(); // trigger the cascading selectors
       $('#nextStation').prop('disabled',false);
-      updatePlot();
+      sendPlotRequest();
       return;
     }
 
@@ -670,7 +661,7 @@ function prevStation() {
         G_location = allLocations[locationIndex];
         generateLocationsSelector(); // trigger the cascading selectors
         $('#prevStation').prop('disabled',false);
-        updatePlot();
+        sendPlotRequest();
         return;
       } 
 
@@ -696,7 +687,7 @@ function prevStation() {
           G_location = allLocations[locationIndex];
           generateStationsSelector(); // trigger the cascading selectors
           $('#nextStation').prop('disabled',false);
-          updatePlot();
+          sendPlotRequest();
           return;
         } 
 
@@ -729,7 +720,7 @@ function nextStation() {
       G_network = allNetworks[networkIndex];
       generateNetworksSelector(); // trigger the cascading selectors
       $('#prevStation').prop('disabled',false);
-      updatePlot();
+      sendPlotRequest();
       return;
     }
 
@@ -763,7 +754,7 @@ function nextStation() {
         G_location = allLocations[locationIndex];
         generateLocationsSelector(); // trigger the cascading selectors
         $('#prevStation').prop('disabled',false);
-        updatePlot();
+        sendPlotRequest();
         return;
       } 
 
@@ -789,7 +780,7 @@ function nextStation() {
           G_location = allLocations[locationIndex];
           generateStationsSelector(); // trigger the cascading selectors
           $('#prevStation').prop('disabled',false);
-          updatePlot();
+          sendPlotRequest();
           return;
         } 
 
@@ -804,59 +795,8 @@ function nextStation() {
 
 /**** EVENT HANDLERS **********************************************************/
 
-// One layer of abstraction before sending the request allows us to take UI
-// specific actions, e.g. setting hidden parameters or disabling some elements,
-// before sending the request.
-function updatePlot() {
-
-  var dayCount = createTimeSpan(); // required to set starttime and endtime fields
-
-/***** IGNORE THESE FOR NOW
-  if ( $('#plotType').val() == 'networkBoxplot' && $('#network').val() == 'IU' && dayCount > 190 ) {
-    alert("Network Boxplots for the IU network download a lot of data. Please choose a timespan <= 6 months.");
-  } else if ( $('#plotType').val() == 'trace' && $('#channel').val()[0] == 'L' && dayCount > 7 ) {
-    alert("Seismic Trace plots download a lot of data. Please choose a timespan <= 7 days for L channels.");
-  } else if ( $('#plotType').val() == 'trace' && $('#channel').val()[0] != 'L' && dayCount > 1 ) {
-    alert("Seismic Trace plots download a lot of data. Please choose a timespan = 1 day for non-L channels.");
-  } else if ( $('#plotType').val() == 'pdf' && $('#channel').val()[0] == 'L' && dayCount > 7 ) {
-    alert("Seismic PDF plots download a lot of data. Please choose a timespan <= 7 days for L channels.");
-  } else if ( $('#plotType').val() == 'pdf' && $('#channel').val()[0] != 'L' && dayCount > 1 ) {
-    alert("Seismic PDF plots download a lot of data. Please choose a timespan = 1 day for non-L channels.");
-  } else { 
-**/
-
-    prePlotActions();
-    sendRequest();
-
-/**
-  }
-**/
-}
-
-
-// Set styles, disable elements, etc.
-function prePlotActions() {
-  $('#spinner').fadeIn(1000);
-  $('#profiling_container').hide();
-  $('#dataLink_container').hide();
-  $('#requestMessage').removeClass('alert').text('');
-  $('#activityMessage').text("plot request").addClass("info");
-
-}
-
-
-// Reset styles, enable disabled elements, etc.
-function postPlotActions(JSONResponse) {
-  $('#spinner').hide();
-  $('#profiling_container').show();
-  $('#dataLink_container').show();
-  $('#activityMessage').text("").removeClass("info");
-}
-
-
-// TODO:  Change this to a better name like validateDate
-// Set up time span 
-function createTimeSpan() {
+// Validate dates and sets starttime and endtime fields
+function validateDates() {
   var startDate = $('#datepicker1').datepicker("getDate");
   var endDate = $('#datepicker2').datepicker("getDate");
 
@@ -868,14 +808,10 @@ function createTimeSpan() {
     $('#datepicker2').datepicker("setDate",endDate);
   }
 
-  var timeDiff = Math.abs(endDate.getTime() - startDate.getTime());
-  var dayCount = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
   var starttimeString = $.datepicker.formatDate('yy-mm-dd',startDate);
   var endtimeString = $.datepicker.formatDate('yy-mm-dd',endDate);
   $('#starttime').val(starttimeString);
   $('#endtime').val(endtimeString);
-
-  return(dayCount)
 }
 
 
@@ -884,7 +820,8 @@ function createTimeSpan() {
 // Serialize the form and send it to the CGI.
 // Note that some UI elements have no bearing on the product generated and
 // should be removed from the request to improve our cache hit rate.
-function sendRequest() {
+function sendPlotRequest() {
+  validateDates(); // required to set starttime and endtime fields
   var url = '/cgi-bin/__DATABROWSER__.cgi';
   var paramsUrl = $('#controls_form').serialize();
   var removeList = $('.doNotSerialize');
@@ -903,47 +840,59 @@ function sendRequest() {
     var chasetString = "channel=" + $('#channel').val().substr(0,2) + "?";
     paramsUrl = paramsUrl.replace(channelString,chasetString);
   }
-  //  DEBUG
-  //displayError("url: " + url + ", data: " + data);
+  // UI changes
+  $('#spinner').fadeIn(1000);
+  $('#profiling_container').hide();
+  $('#dataLink_container').hide();
+  $('#requestMessage').text('').removeClass('alert');
+  $('#activityMessage').text('plot request').addClass('info');
+  // Debugging output
   console.log(url + "?" + paramsUrl);
-  $.getJSON(url, paramsUrl, handleJSONResponse);
-}
 
+  // Make the request
+  $.getJSON(url, paramsUrl).done(function(JSONResponse) {
+    if (JSONResponse.status == 'ERROR') {
+      $('#plot').css({ opacity: 0.5 });
+      displayError(JSONResponse.error_text);
+    } else {
+      $('#plot').css({ opacity: 1.0 });
+      // NOTE:  If more than one result is generated, they should have names
+      // NOTE:  derived from the basename.
+      var img_url = JSONResponse.rel_base + ".png";
+      //var img_url = "/mustang/databrowser/" + JSONResponse.rel_base + ".png";
+      $('#plot').attr('src',img_url);
+      // The returnObject is a JSON serialization of an R list.
+      var returnObject = $.parseJSON(JSONResponse.return_json); 
+      var dummy = 1;
 
-function handleJSONResponse(JSONResponse) {
-  if (JSONResponse.status == 'ERROR') {
-    $('#plot').css({ opacity: 0.5 });
-    displayError(JSONResponse.error_text);
-  } else {
-    $('#plot').css({ opacity: 1.0 });
-    // NOTE:  If more than one result is generated, they should have names
-    // NOTE:  derived from the basename.
-    var img_url = JSONResponse.rel_base + ".png";
-    //var img_url = "/mustang/databrowser/" + JSONResponse.rel_base + ".png";
-    $('#plot').attr('src',img_url);
-    // The returnObject is a JSON serialization of an R list.
-    var returnObject = $.parseJSON(JSONResponse.return_json); 
-    var dummy = 1;
+      G_loadSecs = returnObject.loadSecs;
+      G_plotSecs = returnObject.plotSecs;
+      G_RSecs = returnObject.totalSecs;
 
-    G_loadSecs = returnObject.loadSecs;
-    G_plotSecs = returnObject.plotSecs;
-    G_RSecs = returnObject.totalSecs;
+      $('#loadSecs').text(G_loadSecs.toFixed(2));
+      $('#plotSecs').text(G_plotSecs.toFixed(2));
+      $('#RSecs').text(G_RSecs.toFixed(2));
 
-    $('#loadSecs').text(G_loadSecs.toFixed(2));
-    $('#plotSecs').text(G_plotSecs.toFixed(2));
-    $('#RSecs').text(G_RSecs.toFixed(2));
+      // format the MUSTANG URL we will display for the user
+      // if this is a measurements url, append orderby=start
+      displayURL = returnObject.bssUrl
+      if (displayURL.indexOf("measurements") > -1) {
+      	displayURL = returnObject.bssUrl + "&orderby=start"
+      }
+      $('#bssDataLink').attr('href',displayURL);
 
-    // format the MUSTANG URL we will display for the user
-    // if this is a measurements url, append orderby=start
-    displayURL = returnObject.bssUrl
-    if (displayURL.indexOf("measurements") > -1) {
-    	displayURL = returnObject.bssUrl + "&orderby=start"
     }
-    $('#bssDataLink').attr('href',displayURL);
-
-  }
-  postPlotActions();
+  }).fail(function(jqXHR, textStatus, errorThrown) {
+    alert("CGI error: " + textStatus);
+  }).always(function() {
+    // UI changes
+    $('#spinner').hide();
+    $('#profiling_container').show();
+    $('#dataLink_container').show();
+    $('#activityMessage').text('').removeClass('info');
+  });
 }
+
 
 /**** IRIS WEBSERVICE HANDLERS ************************************************/
 
@@ -974,7 +923,6 @@ function updateNetworks() {
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
   $('#activityMessage').text("service.iris.edu/fdsnws/station/1/query").addClass("info");
-  $('#updateSnclsForTimeRange').addClass("alert");
 
   var network = G_virtualNetwork;
   if (G_virtualNetwork == "No virtual network") {
@@ -1059,8 +1007,7 @@ function updateNetworks() {
   }).always(function() {
 
     $('#requestMessage').text('').removeClass('alert');
-    $('#activityMessage').text("").removeClass("info");
-    $('#updateSnclsForTimeRange').removeClass("alert");
+    $('#activityMessage').text('').removeClass('info');
     // $('#profiling_container').show();
     // $('#dataLink_container').show();
 
@@ -1075,8 +1022,7 @@ function updateSNCLSelectors() {
   // UI cues
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
-  $('#activityMessage').text("service.iris.edu/fdsnws/station/1/query").addClass("info");
-  $('#updateSnclsForTimeRange').addClass("alert");
+  $('#activityMessage').text('service.iris.edu/fdsnws/station/1/query').addClass('info');
 
   var url = 'http://service.iris.edu/fdsnws/station/1/query';
   var data = {net:G_network,
@@ -1181,14 +1127,13 @@ function updateSNCLSelectors() {
 
     if (jqXHR.status == 404) {
       // Service returned "no data found" -- possibly due to an inappropriate time range
-      alert("No station metadata found for the selected virtual network and time range.");
+      alert('No station metadata found for the selected virtual network and time range.');
     }
 
   }).always(function() {
 
     $('#requestMessage').text('').removeClass('alert');
-    $('#activityMessage').text("").removeClass("info");
-    $('#updateSnclsForTimeRange').removeClass("alert");
+    $('#activityMessage').text('').removeClass('info');
     // $('#profiling_container').show();
     // $('#dataLink_container').show();
 
@@ -1223,6 +1168,15 @@ $(function() {
   $( "#station-auto").on( "autocompleteselect", selectStationAuto );
   $( "#location-auto").on( "autocompleteselect", selectLocationAuto );
   $( "#channel-auto").on( "autocompleteselect", selectChannelAuto );
+
+  // https://stackoverflow.com/questions/43615966/jquery-ui-autocomplete-match-first-letter-typed
+  // Overrides the default autocomplete filter function to search only from the beginning of the string
+  $.ui.autocomplete.filter = function (array, term) {
+      var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(term), "i");
+      return $.grep(array, function (value) {
+          return matcher.test(value.label || value.value || value);
+      });
+  };
   
   // Set up datepicker
   // NOTE:  Date object months start with 0, hence the '9-1' notation for September
@@ -1257,15 +1211,14 @@ $(function() {
   // Attach behavior to UI buttons
   $('#prevStation').click(prevStation);
   $('#nextStation').click(nextStation);
-  $('#plotData').click(updatePlot);
-  $('#updateSnclsForTimeRange').click(updateSNCLsForTimeRange);
+  $('#plotData').click(sendPlotRequest);
 
   // Attach behavior to UI selectors
   $('#plotType').change(selectPlotType);
   $('#metric').change(selectMetric);
   
-  // Initialize time span
-  var dayCount = createTimeSpan(); // required to set starttime and endtime fields
+  // Initialize the starttime and endtime fields
+  validateDates();
 
   // Activate tooltips
   $('span.tooltip').cluetip({width: '500px', attribute: 'id', hoverClass: 'highlight'});
@@ -1276,8 +1229,8 @@ $(function() {
   // Initial web request to discover virtual networks and populate the selector
   updateVirtualNetworksSelector();
   
-  // Initial population of the SNCL selectors (which will generate a request)
-  generateNetworksSelector();
+  // Initial population of the SNCL selectors
+  updateNetworks();
 
   // set the initial plot type
   $('#plotType').val("metricTimeseries");
