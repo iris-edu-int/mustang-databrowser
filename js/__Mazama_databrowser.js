@@ -96,10 +96,14 @@ var G_mustangChannels = "CH?,DH?,LH?,MH?,SH?,EH?,EL?,BN?,HN?,LN?,BY?,DP?,BH?,HH?
 
 // SNCL selector arrays 
 var G_virtualNetworks = [];
-var G_networks = DEFAULT_networks;                // DEFAULT_networks is defined in networks.js
-var G_stations = DEFAULT_stations;                // DEFAULT_stations is defined in stations.js
-var G_locations = DEFAULT_locations;              // DEFAULT_locations is defined in locations.js
-var G_channels = DEFAULT_channels;                // DEFAULT_channels is defined in channels.js
+// var G_networks = DEFAULT_networks;                // DEFAULT_networks is defined in networks.js
+// var G_stations = DEFAULT_stations;                // DEFAULT_stations is defined in stations.js
+// var G_locations = DEFAULT_locations;              // DEFAULT_locations is defined in locations.js
+// var G_channels = DEFAULT_channels;                // DEFAULT_channels is defined in channels.js
+var G_networks = [];
+var G_stations = [];
+var G_locations = [];
+var G_channels = [];
 
 // SNCL selector current choice
 var G_virtualNetwork = G_previous_virtualNetwork = "No virtual network";
@@ -175,8 +179,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
     
     // Plot Buttons
-    $('#prevStation').prop('title','use previous station');
-    $('#nextStation').prop('title','use next station');
+    $('#previousPlot').prop('title','use previous station');
+    $('#nextPlot').prop('title','use next station');
 
     // Plot Options
     $('#plotOptionsLabel').text('Plot Options for Metric Timeseries');
@@ -200,8 +204,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    $('#prevStation').prop('title','use previous station');
-    $('#nextStation').prop('title','use next station');
+    $('#previousPlot').prop('title','use previous station');
+    $('#nextPlot').prop('title','use next station');
 
     // Plot Options
     $('#plotOptionsLabel').text('No Plot Options for Multi-Metric Timeseries');
@@ -225,8 +229,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    $('#prevStation').prop('title','use previous network');
-    $('#nextStation').prop('title','use next network');
+    $('#previousPlot').prop('title','use previous network');
+    $('#nextPlot').prop('title','use next network');
 
     // Plot Options
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
@@ -260,8 +264,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    $('#prevStation').prop('title','use previous station');
-    $('#nextStation').prop('title','use next station');
+    $('#previousPlot').prop('title','use previous station');
+    $('#nextPlot').prop('title','use next station');
 
     // Plot Options
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
@@ -291,8 +295,8 @@ function selectPlotType() {
     $('#metric').addClass('doNotSerialize').hide();
 
     // Plot Buttons
-    $('#prevStation').prop('title','use previous station');
-    $('#nextStation').prop('title','use next station');
+    $('#previousPlot').prop('title','use previous station');
+    $('#nextPlot').prop('title','use next station');
 
     // Plot Options
     if (plotType == 'trace') {
@@ -365,7 +369,6 @@ function generateMultiMetricsSelector(){
 function generateVirtualNetworksSelector(){
   // Get the list of options
   var options = G_virtualNetworks;
-  options.splice(0,0,"No virtual network");
 
   // If the current virtual network is not in the list of virtual networks, choose the first available
   if (options.indexOf(G_virtualNetwork) < 0) {
@@ -411,13 +414,6 @@ function generateNetworksSelector(){
       sel.append('<option value="' + options[i] + '">' + options[i] + '</option>');
     }
   }
-
- // If the current station is not in the network, choose the first available
-  var N = G_network;
-  var allStations = G_stations[N].sort();
-  if (allStations.indexOf(G_station) < 0) {
-    G_station = allStations[0];
-  } 
 
   // Update the associated autocomplete box
   $("#network-auto").autocomplete({source: options});
@@ -536,7 +532,6 @@ function generateChannelsSelector(){
 
   if (G_firstPlot) {
     sendPlotRequest();
-    G_firstPlot = false;
   }
 
     // Update the associated autocomplete box
@@ -609,31 +604,30 @@ function selectChannelAuto(event, ui){
 /**** PREV/NEXT STATION BUTTONS ***********************************************/
 
 // Move to the previous available location/station that shares the current channel
-function prevStation() {
+function previousPlot() {
+
+  $('#activityMessage').text('').removeClass('alert');
 
   var plotType = $('#plotType').val();
 
   if (plotType == 'networkBoxplot') {
 
     // networkBoxplots increment the network
-
-    var currentNetwork = $('#network').val();
-    var allNetworks = $('#network option').map(function() {return $(this).val();}).get();
-    var networkIndex = allNetworks.indexOf(currentNetwork);
+    var networkIndex = G_networks.indexOf(G_network);
     if (networkIndex == 0) {
-      $('#prevStation').prop('disabled',true);
+      $('#previousPlot').prop('disabled',true);
     } else {
+      $('#previousPlot').prop('disabled',false);
       networkIndex--;
-      G_network = allNetworks[networkIndex];
+      G_network = G_Networks[networkIndex];
       generateNetworksSelector(); // trigger the cascading selectors
-      $('#nextStation').prop('disabled',false);
       sendPlotRequest();
       return;
     }
 
   } else {
 
-    // all other plot types decrement the location and then the station
+    // All other plot types decrement the location and then the station
 
     var currentNetwork = $('#network').val();
     var currentStation = $('#station').val();
@@ -658,9 +652,9 @@ function prevStation() {
       NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
       allChannels = G_channels[NSL].sort();
       if (allChannels.indexOf(currentChannel) >= 0) {
+        $('#nextPlot').prop('disabled',false); // successful decrement so now Next should be enabled
         G_location = allLocations[locationIndex];
         generateLocationsSelector(); // trigger the cascading selectors
-        $('#prevStation').prop('disabled',false);
         sendPlotRequest();
         return;
       } 
@@ -683,17 +677,19 @@ function prevStation() {
         allChannels = G_channels[NSL].sort();
 
         if (allChannels.indexOf(currentChannel) >= 0) {
+          $('#nextPlot').prop('disabled',false); // successful decrement so now Next should be enabled
           G_station = currentStation;
           G_location = allLocations[locationIndex];
           generateStationsSelector(); // trigger the cascading selectors
-          $('#nextStation').prop('disabled',false);
           sendPlotRequest();
           return;
-        } 
+        }
 
       } // END locationIndex while loop
 
     } // END stationIndex while loop
+
+    $('#activityMessage').text('no previous SNCLs with this channel').addClass('alert');
 
   } // END plotType
 
@@ -701,7 +697,9 @@ function prevStation() {
 
 
 // Move to the next available location/station that shares the current channel
-function nextStation() {
+function nextPlot() {
+
+  $('#activityMessage').text('').removeClass('alert');
 
   var plotType = $('#plotType').val();
 
@@ -709,24 +707,22 @@ function nextStation() {
 
     // networkBoxplots increment the network
 
-    var currentNetwork = $('#network').val();
-    var allNetworks = $('#network option').map(function() {return $(this).val();}).get();
-    var networkIndex = allNetworks.indexOf(currentNetwork);
-    if (networkIndex == allNetworks.length-1) {
-      $('#nextStation').prop('disabled',true);
+    var networkIndex = G_networks.indexOf(G_Network);
+    if (networkIndex == G_networks.length-1) {
+      $('#nextPlot').prop('disabled',true);
       return;
     } else {
+      $('#nextPlot').prop('disabled',false);
       networkIndex++;
-      G_network = allNetworks[networkIndex];
+      G_network = G_networks[networkIndex];
       generateNetworksSelector(); // trigger the cascading selectors
-      $('#prevStation').prop('disabled',false);
       sendPlotRequest();
       return;
     }
 
   } else {
 
-    // all other plot types increment the location and then the station
+    // All other plot types increment the location and then the station
 
     var currentNetwork = $('#network').val();
     var currentStation = $('#station').val();
@@ -751,9 +747,9 @@ function nextStation() {
       NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
       allChannels = G_channels[NSL].sort();
       if (allChannels.indexOf(currentChannel) >= 0) {
+        $('#previousPlot').prop('disabled',false); // successful increment so now Previous should be enabled
         G_location = allLocations[locationIndex];
         generateLocationsSelector(); // trigger the cascading selectors
-        $('#prevStation').prop('disabled',false);
         sendPlotRequest();
         return;
       } 
@@ -767,19 +763,19 @@ function nextStation() {
       currentStation = allStations[stationIndex];
       NS = currentNetwork + '.' + currentStation;
       allLocations = G_locations[NS].sort();
-      locationIndex = -1;
+      locationIndex = -1; // so that we start at index 0
 
-      while (locationIndex < allLocations.length) {
+      while (locationIndex < allLocations.length-1) {
 
         locationIndex++;
         NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
         allChannels = G_channels[NSL].sort();
 
         if (allChannels.indexOf(currentChannel) >= 0) {
+          $('#previousPlot').prop('disabled',false); // successful increment so now Previous should be enabled
           G_station = currentStation;
           G_location = allLocations[locationIndex];
           generateStationsSelector(); // trigger the cascading selectors
-          $('#prevStation').prop('disabled',false);
           sendPlotRequest();
           return;
         } 
@@ -787,6 +783,8 @@ function nextStation() {
       } // END locationIndex while loop
 
     } // END stationIndex while loop
+
+    $('#activityMessage').text('no more SNCLs with this channel').addClass('alert');
 
   } // END plotType
 
@@ -880,7 +878,7 @@ function sendPlotRequest() {
       	displayURL = returnObject.bssUrl + "&orderby=start"
       }
       $('#bssDataLink').attr('href',displayURL);
-
+      G_firstPlot = false;
     }
   }).fail(function(jqXHR, textStatus, errorThrown) {
     alert("CGI error: " + textStatus);
@@ -889,7 +887,7 @@ function sendPlotRequest() {
     $('#spinner').hide();
     $('#profiling_container').show();
     $('#dataLink_container').show();
-    $('#activityMessage').text('').removeClass('info');
+    $('#activityMessage').text('').removeClass('info').removeClass('alert');
   });
 }
 
@@ -906,9 +904,10 @@ function updateVirtualNetworksSelector() {
     var vnetCodes = $.map(vnetNodes, function(elem, i) { return(elem.getAttribute("code")); } );
     // var vnetDescriptions = $.map(vnetNodes, function(elem, i) { return(elem.firstElementChild.textContent); } );
     G_virtualNetworks = vnetCodes.sort();
+    G_virtualNetworks.splice(0,0,"No virtual network");
     generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks
   }).fail(function(jqXHR, textStatus, errorThrown) {
-    var a=1;
+    alert("Error updating virtual networks: " + textStatus);
   }).always(function() {
     var a=1;
   });
@@ -922,7 +921,7 @@ function updateNetworks() {
   // UI cues
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
-  $('#activityMessage').text("service.iris.edu/fdsnws/station/1/query").addClass("info");
+  $('#activityMessage').text('rebuilding Network selectors').addClass('info');
 
   var network = G_virtualNetwork;
   if (G_virtualNetwork == "No virtual network") {
@@ -940,7 +939,7 @@ function updateNetworks() {
   console.log(url + "?" + $.param(data));
   $.get(url, data).done(function(serviceResponse) {
 
-    $('#activityMessage').text("building selectors");
+    $('#activityMessage').text("rebuilding Network selectors");
 
     // Read in the response with PapaParse
     var config = {
@@ -1007,7 +1006,7 @@ function updateNetworks() {
   }).always(function() {
 
     $('#requestMessage').text('').removeClass('alert');
-    $('#activityMessage').text('').removeClass('info');
+    $('#activityMessage').text('').removeClass('info').removeClass('alert');
     // $('#profiling_container').show();
     // $('#dataLink_container').show();
 
@@ -1022,7 +1021,7 @@ function updateSNCLSelectors() {
   // UI cues
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
-  $('#activityMessage').text('service.iris.edu/fdsnws/station/1/query').addClass('info');
+  $('#activityMessage').text('rebuilding SNCL selectors').addClass('info');
 
   var url = 'http://service.iris.edu/fdsnws/station/1/query';
   var data = {net:G_network,
@@ -1037,7 +1036,7 @@ function updateSNCLSelectors() {
   console.log(url + "?" + $.param(data));
   $.get(url, data).done(function(serviceResponse) {
 
-    $('#activityMessage').text("building selectors");
+    $('#activityMessage').text("rebuilding SNCL selectors");
 
     // Read in the response with PapaParse
     var config = {
@@ -1133,7 +1132,7 @@ function updateSNCLSelectors() {
   }).always(function() {
 
     $('#requestMessage').text('').removeClass('alert');
-    $('#activityMessage').text('').removeClass('info');
+    $('#activityMessage').text('').removeClass('info').removeClass('alert');
     // $('#profiling_container').show();
     // $('#dataLink_container').show();
 
@@ -1209,8 +1208,8 @@ $(function() {
   $('#datepicker2').datepicker("setDate",today);
   
   // Attach behavior to UI buttons
-  $('#prevStation').click(prevStation);
-  $('#nextStation').click(nextStation);
+  $('#previousPlot').click(previousPlot);
+  $('#nextPlot').click(nextPlot);
   $('#plotData').click(sendPlotRequest);
 
   // Attach behavior to UI selectors

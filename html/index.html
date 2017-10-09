@@ -52,10 +52,12 @@
   <![endif]-->
   
   <!-- Load SNCL selector associative arrays. -->
+<!--
   <script type="text/javascript" src="js/networks.js"></script>
   <script type="text/javascript" src="js/stations.js"></script>
   <script type="text/javascript" src="js/locations.js"></script>
   <script type="text/javascript" src="js/channels.js"></script>
+-->
 
   <!-- Load User Interface behavior. -->
   <script type="text/javascript" src="js/Mazama_databrowser.js"></script>
@@ -105,9 +107,9 @@
             <div id="plotTypeDiv">
               <label for="plotType">Plot Type</label>
               <span id="plotSpan">
-                <button id="prevStation" type="button" title="Use previous station">&lt;</button>
+                <button id="previousPlot" type="button" title="Use previous station/location/channel">&lt;</button>
                 <button id="plotData" type="button">Plot Data</button>
-                <button id="nextStation" type="button" title="Use next station">&gt;</button>
+                <button id="nextPlot" type="button" title="Use next station/location/channel">&gt;</button>
               </span>
               <br>
               <select id="plotType" name="plotType">
@@ -159,12 +161,26 @@
           <fieldset id="data_source">
             <legend>
               <span id="data_source_legend">
-              <span class="tooltip" id="tooltip_data_source.html" title="Data Source and Timespan">
+              <span class="tooltip" id="tooltip_data_source.html" title="Timespan and Data Sourcee">
                 <img class="tooltip_icon" src="style/images/info_icon_question.jpeg" />
               </span>
-                Data Source and Timespan
-            </legend>
-            
+                Timespan and Data Source
+            </legend>            
+      
+            <label for="datepickers">Time Span</label>
+            <table id="datepickers" class="layout">
+              <tbody>
+                <tr>
+                  <td><span class="label">Start: </span></td>
+                  <td><input type="text" id="datepicker1" /></td>
+                </tr>
+                <tr>
+                  <td><span class="label">End: </span></td>
+                  <td><input type="text" id="datepicker2" /></td>
+                </tr>
+              </tbody>
+            </table>
+
             <!-- Cascading dropdowns for SNCL selection -->
             <label for="snclSelectors">Network - Station - Location - Channel</label><br>
             <table id="snclSelectors" class="layout">
@@ -194,21 +210,6 @@
                 <td><select id="channel" name="channel"></select></td>
               </tr>
             </tbody>
-            </table>
-
-      
-            <label for="datepickers">Time Span</label>
-            <table id="datepickers" class="layout">
-              <tbody>
-                <tr>
-                  <td><span class="label">Start: </span></td>
-                  <td><input type="text" id="datepicker1" /></td>
-                </tr>
-                <tr>
-                  <td><span class="label">End: </span></td>
-                  <td><input type="text" id="datepicker2" /></td>
-                </tr>
-              </tbody>
             </table>
             
           </fieldset>
