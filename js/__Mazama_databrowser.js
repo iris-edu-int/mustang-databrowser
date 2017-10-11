@@ -543,7 +543,7 @@ function generateChannelsSelector(){
 // Set the global channel variable from selector -------------------------------
 
 function selectVirtualNetwork(){
-  G_previousVirtualNetwork = G_virtualNetwork;
+  G_previousVirtualNetwork = G_virtualNetwork; // in case the web request in updateNetworks() fails
   G_virtualNetwork = $('#virtualNetwork').val();
   updateNetworks(); // ends with generateNetworksSelector()
 }
@@ -1023,8 +1023,13 @@ function updateSNCLSelectors() {
   $('#dataLink_container').hide();
   $('#activityMessage').text('rebuilding SNCL selectors').addClass('info');
 
+  var network = G_virtualNetwork;
+  if (G_virtualNetwork == "No virtual network") {
+    network = G_network;
+  }
+
   var url = 'http://service.iris.edu/fdsnws/station/1/query';
-  var data = {net:G_network,
+  var data = {net:network,
               sta:"*",
               loc:"*",
               cha:G_mustangChannels,
