@@ -153,6 +153,7 @@ function displayError(errorText) {
 
 // Save the chosen metric
 function selectMetric() {
+  // Multi-metric or Single-metric
   if ( $('#plotType').val() == 'stackedMetricTimeseries' ) {
     G_multiMetric = $('#metric').val();
   } else {
@@ -175,6 +176,7 @@ function selectMetric() {
 
 // Adjust UI based on plotType
 function selectPlotType() {
+
   var plotType = $('#plotType').val();
 
   if (plotType == 'metricTimeseries') {
@@ -184,8 +186,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
     
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous station');
-    $('#nextPlot').prop('title','use next station');
+    $('#previousPlot').prop('title','use previous station').prop('disabled',false);
+    $('#nextPlot').prop('title','use next station').prop('disabled',false);
 
     // Plot Options
     $('#plotOptionsLabel').text('Plot Options for Metric Timeseries');
@@ -211,8 +213,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous station');
-    $('#nextPlot').prop('title','use next station');
+    $('#previousPlot').prop('title','use previous station').prop('disabled',false);
+    $('#nextPlot').prop('title','use next station').prop('disabled',false);
 
     // Plot Options
     $('#plotOptionsLabel').text('No Plot Options for Multi-Metric Timeseries');
@@ -238,8 +240,14 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous network');
-    $('#nextPlot').prop('title','use next network');
+    if ( G_virtualNetwork == 'No virtual network' ) {
+      $('#previousPlot').prop('title','use previous network').prop('disabled',false);
+      $('#nextPlot').prop('title','use next network').prop('disabled',false);      
+    } else {
+      // Disable prev/next for virtual networks which act as a single network
+      $('#previousPlot').prop('disabled',true);
+      $('#nextPlot').prop('disabled',true);
+    }
 
     // Plot Options
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
@@ -277,8 +285,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous station');
-    $('#nextPlot').prop('title','use next station');
+    $('#previousPlot').prop('title','use previous station').prop('disabled',false);
+    $('#nextPlot').prop('title','use next station').prop('disabled',false);
 
     // Plot Options
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
@@ -310,8 +318,8 @@ function selectPlotType() {
     $('#metric').addClass('doNotSerialize').hide();
 
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous station');
-    $('#nextPlot').prop('title','use next station');
+    $('#previousPlot').prop('title','use previous station').prop('disabled',false);
+    $('#nextPlot').prop('title','use next station').prop('disabled',false);
 
     // Plot Options
     if (plotType == 'trace') {
@@ -335,6 +343,9 @@ function selectPlotType() {
     // $( "#channel-auto").show();
 
   } 
+
+  // We usually want to generate a plot
+  if (G_autoPlot) sendPlotRequest();
 
 }
 
@@ -478,6 +489,9 @@ function generateStationsSelector(){
 // Generate Locations selector -------------------------------------------------
 
 function generateLocationsSelector(){
+
+  var plotType = $('#plotType').val();
+
   // Get the list of options
   var NS = G_network + '.' + G_station;
   var options = G_locations[NS].sort();
@@ -553,54 +567,71 @@ function generateChannelsSelector(){
   $("#channel-auto").autocomplete({source: options});
   $("#channel-auto").val(""); 
 
-  // We often want to generate a plot after regenerating this final selector
-  if (G_autoPlot) {
-    sendPlotRequest();
-  }
+  // We usually want to generate a plot after regenerating this final selector
+  if (G_autoPlot) sendPlotRequest();
+
 }
 
-// Set the global channel variable from selector -------------------------------
+// ***** USER INITIATED SELECTIONS *******************************************/
 
 function selectVirtualNetwork(){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_previousVirtualNetwork = G_virtualNetwork; // in case the web request in ajaxUpdateNetworks() fails
   G_virtualNetwork = $('#virtualNetwork').val();
 
   // Adjust UI if networkBoxplot is selected
   if ( $('#plotType').val() == 'networkBoxplot' && G_virtualNetwork != 'No virtual network' ) {
     $('#network').addClass('doNotSerialize');
+    $('#previousPlot').prop('disabled',true);
+    $('#nextPlot').prop('disabled',true);
   } else {
     $('#network').removeClass('doNotSerialize');
+    $('#previousPlot').prop('disabled',false);
+    $('#nextPlot').prop('disabled',false);
   }
 
   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
 }
 
 function selectNetwork(){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_network = $('#network').val();
   generateNetworksSelector(sendPlotRequest);
 }
 
 function selectStation(){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_station = $('#station').val();
   generateStationsSelector();
 }
 
 function selectLocation(){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_location = $('#location').val();
   generateLocationsSelector();
 }
 
 function selectChannel(){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_channel = $('#channel').val();
   generateChannelsSelector();
 }
 
 function selectStartDate(dateText, inst) {
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   validateDates(); // required to set starttime and endtime fields
   ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
 }
 
 function selectEndDate(dateText, inst) {
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   validateDates(); // required to set starttime and endtime fields
   ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
 }
@@ -608,21 +639,29 @@ function selectEndDate(dateText, inst) {
 // Set the global channel variable from auto-complete box ----------------------
 
 function selectNetworkAuto(event, ui){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_network = ui.item.value;
   generateNetworksSelector();
 }
 
 function selectStationAuto(event, ui){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_station = ui.item.value;
   generateStationsSelector();
 }
 
 function selectLocationAuto(event, ui){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_location = ui.item.value;
   generateLocationsSelector();
 }
 
 function selectChannelAuto(event, ui){
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
   G_channel = ui.item.value;
   generateChannelsSelector();
 }
@@ -646,6 +685,7 @@ function previousPlot() {
     var networkIndex = G_networks.indexOf(G_network);
     if (networkIndex == 0) {
       $('#previousPlot').prop('disabled',true);
+      $('#activityMessage').text('no previous networks').addClass('alert');      
     } else {
       $('#previousPlot').prop('disabled',false);
       networkIndex--;
@@ -777,6 +817,7 @@ function nextPlot() {
     var networkIndex = G_networks.indexOf(G_network);
     if (networkIndex == G_networks.length-1) {
       $('#nextPlot').prop('disabled',true);
+      $('#activityMessage').text('no more networks').addClass('alert');      
       return;
     } else {
       $('#nextPlot').prop('disabled',false);
