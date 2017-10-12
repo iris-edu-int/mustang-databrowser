@@ -447,16 +447,10 @@ function generateStationsSelector(){
 
   // If the current station is not in the network
   if (options.indexOf(G_station) < 0) {
-    if ($('plotType').val() == 'stationBoxplot') {
-      if (G_previousPlotRequest) {
-
-      } else if (G_nextPlotRequest) {
-
-      } else {
-
-      }
+    if (G_previousPlotRequest) {
+      G_station = options[options.length-1];
     } else {
-      G_station = options[0]; // choose the first available
+      G_station = options[0]; // behavior for default and 'Next'
     }
   }
 
@@ -637,19 +631,6 @@ function selectChannelAuto(event, ui){
  
 /**** PREV/NEXT BUTTONS ******************************************************/
 
-function previousNetworkBoxplot() {
-  // dcrement the network
-  var networkIndex = G_networks.indexOf(G_network);
-  if (networkIndex == 0) {
-    $('#previousPlot').prop('disabled',true);
-  } else {
-    $('#previousPlot').prop('disabled',false);
-    networkIndex--;
-    G_network = G_networks[networkIndex];
-    generateNetworksSelector(); // trigger the cascading selectors
-  }
-}
-
 // Move to the previous available location/station that shares the current channel
 function previousPlot() {
 
@@ -662,11 +643,20 @@ function previousPlot() {
 
   if (plotType == 'networkBoxplot') {
 
-    previousNetworkBoxplot(sendPlotRequest);
+    // dcrement the network
+    var networkIndex = G_networks.indexOf(G_network);
+    if (networkIndex == 0) {
+      $('#previousPlot').prop('disabled',true);
+    } else {
+      $('#previousPlot').prop('disabled',false);
+      networkIndex--;
+      G_network = G_networks[networkIndex];
+      generateNetworksSelector(); // trigger the cascading selectors
+    }
 
   } else if (plotType == 'stationBoxplot') {
 
-    // stationBoxplots increment the station within the network or virtualNetwork
+    // stationBoxplots decrement the station within the network or virtualNetwork
     
     var N = G_network;
 
@@ -680,42 +670,18 @@ function previousPlot() {
       stationIndex--;
       G_station = allStations[stationIndex];
       generateStationsSelector(); // trigger the cascading selectors
-      sendPlotRequest();
       return;
     }
 
-    // // If we have run out of stations, try to decrement the network
-    // if (networkIndex > 0) {
-    //   networkIndex--;
-    //   G_network = G_networks[networkIndex];
-    //   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
-    //   return
-    // } else {
-    //   $('#activityMessage').text('no previous stations').addClass('alert');
-    // }
-
-    // ###############
-
-    // If we have run out of stations, try to decrement the network
-    // while (networkIndex > 0) {
-
-    //   networkIndex--;
-    //   G_network = G_networks[networkIndex];
-    //   // NOTE:  We don't pass in sendPlotRequest() as we need to reset the station to the last one before plotting
-    //   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
-    //   stationIndex = G_stations.length();
-
-    //   // Try to decrement the station if possible
-    //   if (stationIndex > 0) {
-    //     stationIndex--;
-    //     G_station = allStations[stationIndex];
-    //     ajaxUpdateSNCLSelectors(); // trigger the cascading selectors
-    //     return;
-    //   }
-    
-    // } // END networkIndex while loop
-
-    // $('#activityMessage').text('no previous stations').addClass('alert');
+    // If we have run out of stations, try to increment the network
+    if (networkIndex > 0) {
+      networkIndex--;
+      G_network = G_networks[networkIndex];
+      ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+      return;
+    } else {
+      $('#activityMessage').text('no previous stations').addClass('alert');      
+    }
 
   } else {
 
@@ -747,7 +713,6 @@ function previousPlot() {
         $('#nextPlot').prop('disabled',false); // successful decrement so now Next should be enabled
         G_location = allLocations[locationIndex];
         generateLocationsSelector(); // trigger the cascading selectors
-        sendPlotRequest();
         return;
       } 
 
@@ -773,7 +738,6 @@ function previousPlot() {
           G_station = currentStation;
           G_location = allLocations[locationIndex];
           generateStationsSelector(); // trigger the cascading selectors
-          sendPlotRequest();
           return;
         }
 
@@ -811,7 +775,6 @@ function nextPlot() {
       networkIndex++;
       G_network = G_networks[networkIndex];
       generateNetworksSelector(sendPlotRequest); // trigger the cascading selectors
-      // // //sendPlotRequest();
       return;
     }
 
@@ -831,7 +794,6 @@ function nextPlot() {
       stationIndex++;
       G_station = allStations[stationIndex];
       generateStationsSelector(); // trigger the cascading selectors
-      sendPlotRequest();
       return;
     }
 
@@ -839,30 +801,12 @@ function nextPlot() {
     if (networkIndex < G_networks.length-1) {
       networkIndex++;
       G_network = G_networks[networkIndex];
-      ajaxUpdateNetworks(); // ends with generateNetworksSelector()
+      ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+      return;
+    } else {
+      $('#activityMessage').text('no more stations').addClass('alert');      
     }
 
-
-    // // If we have run out of stations, try to increment the network
-    // while (networkIndex < G_networks.length-1) {
-
-    //   networkIndex--;
-    //   G_network = G_networks[networkIndex];
-    //   // NOTE:  We don't pass in sendPlotRequest() as we need to reset the station to the last one before plotting
-    //   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
-    //   stationIndex = 0;
-
-    //   // Try to increment the station if possible
-    //   if (stationIndex < allStations.length-1) {
-    //     stationIndex++;
-    //     G_station = allStations[stationIndex];
-    //     ajaxUpdateSNCLSelectors(); // trigger the cascading selectors
-    //     return;
-    //   }
-
-    // } // END networkIndex while loop
-
-    $('#activityMessage').text('no more stations').addClass('alert');
 
   } else {
 
@@ -894,7 +838,6 @@ function nextPlot() {
         $('#previousPlot').prop('disabled',false); // successful increment so now Previous should be enabled
         G_location = allLocations[locationIndex];
         generateLocationsSelector(); // trigger the cascading selectors
-        sendPlotRequest();
         return;
       } 
 
@@ -920,7 +863,6 @@ function nextPlot() {
           G_station = currentStation;
           G_location = allLocations[locationIndex];
           generateStationsSelector(); // trigger the cascading selectors
-          sendPlotRequest();
           return;
         } 
 
@@ -1033,6 +975,8 @@ function sendPlotRequest() {
   }).fail(function(jqXHR, textStatus, errorThrown) {
     alert("CGI error: " + textStatus);
   }).always(function() {
+    G_previousPlotRequest = false;
+    G_nextPlotRequest = true;
     // UI changes
     $('#spinner').hide();
     $('#profiling_container').show();
