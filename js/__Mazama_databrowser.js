@@ -467,13 +467,6 @@ function generateStationsSelector(){
     }
   }
   
- // If the current location is not in the station, choose the first available
-  var NS = G_network + '.' + G_station;
-  var allLocations = G_locations[NS].sort();
-  if (allLocations.indexOf(G_location) < 0) {
-    G_location = allLocations[0];
-  } 
-  
   // Update the associated autocomplete box
   $("#station-auto").autocomplete({source: options});
   $("#station-auto").val("");
@@ -489,9 +482,13 @@ function generateLocationsSelector(){
   var NS = G_network + '.' + G_station;
   var options = G_locations[NS].sort();
 
-  // If the current location is not in the station, choose the first available
+  // If the current location is not in the station
   if (options.indexOf(G_location) < 0) {
-    G_location = options[0];
+    if (G_previousPlotRequest) {
+      G_location = options[options.length-1];
+    } else {
+      G_location = options[0]; // behavior for default and 'Next'
+    }
   }
 
   // Empty the selector
@@ -507,13 +504,6 @@ function generateLocationsSelector(){
     }
   }
   
- // If the current channel is not in the location, choose the first available
-  var NSL = G_network + '.' + G_station + '.' + G_location;
-  var allChannels = G_channels[NSL].sort();
-  if (allChannels.indexOf(G_channel) < 0) {
-    G_channel = allChannels[0];
-  } 
-  
   // Update the associated autocomplete box
   $("#location-auto").autocomplete({source: options});
   $("#location-auto").val("");
@@ -528,9 +518,18 @@ function generateChannelsSelector(){
   var NSL = G_network + '.' + G_station + '.' + G_location;
   var options = G_channels[NSL].sort();
   
-  // If the current location is not in the station, choose the first available
+  // If the current channel is not in the location
   if (options.indexOf(G_channel) < 0) {
-    G_channel = options[0];
+    if (G_previousPlotRequest) {
+      // // //G_channel = options[options.length-1];
+      previousPlot(); // asynchronous
+      return;
+    } else if (G_nextPlotRequest) {
+      nextPlot(); // asynchronous
+      return;
+    } else {
+      G_channel = options[0]; // behavior for default and 'Next'
+    }
   }
 
   // Empty the selector
@@ -673,7 +672,7 @@ function previousPlot() {
       return;
     }
 
-    // If we have run out of stations, try to increment the network
+    // If we have run out of stations, try to decrement the network
     if (networkIndex > 0) {
       networkIndex--;
       G_network = G_networks[networkIndex];
@@ -700,6 +699,7 @@ function previousPlot() {
     var allLocations = G_locations[NS].sort();
     var allChannels = G_channels[NSL].sort();
 
+    var networkIndex = G_networks.indexOf(G_network);
     var stationIndex = allStations.indexOf(currentStation);
     var locationIndex = allLocations.indexOf(currentLocation);
 
@@ -745,7 +745,15 @@ function previousPlot() {
 
     } // END stationIndex while loop
 
-    $('#activityMessage').text('no previous SNCLs with this channel').addClass('alert');
+    // If we have run out of stations, try to decrement the network
+    if (networkIndex > 0) {
+      networkIndex--;
+      G_network = G_networks[networkIndex];
+      ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+      return;
+    } else {
+      $('#activityMessage').text('no previous stations with this channel').addClass('alert');      
+    }
 
   } // END plotType
 
@@ -825,6 +833,7 @@ function nextPlot() {
     var allLocations = G_locations[NS].sort();
     var allChannels = G_channels[NSL].sort();
 
+    var networkIndex = G_networks.indexOf(G_network);
     var stationIndex = allStations.indexOf(currentStation);
     var locationIndex = allLocations.indexOf(currentLocation);
 
@@ -870,7 +879,15 @@ function nextPlot() {
 
     } // END stationIndex while loop
 
-    $('#activityMessage').text('no more SNCLs with this channel').addClass('alert');
+    // If we have run out of stations, try to increment the network
+    if (networkIndex < G_networks.length-1) {
+      networkIndex++;
+      G_network = G_networks[networkIndex];
+      ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+      return;
+    } else {
+      $('#activityMessage').text('no more stations with this channel').addClass('alert');      
+    }
 
   } // END plotType
 
