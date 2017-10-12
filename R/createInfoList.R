@@ -31,6 +31,8 @@ createInfoList <- function(request) {
   infoList$plotHeight <- as.numeric(infoList$plotHeight)
   
   # Fill in any missing parameters
+  infoList$virtualNetwork <- ifelse(is.null(infoList$virtualNetwork),'',infoList$virtualNetwork)
+  infoList$virtualNetwork <- ifelse(infoList$virtualNetwork == 'No virtual network','',infoList$virtualNetwork)
   infoList$network <- ifelse(is.null(infoList$network),'',infoList$network)
   infoList$station  <- ifelse(is.null(infoList$station),'',infoList$station)
   infoList$location <- ifelse(is.null(infoList$location),'',infoList$location)

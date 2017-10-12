@@ -16,6 +16,7 @@ createDataList <- function(infoList) {
   dataList <- list()
 
   # Extract elements for use in web service requests
+  virtualNetwork  <- infoList$virtualNetwork
   network  <- infoList$network
   station  <- infoList$station
   location <- infoList$location
@@ -152,6 +153,10 @@ createDataList <- function(infoList) {
     
   } else if ( infoList$plotType == 'networkBoxplot' ) {
     
+    if ( virtualNetwork != '' ) {
+      network <- virtualNetwork
+    }
+    
     # getNetwork returns network description
     dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime)
 
@@ -194,6 +199,10 @@ createDataList <- function(infoList) {
 
 
   } else if (infoList$plotType == 'networkMap' ) {
+    
+    if ( virtualNetwork != '' ) {
+      network <- virtualNetwork
+    }
     
     start <- (proc.time())[3]
     timepoint <- (proc.time())[3]

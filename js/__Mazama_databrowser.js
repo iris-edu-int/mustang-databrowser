@@ -196,6 +196,8 @@ function selectPlotType() {
     $('#station').removeClass('doNotSerialize');
     $('#location').removeClass('doNotSerialize').show();
     $('#channel').removeClass('doNotSerialize').show();
+    // $( "#location-auto").show();
+    // $( "#channel-auto").show();
 
   } else if (plotType == 'stackedMetricTimeseries') {
 
@@ -221,6 +223,8 @@ function selectPlotType() {
     $('#station').removeClass('doNotSerialize');
     $('#location').removeClass('doNotSerialize').show();
     $('#channel').removeClass('doNotSerialize').show();
+    // $( "#location-auto").show();
+    // $( "#channel-auto").show();
 
   } else if (plotType == 'networkBoxplot') {
 
@@ -250,12 +254,16 @@ function selectPlotType() {
     // SNCL
     // NOTE:  Leave station in place to provide full access to alll possible loc-cha
     // NOTE:  but prevent the choice of station from skipping over a cache hit.
-    // TODO:  We may wish to query the stations webservice when this happens to
-    // TODO:  get a complete list of locations and channels
-    $('#network').removeClass('doNotSerialize');
+    if ( G_virtualNetwork == 'No virtual network' ) {
+      $('#network').removeClass('doNotSerialize');
+    } else {
+      $('#network').addClass('doNotSerialize');
+    }
     $('#station').addClass('doNotSerialize');
     $('#location').removeClass('doNotSerialize').show();
     $('#channel').removeClass('doNotSerialize').show();
+    // $( "#location-auto").show();
+    // $( "#channel-auto").show();
 
   } else if (plotType == 'stationBoxplot') {
 
@@ -287,6 +295,8 @@ function selectPlotType() {
     $('#station').removeClass('doNotSerialize');
     $('#location').addClass('doNotSerialize').hide();
     $('#channel').addClass('doNotSerialize').hide();
+    // $( "#location-auto").hide();
+    // $( "#channel-auto").hide();
 
   } else if (plotType == 'trace' ||
              plotType == 'pdf') {
@@ -316,6 +326,8 @@ function selectPlotType() {
     $('#station').removeClass('doNotSerialize');
     $('#location').removeClass('doNotSerialize').show();
     $('#channel').removeClass('doNotSerialize').show();
+    // $( "#location-auto").show();
+    // $( "#channel-auto").show();
 
   } 
 
@@ -362,7 +374,6 @@ function generateMultiMetricsSelector(){
 
 /**** CASCADING SNCL SELECTORS ************************************************/
 
-
 // Generate Virtual Network selector -------------------------------------------
 // NOTE:  Should only be called once during startup
 
@@ -393,7 +404,7 @@ function generateVirtualNetworksSelector(){
 
 // Generate Network selector ---------------------------------------------------
 
-function generateNetworksSelector(){
+function generateNetworksSelector(onSuccessFunction) { // onSuccessFunction is typically sendPlotRequest()
   // Get the list of options
   var options = G_networks
 
@@ -419,7 +430,7 @@ function generateNetworksSelector(){
   $("#network-auto").autocomplete({source: options});
   $("#network-auto").val("");
  
-  updateSNCLSelectors(); // ends with generateStationsSelector()
+  updateSNCLSelectors(onSuccessFunction); // ends with generateStationsSelector() and then running the passed in function
 }
 
 
@@ -530,14 +541,9 @@ function generateChannelsSelector(){
     }
   }
 
-  if (G_firstPlot) {
-    sendPlotRequest();
-  }
-
-    // Update the associated autocomplete box
+  // Update the associated autocomplete box
   $("#channel-auto").autocomplete({source: options});
-  $("#channel-auto").val("");
- 
+  $("#channel-auto").val(""); 
 }
 
 // Set the global channel variable from selector -------------------------------
@@ -545,12 +551,20 @@ function generateChannelsSelector(){
 function selectVirtualNetwork(){
   G_previousVirtualNetwork = G_virtualNetwork; // in case the web request in updateNetworks() fails
   G_virtualNetwork = $('#virtualNetwork').val();
-  updateNetworks(); // ends with generateNetworksSelector()
+
+  // Adjust UI if networkBoxplot is selected
+  if ( $('#plotType').val() == 'networkBoxplot' && G_virtualNetwork != 'No virtual network' ) {
+    $('#network').addClass('doNotSerialize');
+  } else {
+    $('#network').removeClass('doNotSerialize');
+  }
+
+  updateNetworks(sendPlotRequest); // ends with generateNetworksSelector()
 }
 
 function selectNetwork(){
   G_network = $('#network').val();
-  generateNetworksSelector();
+  generateNetworksSelector(sendPlotRequest);
 }
 
 function selectStation(){
@@ -570,12 +584,12 @@ function selectChannel(){
 
 function selectStartDate(dateText, inst) {
   validateDates(); // required to set starttime and endtime fields
-  updateSNCLSelectors();
+  updateSNCLSelectors(null); // ends with generateStationsSelector() and then running the passed in function
 }
 
 function selectEndDate(dateText, inst) {
   validateDates(); // required to set starttime and endtime fields
-  updateSNCLSelectors();
+  updateSNCLSelectors(null); // ends with generateStationsSelector() and then running the passed in function
 }
 
 // Set the global channel variable from auto-complete box ----------------------
@@ -601,7 +615,7 @@ function selectChannelAuto(event, ui){
 }
 
  
-/**** PREV/NEXT STATION BUTTONS ***********************************************/
+/**** PREV/NEXT BUTTONS ******************************************************/
 
 // Move to the previous available location/station that shares the current channel
 function previousPlot() {
@@ -619,11 +633,52 @@ function previousPlot() {
     } else {
       $('#previousPlot').prop('disabled',false);
       networkIndex--;
-      G_network = G_Networks[networkIndex];
-      generateNetworksSelector(); // trigger the cascading selectors
+      G_network = G_networks[networkIndex];
+      generateNetworksSelector(sendPlotRequest); // trigger the cascading selectors
+      // // //sendPlotRequest();
+      return;
+    }
+
+  } else if (plotType == 'stationBoxplot') {
+
+    // stationBoxplots increment the station within the network or virtualNetwork
+    
+    var N = G_network;
+
+    var allStations = G_stations[N].sort();
+
+    var networkIndex = G_networks.indexOf(G_network);
+    var stationIndex = allStations.indexOf(G_station);
+
+    // Try to decrement the station if possible
+    if (stationIndex > 0) {
+      stationIndex--;
+      G_station = allStations[stationIndex];
+      generateStationsSelector(); // trigger the cascading selectors
       sendPlotRequest();
       return;
     }
+
+    // // If we have run out of stations, try to decrement the network
+    // while (networkIndex > 0) {
+
+    //   networkIndex--;
+    //   G_network = G_networks[networkIndex];
+    //   updateNetworks(sendPlotRequest); // ends with generateNetworksSelector()
+    //   stationIndex = G_stations.length();
+
+    //   // Try to decrement the station if possible
+    //   if (stationIndex > 0) {
+    //     stationIndex--;
+    //     G_station = allStations[stationIndex];
+    //     generateStationsSelector(); // trigger the cascading selectors
+    //     sendPlotRequest();
+    //     return;
+    //   }
+    
+    // } // END networkIndex while loop
+
+    $('#activityMessage').text('no previous stations').addClass('alert');
 
   } else {
 
@@ -707,7 +762,7 @@ function nextPlot() {
 
     // networkBoxplots increment the network
 
-    var networkIndex = G_networks.indexOf(G_Network);
+    var networkIndex = G_networks.indexOf(G_network);
     if (networkIndex == G_networks.length-1) {
       $('#nextPlot').prop('disabled',true);
       return;
@@ -715,10 +770,50 @@ function nextPlot() {
       $('#nextPlot').prop('disabled',false);
       networkIndex++;
       G_network = G_networks[networkIndex];
-      generateNetworksSelector(); // trigger the cascading selectors
+      generateNetworksSelector(sendPlotRequest); // trigger the cascading selectors
+      // // //sendPlotRequest();
+      return;
+    }
+
+  } else if (plotType == 'stationBoxplot') {
+
+    // stationBoxplots increment the station within the network or virtualNetwork
+
+    var N = G_network;
+
+    var allStations = G_stations[N].sort();
+
+    var stationIndex = allStations.indexOf(G_station);
+
+    // Try to increment the station if possible
+    if (stationIndex < allStations.length-1) {
+      stationIndex++;
+      G_station = allStations[stationIndex];
+      generateStationsSelector(); // trigger the cascading selectors
       sendPlotRequest();
       return;
     }
+
+    // // If we have run out of stations, try to increment the network
+    // while (networkIndex < G_networks-1) {
+
+    //   networkIndex--;
+    //   G_network = G_networks[networkIndex];
+    //   updateNetworks(); // ends with generateNetworksSelector()
+    //   stationIndex = G_stations.length();
+
+    //   // Try to increment the station if possible
+    //   if (stationIndex < allStations.length-1) {
+    //     stationIndex++;
+    //     G_station = allStations[stationIndex];
+    //     generateStationsSelector(); // trigger the cascading selectors
+    //     sendPlotRequest();
+    //     return;
+    //   }
+
+    // } // END networkIndex while loop
+
+    // $('#activityMessage').text('no previous stations').addClass('alert');
 
   } else {
 
@@ -916,7 +1011,7 @@ function updateVirtualNetworksSelector() {
 /* ------------------------------------------------------------------------- */
 // Query for level=station metadata for this virtual network and repopulate all NSLC selectors
 // This happens whenever a new virtual network is selected
-function updateNetworks() {
+function updateNetworks(onSuccessFunction) {
 
   // UI cues
   $('#profiling_container').hide();
@@ -991,7 +1086,7 @@ function updateNetworks() {
     G_networks = uniqueNs;
 
     // Trigger the cascading  selectors
-    generateNetworksSelector();
+    generateNetworksSelector(onSuccessFunction);
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
 
@@ -1016,7 +1111,7 @@ function updateNetworks() {
 
 /* ------------------------------------------------------------------------- */
 // Query for level=channel metadata for the current network and repopulate all SNCL selectors
-function updateSNCLSelectors() {
+function updateSNCLSelectors(onSuccessFunction) {
 
   // UI cues
   $('#profiling_container').hide();
@@ -1127,6 +1222,10 @@ function updateSNCLSelectors() {
     // Regenerate all selectors based on the new G_~ arrays
     generateStationsSelector();
 
+    if (onSuccessFunction != null) {
+      onSuccessFunction();
+    }
+
   }).fail(function(jqXHR, textStatus, errorThrown) {
 
     if (jqXHR.status == 404) {
@@ -1234,7 +1333,7 @@ $(function() {
   updateVirtualNetworksSelector();
   
   // Initial population of the SNCL selectors
-  updateNetworks();
+  updateNetworks(sendPlotRequest); // ends with generateNetworksSelector()
 
   // set the initial plot type
   $('#plotType').val("metricTimeseries");

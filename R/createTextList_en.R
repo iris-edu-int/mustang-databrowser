@@ -161,8 +161,12 @@ createTextList <- function(dataList, infoList) {
   
   # Add the network title if an appropriate dataframe exists
   textList$networkTitle <- ""
-  if ( !is.null(dataList[['network_DF']]) ) {
-    textList$networkTitle <- dataList[['network_DF']]$description[1]
+  if ( infoList$virtualNetwork != '' ) {
+    textList$networkTitle <- paste0('Virtual Network:  ',infoList$virtualNetwork)
+  } else {
+    if ( !is.null(dataList[['network_DF']]) ) {
+      textList$networkTitle <- dataList[['network_DF']]$description[1]
+    }    
   }
 
   # Add the station title if an appropriate dataframe exists
