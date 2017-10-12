@@ -87,9 +87,12 @@ var G_singleMetrics = {
   }
 };
 
-// NOTE:  Becuase we are using web services in an asynchronous manner, it is helpful to use
+// NOTE:  Because we are using web services in an asynchronous manner, it is helpful to use
 // NOTE:  state variables so that appropriate action can be taken after the asynchronous ajax
 // NOTE:  calls return.
+// NOTE: 
+// NOTE:  https://api.jquery.com/jquery.get/
+
 
 // NOTE:  Configurable list of channels curently in the MUSTANG database
 var G_mustangChannels = "CH?,DH?,LH?,MH?,SH?,EH?,EL?,BN?,HN?,LN?,BY?,DP?,BH?,HH?,BX?,HX?,VM?";
@@ -121,8 +124,10 @@ var G_loadSecs;
 var G_plotSecs;
 var G_RSecs;
 
-// state flag
-var G_firstPlot = true;
+// state flags
+var G_autoPlot = true;
+var G_previousPlotRequest = false;
+var G_nextPlotRequest = false;
 
 /**** UTILITY FUNCTIONS *******************************************************/
 
@@ -404,7 +409,7 @@ function generateVirtualNetworksSelector(){
 
 // Generate Network selector ---------------------------------------------------
 
-function generateNetworksSelector(onSuccessFunction) { // onSuccessFunction is typically sendPlotRequest()
+function generateNetworksSelector() {
   // Get the list of options
   var options = G_networks
 
@@ -430,7 +435,7 @@ function generateNetworksSelector(onSuccessFunction) { // onSuccessFunction is t
   $("#network-auto").autocomplete({source: options});
   $("#network-auto").val("");
  
-  updateSNCLSelectors(onSuccessFunction); // ends with generateStationsSelector() and then running the passed in function
+  ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
 }
 
 
@@ -440,9 +445,19 @@ function generateStationsSelector(){
   // Get the list of options
   var options = G_stations[G_network].sort();
 
-  // If the current station is not in the network, choose the first available
+  // If the current station is not in the network
   if (options.indexOf(G_station) < 0) {
-    G_station = options[0];
+    if ($('plotType').val() == 'stationBoxplot') {
+      if (G_previousPlotRequest) {
+
+      } else if (G_nextPlotRequest) {
+
+      } else {
+
+      }
+    } else {
+      G_station = options[0]; // choose the first available
+    }
   }
 
   // Empty the selector
@@ -544,12 +559,17 @@ function generateChannelsSelector(){
   // Update the associated autocomplete box
   $("#channel-auto").autocomplete({source: options});
   $("#channel-auto").val(""); 
+
+  // We often want to generate a plot after regenerating this final selector
+  if (G_autoPlot) {
+    sendPlotRequest();
+  }
 }
 
 // Set the global channel variable from selector -------------------------------
 
 function selectVirtualNetwork(){
-  G_previousVirtualNetwork = G_virtualNetwork; // in case the web request in updateNetworks() fails
+  G_previousVirtualNetwork = G_virtualNetwork; // in case the web request in ajaxUpdateNetworks() fails
   G_virtualNetwork = $('#virtualNetwork').val();
 
   // Adjust UI if networkBoxplot is selected
@@ -559,7 +579,7 @@ function selectVirtualNetwork(){
     $('#network').removeClass('doNotSerialize');
   }
 
-  updateNetworks(sendPlotRequest); // ends with generateNetworksSelector()
+  ajaxUpdateNetworks(); // ends with generateNetworksSelector()
 }
 
 function selectNetwork(){
@@ -584,12 +604,12 @@ function selectChannel(){
 
 function selectStartDate(dateText, inst) {
   validateDates(); // required to set starttime and endtime fields
-  updateSNCLSelectors(null); // ends with generateStationsSelector() and then running the passed in function
+  ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
 }
 
 function selectEndDate(dateText, inst) {
   validateDates(); // required to set starttime and endtime fields
-  updateSNCLSelectors(null); // ends with generateStationsSelector() and then running the passed in function
+  ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
 }
 
 // Set the global channel variable from auto-complete box ----------------------
@@ -617,8 +637,24 @@ function selectChannelAuto(event, ui){
  
 /**** PREV/NEXT BUTTONS ******************************************************/
 
+function previousNetworkBoxplot() {
+  // dcrement the network
+  var networkIndex = G_networks.indexOf(G_network);
+  if (networkIndex == 0) {
+    $('#previousPlot').prop('disabled',true);
+  } else {
+    $('#previousPlot').prop('disabled',false);
+    networkIndex--;
+    G_network = G_networks[networkIndex];
+    generateNetworksSelector(); // trigger the cascading selectors
+  }
+}
+
 // Move to the previous available location/station that shares the current channel
 function previousPlot() {
+
+  G_previousPlotRequest = true;
+  G_nextPlotRequest = false;
 
   $('#activityMessage').text('').removeClass('alert');
 
@@ -626,18 +662,7 @@ function previousPlot() {
 
   if (plotType == 'networkBoxplot') {
 
-    // networkBoxplots increment the network
-    var networkIndex = G_networks.indexOf(G_network);
-    if (networkIndex == 0) {
-      $('#previousPlot').prop('disabled',true);
-    } else {
-      $('#previousPlot').prop('disabled',false);
-      networkIndex--;
-      G_network = G_networks[networkIndex];
-      generateNetworksSelector(sendPlotRequest); // trigger the cascading selectors
-      // // //sendPlotRequest();
-      return;
-    }
+    previousNetworkBoxplot(sendPlotRequest);
 
   } else if (plotType == 'stationBoxplot') {
 
@@ -660,25 +685,37 @@ function previousPlot() {
     }
 
     // // If we have run out of stations, try to decrement the network
+    // if (networkIndex > 0) {
+    //   networkIndex--;
+    //   G_network = G_networks[networkIndex];
+    //   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
+    //   return
+    // } else {
+    //   $('#activityMessage').text('no previous stations').addClass('alert');
+    // }
+
+    // ###############
+
+    // If we have run out of stations, try to decrement the network
     // while (networkIndex > 0) {
 
     //   networkIndex--;
     //   G_network = G_networks[networkIndex];
-    //   updateNetworks(sendPlotRequest); // ends with generateNetworksSelector()
+    //   // NOTE:  We don't pass in sendPlotRequest() as we need to reset the station to the last one before plotting
+    //   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
     //   stationIndex = G_stations.length();
 
     //   // Try to decrement the station if possible
     //   if (stationIndex > 0) {
     //     stationIndex--;
     //     G_station = allStations[stationIndex];
-    //     generateStationsSelector(); // trigger the cascading selectors
-    //     sendPlotRequest();
+    //     ajaxUpdateSNCLSelectors(); // trigger the cascading selectors
     //     return;
     //   }
     
     // } // END networkIndex while loop
 
-    $('#activityMessage').text('no previous stations').addClass('alert');
+    // $('#activityMessage').text('no previous stations').addClass('alert');
 
   } else {
 
@@ -754,6 +791,9 @@ function previousPlot() {
 // Move to the next available location/station that shares the current channel
 function nextPlot() {
 
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = true;
+
   $('#activityMessage').text('').removeClass('alert');
 
   var plotType = $('#plotType').val();
@@ -783,6 +823,7 @@ function nextPlot() {
 
     var allStations = G_stations[N].sort();
 
+    var networkIndex = G_networks.indexOf(G_network);
     var stationIndex = allStations.indexOf(G_station);
 
     // Try to increment the station if possible
@@ -794,26 +835,34 @@ function nextPlot() {
       return;
     }
 
+    // If we have run out of stations, try to increment the network
+    if (networkIndex < G_networks.length-1) {
+      networkIndex++;
+      G_network = G_networks[networkIndex];
+      ajaxUpdateNetworks(); // ends with generateNetworksSelector()
+    }
+
+
     // // If we have run out of stations, try to increment the network
-    // while (networkIndex < G_networks-1) {
+    // while (networkIndex < G_networks.length-1) {
 
     //   networkIndex--;
     //   G_network = G_networks[networkIndex];
-    //   updateNetworks(); // ends with generateNetworksSelector()
-    //   stationIndex = G_stations.length();
+    //   // NOTE:  We don't pass in sendPlotRequest() as we need to reset the station to the last one before plotting
+    //   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
+    //   stationIndex = 0;
 
     //   // Try to increment the station if possible
     //   if (stationIndex < allStations.length-1) {
     //     stationIndex++;
     //     G_station = allStations[stationIndex];
-    //     generateStationsSelector(); // trigger the cascading selectors
-    //     sendPlotRequest();
+    //     ajaxUpdateSNCLSelectors(); // trigger the cascading selectors
     //     return;
     //   }
 
     // } // END networkIndex while loop
 
-    // $('#activityMessage').text('no previous stations').addClass('alert');
+    $('#activityMessage').text('no more stations').addClass('alert');
 
   } else {
 
@@ -885,6 +934,13 @@ function nextPlot() {
 
 }
 
+
+// Send request to plot current selection
+function plotData() {
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
+  sendPlotRequest();
+}
 
 /**** EVENT HANDLERS **********************************************************/
 
@@ -973,7 +1029,6 @@ function sendPlotRequest() {
       	displayURL = returnObject.bssUrl + "&orderby=start"
       }
       $('#bssDataLink').attr('href',displayURL);
-      G_firstPlot = false;
     }
   }).fail(function(jqXHR, textStatus, errorThrown) {
     alert("CGI error: " + textStatus);
@@ -990,17 +1045,18 @@ function sendPlotRequest() {
 /**** IRIS WEBSERVICE HANDLERS ************************************************/
 
 // Get a list of virtual network codes and repopulate the virtual networks selector
-function updateVirtualNetworksSelector() {
+function ajaxUpdateVirtualNetworksSelector() {
   var url = 'http://service.iris.edu/irisws/virtualnetwork/1/codes'; // response is always XML
   $.get(url).done(function(serviceResponse) {
     // NOTE:  This function is a 'promise' that gets evaluated asynchronously
-    // NOTE:  https://api.jquery.com/jquery.get/
     var vnetNodes = serviceResponse.getElementsByTagName("virtualNetwork");
     var vnetCodes = $.map(vnetNodes, function(elem, i) { return(elem.getAttribute("code")); } );
     // var vnetDescriptions = $.map(vnetNodes, function(elem, i) { return(elem.firstElementChild.textContent); } );
     G_virtualNetworks = vnetCodes.sort();
     G_virtualNetworks.splice(0,0,"No virtual network");
     generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks
+    // Now update the networks selector
+    ajaxUpdateNetworks();
   }).fail(function(jqXHR, textStatus, errorThrown) {
     alert("Error updating virtual networks: " + textStatus);
   }).always(function() {
@@ -1009,9 +1065,9 @@ function updateVirtualNetworksSelector() {
 }
 
 /* ------------------------------------------------------------------------- */
-// Query for level=station metadata for this virtual network and repopulate all NSLC selectors
+// Web services request for level=network metadata with a promise to generateNetworksSelector()
 // This happens whenever a new virtual network is selected
-function updateNetworks(onSuccessFunction) {
+function ajaxUpdateNetworks() {
 
   // UI cues
   $('#profiling_container').hide();
@@ -1026,9 +1082,11 @@ function updateNetworks(onSuccessFunction) {
   var url = 'http://service.iris.edu/fdsnws/station/1/query';
   var data = {net:network,
               sta:"*",
+              loc:"*",
+              cha:G_mustangChannels,
               starttime:$('#starttime').val(),
               endtime:$('#endtime').val(),
-              level:"station",
+              level:"network",
               nodata:"404",
               format:"text"};
   console.log(url + "?" + $.param(data));
@@ -1061,7 +1119,7 @@ function updateNetworks(onSuccessFunction) {
     // TODO:  Could handler errors or parsing issues here
 
     // Response is a '|' separated file with a hedaer like this:
-    // #Network | Station | Latitude | Longitude | Elevation | SiteName | StartTime | EndTime 
+    // #Network | Description | StartTime | EndTime | TotalStations
 
     // Separate header from data
     var header = result.data.slice(0,1);
@@ -1069,34 +1127,25 @@ function updateNetworks(onSuccessFunction) {
 
     // NOTE:  By having the timerange in the request, all returned data should be valid
 
-    // Convert returned locations of "" into "--"
-    $.each(data, function(i, row) {
-      if ( row[2] == "" ) data[i][2] = "--";
-    });
-
     // Extract columns of data
     var Ns = $.map(data, function(row, i) { return(row[0]); } );
-    var NSs = $.map(data, function(row, i) { return(row[0] + '.' + row[1]); } );
-
     // Create unique arrays
     var uniqueNs = Ns.filter(function(val, i) { return(Ns.indexOf(val)==i); }).sort();
-    var uniqueNSs = NSs.filter(function(val, i) { return(NSs.indexOf(val)==i); }).sort();
 
     // Replace the G_networks array
     G_networks = uniqueNs;
 
-    // Trigger the cascading  selectors
-    generateNetworksSelector(onSuccessFunction);
+    // Trigger the cascading selectors
+    generateNetworksSelector();
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
 
     if (jqXHR.status == 404) {
-      // Service returned "no data found" -- possibly due to an inappropriate time range
       alert("No station metadata found for the selected virtual network and time range.");
     }
     // Restore previous virtual network selection
     G_virtualNetwork = G_previousVirtualNetwork;
-    generateVirtualNetworksSelector(); // based on the values in G_virtualNetworks   
+    generateVirtualNetworksSelector();   
 
   }).always(function() {
 
@@ -1111,7 +1160,7 @@ function updateNetworks(onSuccessFunction) {
 
 /* ------------------------------------------------------------------------- */
 // Query for level=channel metadata for the current network and repopulate all SNCL selectors
-function updateSNCLSelectors(onSuccessFunction) {
+function ajaxUpdateSNCLSelectors() {
 
   // UI cues
   $('#profiling_container').hide();
@@ -1222,9 +1271,7 @@ function updateSNCLSelectors(onSuccessFunction) {
     // Regenerate all selectors based on the new G_~ arrays
     generateStationsSelector();
 
-    if (onSuccessFunction != null) {
-      onSuccessFunction();
-    }
+    // $(document).triggerHandler('finishedUpdatingSNCLSelectors');
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
 
@@ -1243,6 +1290,12 @@ function updateSNCLSelectors(onSuccessFunction) {
   });
 
 }
+
+/**** EXPERIMENT WITH TRIGGERS ************************************************/
+
+// $(document).on('finishedUpdatingSNCLSelectors', function(e, arg1, arg2, arg3) {
+//   console.log("immediately after updating the SNCL selectors");
+// });
 
 
 /**** INITIALIZATION **********************************************************/
@@ -1314,7 +1367,7 @@ $(function() {
   // Attach behavior to UI buttons
   $('#previousPlot').click(previousPlot);
   $('#nextPlot').click(nextPlot);
-  $('#plotData').click(sendPlotRequest);
+  $('#plotData').click(plotData);
 
   // Attach behavior to UI selectors
   $('#plotType').change(selectPlotType);
@@ -1329,15 +1382,6 @@ $(function() {
   // set the initial plot type
   $('#plotType').val("metricTimeseries");
 
-  // Initial web request to discover virtual networks and populate the selector
-  updateVirtualNetworksSelector();
-  
-  // Initial population of the SNCL selectors
-  updateNetworks(sendPlotRequest); // ends with generateNetworksSelector()
-
-  // set the initial plot type
-  $('#plotType').val("metricTimeseries");
-
   // Prevent accidental form submission associated with default behavior for buttons
   // https://stackoverflow.com/questions/9347282/using-jquery-preventing-form-from-submitting
   $(document).on("submit", "form", function(e){
@@ -1345,5 +1389,9 @@ $(function() {
     return  false;
   });
 
+  // Initial web request to discover virtual networks and populate the selector
+  // The promise of this function will ajaxUpdateNetworks()
+  ajaxUpdateVirtualNetworksSelector();
+  
 });
 
