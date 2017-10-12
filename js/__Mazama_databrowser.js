@@ -460,8 +460,10 @@ function generateStationsSelector(){
   if (options.indexOf(G_station) < 0) {
     if (G_previousPlotRequest) {
       G_station = options[options.length-1];
+    } else if (G_nextPlotRequest) {
+      G_station = options[0];
     } else {
-      G_station = options[0]; // behavior for default and 'Next'
+      G_station = options[0];
     }
   }
 
@@ -500,8 +502,10 @@ function generateLocationsSelector(){
   if (options.indexOf(G_location) < 0) {
     if (G_previousPlotRequest) {
       G_location = options[options.length-1];
+    } else if (G_nextPlotRequest) {
+      G_location = options[0];
     } else {
-      G_location = options[0]; // behavior for default and 'Next'
+      G_location = options[0];
     }
   }
 
@@ -528,21 +532,27 @@ function generateLocationsSelector(){
 // Generate Channels selector --------------------------------------------------
 
 function generateChannelsSelector(){
+
+  var plotType = $('#plotType').val();
+
   // Get the list of options
   var NSL = G_network + '.' + G_station + '.' + G_location;
   var options = G_channels[NSL].sort();
   
   // If the current channel is not in the location
   if (options.indexOf(G_channel) < 0) {
-    if (G_previousPlotRequest) {
-      // // //G_channel = options[options.length-1];
-      previousPlot(); // asynchronous
-      return;
-    } else if (G_nextPlotRequest) {
-      nextPlot(); // asynchronous
-      return;
+    if (plotType == 'stationBoxplot') {
+      G_channel = options[0];   // stationBoxplot always plots all locations and channels so this choice doesn't matter
     } else {
-      G_channel = options[0]; // behavior for default and 'Next'
+      if (G_previousPlotRequest) {
+        previousPlot(); // asynchronous
+        return;
+      } else if (G_nextPlotRequest) {
+        nextPlot(); // asynchronous
+        return;
+      } else {
+        G_channel = options[0];
+      }
     }
   }
 
@@ -550,11 +560,6 @@ function generateChannelsSelector(){
   var sel = $('#channel');
   sel.empty();
   
-  // If this channel is not in the location, choose the first available
-  if (options.indexOf(G_channel) < 0) {
-    G_channel = options[0];
-  }
-
   for (var i=0; i<options.length; i++) {
     if (options[i] == G_channel) {
       sel.append('<option selected="selected" value="' + options[i] + '">' + options[i] + '</option>');
@@ -990,7 +995,7 @@ function sendPlotRequest() {
     paramsUrl = paramsUrl.replace(channelString,chasetString);
   }
   // UI changes
-  $('#spinner').fadeIn(1000);
+  $('#spinner').fadeIn(200);
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
   $('#requestMessage').text('').removeClass('alert');
@@ -1284,8 +1289,8 @@ function ajaxUpdateSNCLSelectors() {
 
   }).always(function() {
 
-    $('#requestMessage').text('').removeClass('alert');
-    $('#activityMessage').text('').removeClass('info').removeClass('alert');
+    // $('#requestMessage').text('').removeClass('alert');
+    // $('#activityMessage').text('').removeClass('info').removeClass('alert');
     // $('#profiling_container').show();
     // $('#dataLink_container').show();
 
