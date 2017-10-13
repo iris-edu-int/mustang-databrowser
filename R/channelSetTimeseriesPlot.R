@@ -98,10 +98,12 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   for (i in seq(plotCount)) {
     df <- dataList[[i]]
     # NOTE:  dataframes returned by getSingleValueMetric have "metricName|value|snclq|starttime|endtime|loadtime"
-    # NOTE:  transfer function metrics phase_diff and ms_coherence are in their own columns rather than 'value'
-    if ( infoList$metricName == 'phase_diff' ) {
+    # NOTE:  transfer function metrics gain_ratio, phase_diff and ms_coherence are in their own columns rather than 'value'
+    if ( metricName == 'gain_ratio' ) {
+      metricValues <- df$gain_ratio
+    } else if ( metricName == 'phase_diff' ) {
       metricValues <- df$phase_diff
-    } else if ( infoList$metricName == 'ms_coherence' ) {
+    } else if ( metricName == 'ms_coherence' ) {
       metricValues <- df$ms_coherence
     } else {
       metricValues <- df$value
@@ -116,8 +118,13 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     mtext(snclq, line=0.5, adj=0.05, cex=1.3)
     i <- i + 1
     # Y axis label
+    # NOTE:  for transfer functions we skip the y axis
     line <- par('oma')[2] + 1.5  # 
-    mtext(textList$metricYlab, side=2, line=line, cex=1.0)
+    if (metricName == 'gain_ratio' || metricName == 'phase_diff' || metricName == 'ms_coherence') {
+      mtext(metricName, side=2, line=line, cex=1.0)
+    } else {
+      mtext(textList$metricYlab, side=2, line=line, cex=1.0)
+    }
   }
   
 

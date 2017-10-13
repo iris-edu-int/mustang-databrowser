@@ -50,7 +50,7 @@ createTextList <- function(dataList, infoList) {
                        pct_above_nhnm='Percent Above New High Noise Model',
                        pct_below_nlnm='Percent Below New Low Noise Model',
                        percent_availability='Channel Percent Data Available Per Day',
-                       polarity_check='Nearest Station Parity Reversal Check',
+                       polarity_check='Nearest Station Polarity Reversal Check',
                        pressure_effects='Atmospheric Pressure Check: Barometer-Seismometer Cross-Correlation Coefficient',
                        sample_max='Daily Maximum Amplitude',
                        sample_mean='Daily Mean Amplitude',
@@ -152,12 +152,8 @@ createTextList <- function(dataList, infoList) {
   }
 
   # Create the SNCL name
-  if (infoList$timeseriesChannelSet) {
-    textList$snclName <- paste(infoList$network,'.',infoList$station,'.',location,'.',infoList$channel,sep='')        
-  } else {
-    textList$snclName <- paste(infoList$network,infoList$station,location,infoList$channel,sep='.')    
-  }
-
+   textList$snclName <- paste(infoList$network,infoList$station,location,infoList$channel,sep='.')    
+  
   
   # Add the network title if an appropriate dataframe exists
   textList$networkTitle <- ""

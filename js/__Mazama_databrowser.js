@@ -61,7 +61,7 @@ var G_singleMetrics = {
   },
   'transfer function metrics': {
     'ms_coherence': 'ms_coherence: coherence',
-    'gain_ratio': 'grain_ratio: gain ratio',
+    'gain_ratio': 'gain_ratio: gain ratio',
     'phase_diff': 'phase_diff: phase difference'
   },
   'miniSEED state-of-health metrics (daily flag count)': {
@@ -95,7 +95,7 @@ var G_singleMetrics = {
 
 
 // NOTE:  Configurable list of channels curently in the MUSTANG database
-var G_mustangChannels = "CH?,DH?,LH?,MH?,SH?,EH?,EL?,BN?,HN?,LN?,BY?,DP?,BH?,HH?,BX?,HX?,VM?";
+var G_mustangChannels = "CH?,DH?,LH?,MH?,SH?,EH?,EL?,BN?,HN?,LN?,BY?,DP?,BH?,HH?,BX?,HX?,VM?,EN?";
 
 // SNCL selector arrays 
 var G_virtualNetworks = [];
@@ -169,7 +169,6 @@ function selectMetric() {
       $('#transferFunctionOptions').hide();
     }
   }
-  sendPlotRequest();
 }
 
 
@@ -585,8 +584,12 @@ function generateChannelsSelector(){
     }
   }
 
+  $('#activityMessage').text('').removeClass('info').removeClass('alert');
+
   // We usually want to generate a plot after regenerating this final selector
-  if (G_autoPlot) sendPlotRequest();
+  if (G_autoPlot) {
+    sendPlotRequest();
+  }
 
 }
 
@@ -613,6 +616,7 @@ function selectVirtualNetwork(){
 }
 
 function selectNetwork(){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_network = $('#network').val();
@@ -620,6 +624,7 @@ function selectNetwork(){
 }
 
 function selectStation(){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_station = $('#station').val();
@@ -627,6 +632,7 @@ function selectStation(){
 }
 
 function selectLocation(){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_location = $('#location').val();
@@ -634,6 +640,7 @@ function selectLocation(){
 }
 
 function selectChannel(){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_channel = $('#channel').val();
@@ -641,6 +648,7 @@ function selectChannel(){
 }
 
 function selectStartDate(dateText, inst) {
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   validateDates(); // required to set starttime and endtime fields
@@ -648,6 +656,7 @@ function selectStartDate(dateText, inst) {
 }
 
 function selectEndDate(dateText, inst) {
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   validateDates(); // required to set starttime and endtime fields
@@ -657,6 +666,7 @@ function selectEndDate(dateText, inst) {
 // Set the global channel variable from auto-complete box ----------------------
 
 function selectNetworkAuto(event, ui){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_network = ui.item.value;
@@ -664,6 +674,7 @@ function selectNetworkAuto(event, ui){
 }
 
 function selectStationAuto(event, ui){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_station = ui.item.value;
@@ -671,6 +682,7 @@ function selectStationAuto(event, ui){
 }
 
 function selectLocationAuto(event, ui){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_location = ui.item.value;
@@ -678,6 +690,7 @@ function selectLocationAuto(event, ui){
 }
 
 function selectChannelAuto(event, ui){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_channel = ui.item.value;
@@ -689,7 +702,7 @@ function selectChannelAuto(event, ui){
 
 // Move to the previous available location/station that shares the current channel
 function previousPlot() {
-
+  G_autoPlot = true;
   G_previousPlotRequest = true;
   G_nextPlotRequest = false;
 
@@ -821,6 +834,7 @@ function previousPlot() {
 // Move to the next available location/station that shares the current channel
 function nextPlot() {
 
+  G_autoPlot = true;
   G_previousPlotRequest = false;
   G_nextPlotRequest = true;
 
@@ -955,6 +969,7 @@ function nextPlot() {
 
 // Send request to plot current selection
 function plotData() {
+  G_autoPlot = true;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   sendPlotRequest();
