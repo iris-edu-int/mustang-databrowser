@@ -573,6 +573,18 @@ function generateChannelsSelector(){
   $("#channel-auto").autocomplete({source: options});
   $("#channel-auto").val(""); 
 
+  // Check for channel sets that only have one channel
+  // NOTE:  Asking for a metricTimeseries plot with timeseriesChannelSet generates plots that are three-times too tall
+  if (plotType == 'metricTimeseries' && $('#timeseriesChannelSet').prop('checked')) {
+    var chasetString = G_channel.substr(0,2);
+    var chaset = options.filter(function(val,i) { return(val.startsWith(chasetString)); });
+    if (chaset.length < 3) {
+      $('#timeseriesChannelSet').addClass('doNotSerialize'); // don't include this in the CGI request
+    } else {
+      $('#timeseriesChannelSet').removeClass('doNotSerialize'); // do include this in the CGI request
+    }
+  }
+
   // We usually want to generate a plot after regenerating this final selector
   if (G_autoPlot) sendPlotRequest();
 
