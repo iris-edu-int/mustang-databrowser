@@ -169,6 +169,7 @@ function selectMetric() {
       $('#transferFunctionOptions').hide();
     }
   }
+  sendPlotRequest();
 }
 
 
@@ -1248,7 +1249,7 @@ function ajaxUpdateSNCLSelectors() {
       // Find NSs that start with 'net'
       // Then create a unique, sorted list of these NSs
       // Add an array of the 'sta' part to G_stations with 'net' as the key
-      var N_NSs = NSs.filter( function(val) { return(val.startsWith(N)); } );
+      var N_NSs = NSs.filter( function(val) { return(val.startsWith(N + '.')); } );
       var N_uniqueNSs = N_NSs.filter(function(val, i) { return(N_NSs.indexOf(val)==i); }).sort();
       G_stations[N] = $.map(N_uniqueNSs, function(elem, i) { return(elem.split('.')[1]); } );
     })
@@ -1256,10 +1257,10 @@ function ajaxUpdateSNCLSelectors() {
     // Replace the G_locations "location by net.sta" associative array
     G_locations = {};
     $.each(uniqueNSs, function(i, NS) {
-      // Find NSLs that start with 'net.sta'
+      // Find NSLs that start with 'net.sta' 
       // Then create a unique, sorted list of these NSLs
       // Add an array of the 'loc' part to G_locations with 'net.sta' as the key
-      var NS_NSLs = NSLs.filter( function(val) { return(val.startsWith(NS)); } );
+      var NS_NSLs = NSLs.filter( function(val) { return(val.startsWith(NS + '.')); } );
       var NS_uniqueNSLs = NS_NSLs.filter(function(val, i) { return(NS_NSLs.indexOf(val)==i); }).sort();
       G_locations[NS] = $.map(NS_uniqueNSLs, function(elem, i) { return(elem.split('.')[2]); } );
     })
@@ -1270,7 +1271,7 @@ function ajaxUpdateSNCLSelectors() {
       // Find NSLCs that start with 'net.sta.loc'
       // Then create a unique, sorted list of these NSLCs
       // Add an array of the 'cha' part to G_chananels with 'net.sta.loc' as the key
-      var NSL_NSLCs = NSLCs.filter( function(val) { return(val.startsWith(NSL)); } );
+      var NSL_NSLCs = NSLCs.filter( function(val) { return(val.startsWith(NSL + '.')); } );
       var NSL_uniqueNSLCs = NSL_NSLCs.filter(function(val, i) { return(NSL_NSLCs.indexOf(val)==i); }).sort();
       G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
     })
