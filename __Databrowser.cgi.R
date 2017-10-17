@@ -168,6 +168,7 @@ result <- try({
   logger.debug("Saving %s", abs_requestJSON)
   requestJSON <- jsonlite::toJSON(request, auto_unbox=TRUE, pretty=TRUE)
   readr::write_lines(as.character(requestJSON), path=abs_requestJSON)
+  logger.debug("requestJSON = %s", requestJSON)
 }, silent=TRUE)
 stopOnError(result, "CGI ERROR saving request as .json: ")
 

@@ -35,7 +35,12 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   metric_DF <- dataList[['metric_DF']]
   
   # Need to remove missing values for boxplot to work properly (seiscode bug #630)
-  missingMask <- is.na(metric_DF$value)
+  # NOTE:  transfer function metrics phase_diff and ms_coherence are in their own columns rather than 'value'
+  if ( infoList$metricName %in% c("gain_ratio","phase_diff","ms_coherence") ) {
+    missingMask <- is.na(metric_DF[[infoList$metricName]])
+  } else {
+    missingMask <- is.na(metric_DF$value)
+  }
   metric_DF <- metric_DF[!missingMask,]
 
   ########################################
@@ -43,10 +48,8 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   ########################################
 
   # NOTE:  transfer function metrics phase_diff and ms_coherence are in their own columns rather than 'value'
-  if ( infoList$metricName == 'phase_diff' ) {
-    metricValues <- metric_DF$phase_diff
-  } else if ( infoList$metricName == 'ms_coherence' ) {
-    metricValues <- metric_DF$ms_coherence
+  if ( infoList$metricName %in% c("gain_ratio","phase_diff","ms_coherence") ) {
+    metricValues <- metric_DF[[infoList$metricName]]
   } else {
     metricValues <- metric_DF$value
   }

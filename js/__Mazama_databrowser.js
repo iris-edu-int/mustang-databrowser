@@ -125,7 +125,8 @@ var G_plotSecs;
 var G_RSecs;
 
 // state flags
-var G_autoPlot = true;
+var G_firstPlot = true;
+var G_autoPlot = false;
 var G_previousPlotRequest = false;
 var G_nextPlotRequest = false;
 
@@ -345,7 +346,7 @@ function selectPlotType() {
   } 
 
   // We usually want to generate a plot
-  if (G_autoPlot) sendPlotRequest();
+  // // //if (G_autoPlot) sendPlotRequest();
 
 }
 
@@ -587,7 +588,10 @@ function generateChannelsSelector(){
   $('#activityMessage').text('').removeClass('info').removeClass('alert');
 
   // We usually want to generate a plot after regenerating this final selector
-  if (G_autoPlot) {
+  if (G_firstPlot) {
+    G_firstPlot = false;
+    sendPlotRequest();
+  } else if (G_autoPlot) {
     sendPlotRequest();
   }
 
