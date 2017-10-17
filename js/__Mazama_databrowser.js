@@ -600,6 +600,7 @@ function generateChannelsSelector(){
 // ***** USER INITIATED SELECTIONS *******************************************/
 
 function selectVirtualNetwork(){
+  G_autoPlot = false;
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   G_previousVirtualNetwork = G_virtualNetwork; // in case the web request in ajaxUpdateNetworks() fails
