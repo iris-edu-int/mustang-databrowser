@@ -9,6 +9,8 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
+var G_VERSION = "2.0.1";
+
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
 
 // G_multiMetrics just has options
@@ -657,7 +659,7 @@ function selectStartDate(dateText, inst) {
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   validateDates(); // required to set starttime and endtime fields
-  ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
+  ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
 }
 
 function selectEndDate(dateText, inst) {
@@ -665,7 +667,7 @@ function selectEndDate(dateText, inst) {
   G_previousPlotRequest = false;
   G_nextPlotRequest = false;
   validateDates(); // required to set starttime and endtime fields
-  ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
+  ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
 }
 
 // Set the global channel variable from auto-complete box ----------------------
@@ -1132,7 +1134,8 @@ function ajaxUpdateNetworks() {
   console.log(url + "?" + $.param(data));
   $.get(url, data).done(function(serviceResponse) {
 
-    $('#activityMessage').text("rebuilding Network selectors");
+    $('#requestMessage').text('').removeClass('alert');
+    $('#activityMessage').text("rebuilding Network selectors").removeClass('alert').addClass('info');
 
     // Read in the response with PapaParse
     var config = {
@@ -1180,6 +1183,9 @@ function ajaxUpdateNetworks() {
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
 
+    $('#requestMessage').text('').removeClass('alert');
+    $('#activityMessage').text('').removeClass('info').removeClass('alert');
+
     if (jqXHR.status == 404) {
       alert("No station metadata found for the selected virtual network and time range.");
     }
@@ -1189,10 +1195,7 @@ function ajaxUpdateNetworks() {
 
   }).always(function() {
 
-    $('#requestMessage').text('').removeClass('alert');
-    $('#activityMessage').text('').removeClass('info').removeClass('alert');
-    // $('#profiling_container').show();
-    // $('#dataLink_container').show();
+    var a = 1;
 
   });
 
@@ -1205,7 +1208,7 @@ function ajaxUpdateSNCLSelectors() {
   // UI cues
   $('#profiling_container').hide();
   $('#dataLink_container').hide();
-  $('#activityMessage').text('rebuilding SNCL selectors').addClass('info');
+  $('#activityMessage').text('rebuilding SNCL selectors').removeClass('alert').addClass('info');
 
   var network = G_virtualNetwork;
   if (G_virtualNetwork == "No virtual network") {
@@ -1282,8 +1285,10 @@ function ajaxUpdateSNCLSelectors() {
       // Then create a unique, sorted list of these NSs
       // Add an array of the 'sta' part to G_stations with 'net' as the key
       var N_NSs = NSs.filter( function(val) { return(val.startsWith(N + '.')); } );
-      var N_uniqueNSs = N_NSs.filter(function(val, i) { return(N_NSs.indexOf(val)==i); }).sort();
-      G_stations[N] = $.map(N_uniqueNSs, function(elem, i) { return(elem.split('.')[1]); } );
+      if (N_NSs.length > 0) {
+        var N_uniqueNSs = N_NSs.filter(function(val, i) { return(N_NSs.indexOf(val)==i); }).sort();
+        G_stations[N] = $.map(N_uniqueNSs, function(elem, i) { return(elem.split('.')[1]); } );
+      }
     })
 
     // Replace the G_locations "location by net.sta" associative array
@@ -1293,8 +1298,10 @@ function ajaxUpdateSNCLSelectors() {
       // Then create a unique, sorted list of these NSLs
       // Add an array of the 'loc' part to G_locations with 'net.sta' as the key
       var NS_NSLs = NSLs.filter( function(val) { return(val.startsWith(NS + '.')); } );
-      var NS_uniqueNSLs = NS_NSLs.filter(function(val, i) { return(NS_NSLs.indexOf(val)==i); }).sort();
-      G_locations[NS] = $.map(NS_uniqueNSLs, function(elem, i) { return(elem.split('.')[2]); } );
+      if (NS_NSLs.length > 0) {
+        var NS_uniqueNSLs = NS_NSLs.filter(function(val, i) { return(NS_NSLs.indexOf(val)==i); }).sort();
+        G_locations[NS] = $.map(NS_uniqueNSLs, function(elem, i) { return(elem.split('.')[2]); } );        
+      }
     })
     
     // Replace the G_channels "channel by net.sta.loc" associative array
@@ -1304,8 +1311,10 @@ function ajaxUpdateSNCLSelectors() {
       // Then create a unique, sorted list of these NSLCs
       // Add an array of the 'cha' part to G_chananels with 'net.sta.loc' as the key
       var NSL_NSLCs = NSLCs.filter( function(val) { return(val.startsWith(NSL + '.')); } );
-      var NSL_uniqueNSLCs = NSL_NSLCs.filter(function(val, i) { return(NSL_NSLCs.indexOf(val)==i); }).sort();
-      G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
+      if (NSL_NSLCs.length > 0) {        
+        var NSL_uniqueNSLCs = NSL_NSLCs.filter(function(val, i) { return(NSL_NSLCs.indexOf(val)==i); }).sort();
+        G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
+      }
     })
     
     // Regenerate all selectors based on the new G_~ arrays
@@ -1322,10 +1331,7 @@ function ajaxUpdateSNCLSelectors() {
 
   }).always(function() {
 
-    // $('#requestMessage').text('').removeClass('alert');
-    // $('#activityMessage').text('').removeClass('info').removeClass('alert');
-    // $('#profiling_container').show();
-    // $('#dataLink_container').show();
+    var a = 1;
 
   });
 
@@ -1428,6 +1434,8 @@ $(function() {
     e.preventDefault();
     return  false;
   });
+
+  console.log('Mazama_databrowser.js version = ' + G_VERSION);
 
   // Initial web request to discover virtual networks and populate the selector
   // The promise of this function will ajaxUpdateNetworks()
