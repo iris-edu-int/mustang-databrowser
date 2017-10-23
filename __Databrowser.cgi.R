@@ -1,4 +1,4 @@
-#!/usr/local/bin/Rscript
+#!/usr/bin/Rscript
 #
 # TODO:  use configurable item instead of /usr/local/bin/Rscript
 #

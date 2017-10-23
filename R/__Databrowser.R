@@ -153,6 +153,12 @@ __DATABROWSER__ <- function(request) {
     heightScale <- max(0.6, heightScale)
     infoList$plotHeight <- infoList$plotWidth * heightScale
   }
+
+  if (infoList$plotType == 'metricTimeseries') {
+    if (infoList$metricName %in% c('gain_ratio','phase_diff','ms_coherence','cross_talk')) {
+       infoList$plotHeight <- infoList$plotWidth * length(dataList)*0.5
+    }
+  }
   
   # ----- Create appropriate plot device -------------------
 
@@ -174,7 +180,7 @@ __DATABROWSER__ <- function(request) {
 
   if (infoList$plotType == 'metricTimeseries') {
 
-    if (infoList$timeseriesChannelSet) {
+    if (infoList$timeseriesChannelSet || infoList$metricName %in% c('gain_ratio','phase_diff','ms_coherence','cross_talk')) {
       returnValues <- channelSetTimeseriesPlot(dataList, infoList, textList)
     } else {
       returnValues <- metricTimeseriesPlot(dataList, infoList, textList)

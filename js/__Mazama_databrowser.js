@@ -276,7 +276,8 @@ function selectPlotType() {
       $('#network').addClass('doNotSerialize');
     }
     $('#station').addClass('doNotSerialize');
-    $('#location').removeClass('doNotSerialize').show();
+    //$('#location').removeClass('doNotSerialize').show();
+    $('#location').addClass('doNotSerialize');
     $('#channel').removeClass('doNotSerialize').show();
     // $( "#location-auto").show();
     // $( "#channel-auto").show();

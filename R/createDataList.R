@@ -67,7 +67,7 @@ createDataList <- function(infoList) {
     
   } else if ( infoList$plotType == 'metricTimeseries' ) {
 
-    if  ( infoList$timeseriesChannelSet ) {
+    if  ( infoList$timeseriesChannelSet || metricName %in% c('transfer_function','cross_talk' )) {
       # Get the single dataframe including metric for an entire channelSet
       logger.debug("getGeneralValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
@@ -161,7 +161,8 @@ createDataList <- function(infoList) {
     dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime)
 
     # loads single values for each station based on whatever metric we ask for
-    dataDF <- getGeneralValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    #dataDF <- getGeneralValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    dataDF <- getGeneralValueMetrics(iris,network,'','',channel,starttime,endtime,metricName) 
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
@@ -172,7 +173,8 @@ createDataList <- function(infoList) {
     }
     
     # Return BSS URL
-    dataList[['bssUrl']] <- createBssUrl(iris,network,'',location,channel,starttime,endtime,metricName)      
+    #dataList[['bssUrl']] <- createBssUrl(iris,network,'',location,channel,starttime,endtime,metricName)      
+    dataList[['bssUrl']] <- createBssUrl(iris,network,'','',channel,starttime,endtime,metricName)
 
 
   } else if ( infoList$plotType == 'stationBoxplot' ) {
@@ -183,7 +185,7 @@ createDataList <- function(infoList) {
     # loads single values for all seismic channels
     # NOTE:  Here, we need to use '.' instead of '?'.
     # TODO:  IRISMustangMetrics::getGeneralValueMetrics should settle on '.' or '?' as the single character wildcard or should support both.
-    allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN."
+    allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN.|BX.|BY.|HX.|HY.|EH.|EN.|CH.|DH.|SH.|DP."
     dataDF <- getGeneralValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
