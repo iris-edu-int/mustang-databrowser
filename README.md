@@ -20,6 +20,7 @@ The following R packages (and automatic dependencies) must be installed system w
  * digest
  * jsonlite
  * maps
+ * readr
  * sp
  * string
  * MazamaWebUtils ( devtools::install_github('mazamascience/MazamaWebUtils' )

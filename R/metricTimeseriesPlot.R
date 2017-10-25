@@ -115,7 +115,14 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   
   # For polarity_check, add snclq2 underneath the title
   if ( metricName == 'polarity_check' ) {
-    snclq2s <- paste0(unique(df$snclq2), collapse=", ")
+    snclq2s <- unique(df$snclq2)
+    snclq2s <- substr(snclq2s,1,nchar(snclq2s)-2)
+    if (length(snclq2s) <= 2) {
+      snclq2s <- paste0(snclq2s, collapse=", ")
+    } else {
+      staNum2 <- length(snclq2s) -2
+      snclq2s <- paste(paste0(snclq2s[1:2], collapse=", "),"+",staNum2,"additional")
+    }
     text <- paste0('Nearest stations: ',snclq2s)
     mtext(text, side=3, line=0.5, cex=1.3)
   }

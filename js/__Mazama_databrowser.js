@@ -47,7 +47,7 @@ var G_singleMetrics = {
     'total_latency': 'total_latency: total data latency'
   },
   'PSD metrics (daily)': {
-    'dead_channel_exp': 'dead_channel_exp: residuals of exp fit to PSD mean',
+    'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
     // 'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
     'dead_channel_gsn': 'dead_channel_gsn: TRUE/FALSE',
     'dead_channel_lin': 'dead_channel_lin: residuals of linear fit to PSD mean',

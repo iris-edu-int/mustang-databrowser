@@ -111,7 +111,20 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     timeseriesPlot(df$starttime, metricValues, style, xlim, yStyle)
     # NOTE:  For polarity_check we need to include the second station
     if ( metricName == 'polarity_check' ) {
-      snclq <- paste0(df$snclq[1],":",df$snclq2[1])
+      snclq1 <- substr(df$snclq[1],1,nchar(df$snclq[1])-2)
+      snclq2s <- unique(df$snclq2)
+      snclq2s <- substr(snclq2s,1,nchar(snclq2s)-2)
+      if (length(snclq2s) == 1) {
+         snclq2s <- paste0(snclq2s, collapse=", ")
+      } else if (length(snclq2s) == 2) {
+         snclq2s <- paste0(snclq2s, collapse=", ")
+         snclq2s <- paste0("[",snclq2s,"]")
+      } else {
+         staNum2 <- length(snclq2s) -2
+         snclq2s <- paste(paste0(snclq2s[1:2], collapse=", "),"+",staNum2,"additional")
+         snclq2s <- paste0("[",snclq2s,"]")
+      }
+      snclq <- paste0(snclq1,":",snclq2s)
     } else {
       snclq <- df$snclq[1]
     }
