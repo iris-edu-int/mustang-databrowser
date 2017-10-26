@@ -132,12 +132,8 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     i <- i + 1
     # Y axis label
     # NOTE:  for transfer functions we skip the y axis
-    line <- par('oma')[2] + 1.5  # 
-    if (metricName == 'gain_ratio' || metricName == 'phase_diff' || metricName == 'ms_coherence') {
-      mtext(metricName, side=2, line=line, cex=1.0)
-    } else {
-      mtext(textList$metricYlab, side=2, line=line, cex=1.0)
-    }
+    line <- par('oma')[2] + 2  # 
+    mtext(textList$metricYlab, side=2, line=line, cex=1.0)
   }
   
 

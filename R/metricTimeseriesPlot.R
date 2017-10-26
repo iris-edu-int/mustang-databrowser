@@ -132,7 +132,7 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   mtext(textList$dataRange, side=1, line=line, cex=1.3)
 
   # Y axis label
-  line <- par('oma')[2] + 1.5  # 
+  line <- par('oma')[2] + 2  # 
   mtext(textList$metricYlab, side=2, line=line, cex=1.0)
   
   # Restore old par() settings

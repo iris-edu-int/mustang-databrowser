@@ -142,11 +142,12 @@ createTextList <- function(dataList, infoList) {
 
   # Adjust location as needed
   if (metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff') {
-    # Transfer functions have two locations
-    if (infoList$location == '00')
-      location <- '10:00'
-    else
-      location <- paste(infoList$location,'00',sep=':')
+    # Transfer functions have two locations  # this should not be hardcoded like this
+    #if (infoList$location == '00')
+    #  location <- '10:00'
+    #else
+    #  location <- paste(infoList$location,'00',sep=':')
+    location <- infoList$location
   } else {
     location <- infoList$location
   }
