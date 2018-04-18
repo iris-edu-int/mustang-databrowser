@@ -41,13 +41,12 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
                            "event_in_progress",
                            "clock_locked") 
     yStyles <- rep('zeroScaled',length(actualMetricNames))
-  } else if ( metricName == 'gaps_and_overlaps' ) {
+  } else if ( metricName == 'gaps_and_availability' ) {
     style <- 'minimalA'
-    actualMetricNames <- c("num_gaps",
-                           "max_gap",
-                           "num_overlaps",
-                           "max_overlap",
-                           "percent_availability") 
+    actualMetricNames <- c("ts_num_gaps",
+                           "ts_max_gap",
+                           "ts_percent_availability",
+                           "ts_gap_length") 
     yStyles <- c('zeroScaled','zeroScaled','zeroScaled','zeroScaled','percent')
   } else if ( metricName == 'basic_stats' ) {
     style <- 'minimalA'

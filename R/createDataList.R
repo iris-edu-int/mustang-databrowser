@@ -107,12 +107,11 @@ createDataList <- function(infoList) {
       actualMetricNames <- c("data_latency",
                              "feed_latency",
                              "total_latency") 
-    } else if ( metricName == 'gaps_and_overlaps' ) {
-      actualMetricNames <- c("num_gaps",
-                             "max_gap",
-                             "num_overlaps",
-                             "max_overlap",
-                             "percent_availability") 
+    } else if ( metricName == 'gaps_and_availability' ) {
+      actualMetricNames <- c("ts_num_gaps",
+                             "ts_max_gap",
+                             "ts_gap_length",
+                             "ts_percent_availability") 
     } else if ( metricName == 'SOH_flags' ) {
       actualMetricNames <- c("amplifier_saturation",
                              "digitizer_clipping",
@@ -185,8 +184,9 @@ createDataList <- function(infoList) {
     # loads single values for all seismic channels
     # NOTE:  Here, we need to use '.' instead of '?'.
     # TODO:  IRISMustangMetrics::getGeneralValueMetrics should settle on '.' or '?' as the single character wildcard or should support both.
-    allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN.|BX.|BY.|HX.|HY.|EH.|EN.|CH.|DH.|SH.|DP."
-    dataDF <- getGeneralValueMetrics(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)
+    #allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN.|BX.|BY.|HX.|HY.|EH.|EN.|CH.|DH.|SH.|DP."
+    currentSeismicChannels <- "BH*,HH*,LH*,MH*,CH*,DH*,DP*,SH*,EH*,EL*,BN*,HN*,LN*,EN*,BY*,BX*,HX*,VM."
+    dataDF <- getGeneralValueMetrics(iris,network,station,'',currentSeismicChannels,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
@@ -197,7 +197,7 @@ createDataList <- function(infoList) {
     }
 
     # Return BSS URL
-    dataList[['bssUrl']] <- createBssUrl(iris,network,station,'',allSeismicChannels,starttime,endtime,metricName)      
+    dataList[['bssUrl']] <- createBssUrl(iris,network,station,'',currentSeismicChannels,starttime,endtime,metricName)      
 
 
   } else if (infoList$plotType == 'networkMap' ) {

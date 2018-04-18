@@ -17,7 +17,7 @@ var G_VERSION = "2.0.1";
 var G_multiMetrics = {
   'basic_stats':'min-max-mean',
   'latency':'latency',
-  'gaps_and_overlaps':'gaps and overlaps',
+  'gaps_and_availability':'gaps and availability',
   'SOH_flags':'state-of-health flag counts',
   'transfer_function':'transfer function'
 };
@@ -40,6 +40,13 @@ var G_singleMetrics = {
     'sample_rms': 'sample_rms: root-mean-square variance of amplitudes',
     'sample_unique': 'sample_unique: count of unique sample values'
   },
+  'availability metrics from tsindex database table (daily)': {
+    'ts_channel_up_time': 'ts_channel_up_time: durations of continuous data',
+    'ts_gap_length': 'ts_gap_length: total gap duration',
+    'ts_max_gap': 'ts_max_gap: maximum gap duration',
+    'ts_num_gaps': 'ts_num_gaps: number of gaps',
+    'ts_percent_availability': 'ts_percent_availability: percentage data available'
+  },
   'latency metrics': {
     'data_latency': 'data_latency: time between data acquisition and receipt',
     // 'data_latency': 'data_latency: time between latest data acquisition and receipt',
@@ -48,7 +55,6 @@ var G_singleMetrics = {
   },
   'PSD metrics (daily)': {
     'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
-    // 'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
     'dead_channel_gsn': 'dead_channel_gsn: TRUE/FALSE',
     'dead_channel_lin': 'dead_channel_lin: residuals of linear fit to PSD mean',
     'pct_above_nhnm': 'pct_above_nhnm: percent of PDF above New High Noise Model',
@@ -68,11 +74,9 @@ var G_singleMetrics = {
   },
   'miniSEED state-of-health metrics (daily flag count)': {
     'amplifier_saturation': 'amplifier_saturation: saturation detected',
-    // 'amplifier_saturation': 'amplifier_saturation: amplifier saturation detected',
     'calibration_signal': 'calibration_signal: calibration signals present',
     'clock_locked': 'clock_locked: clock locked',
     'digital_filter_charging': 'digital_filter_charging: filter may be charging',
-    // 'digital_filter_charging': 'digital_filter_charging: digital filter may be charging',
     'digitizer_clipping': 'digitizer_clipping: digitizer clipping detected',
     'event_begin': 'event_begin: beginning of an event, station trigger',
     'event_end': 'event_end: end of an event, station detrigger',
@@ -80,8 +84,7 @@ var G_singleMetrics = {
     'missing_padded_data': 'missing_padded_data: missing/padded data present',
     'spikes': 'spikes: spikes detected',
     'suspect_time_tag': 'suspect_time_tag: time tag is questionable',
-    // 'telemetry_sync_error': 'telemetry_sync_error: telemetry synchronization error',
-    'telemetry_sync_error': 'telemetry_sync_error: telemetry sync error',
+    'telemetry_sync_error': 'telemetry_sync_error: telemetry synchronization error',
     'timing_correction': 'timing_correction: time correction applied'
   },
   'miniSEED state-of- health metrics (other)': {
@@ -1089,7 +1092,7 @@ function sendPlotRequest() {
 
 // Get a list of virtual network codes and repopulate the virtual networks selector
 function ajaxUpdateVirtualNetworksSelector() {
-  var url = 'http://service.iris.edu/irisws/virtualnetwork/1/codes'; // response is always XML
+  var url = 'https://service.iris.edu/irisws/virtualnetwork/1/codes'; // response is always XML
   $.get(url).done(function(serviceResponse) {
     // NOTE:  This function is a 'promise' that gets evaluated asynchronously
     var vnetNodes = serviceResponse.getElementsByTagName("virtualNetwork");
@@ -1122,7 +1125,7 @@ function ajaxUpdateNetworks() {
     network = "*";
   }
 
-  var url = 'http://service.iris.edu/fdsnws/station/1/query';
+  var url = 'https://service.iris.edu/fdsnws/station/1/query';
   var data = {net:network,
               sta:"*",
               loc:"*",
@@ -1216,7 +1219,7 @@ function ajaxUpdateSNCLSelectors() {
     network = G_network;
   }
 
-  var url = 'http://service.iris.edu/fdsnws/station/1/query';
+  var url = 'https://service.iris.edu/fdsnws/station/1/query';
   var data = {net:network,
               sta:"*",
               loc:"*",

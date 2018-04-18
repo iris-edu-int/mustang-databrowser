@@ -83,7 +83,7 @@ createInfoList <- function(request) {
     # TODO:  could adjust per metricName
     if (metricName == 'basic_stats' ||
         metricName == 'latency' ||
-        metricName == 'gaps_and_overlaps'||
+        metricName == 'gaps_and_availability'||
         metricName == 'transfer_function') {
       infoList$plotHeight <- 1.2 * infoList$plotWidth
     } else if (metricName == 'SOH_flags') {

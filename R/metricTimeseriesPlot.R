@@ -55,6 +55,10 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
       metricName == 'timing_correction' ||
       metricName == 'sample_unique' ||
       metricName == 'dead_channel_lin' ||
+      metricName == 'ts_num_gaps' ||
+      metricName == 'ts_max_gap' ||
+      metricName == 'ts_gap_length' ||
+      metricName == 'ts_channel_up_time' ||
       metricName == 'xxx') {
 
     yStyle <- 'zeroScaled' 
@@ -77,6 +81,7 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     yStyle <- 'zeroCentered1'
     
   } else if (metricName == 'percent_availability' ||
+             metricName == 'ts_percent_availability' ||
              metricName == 'pct_above_nhnm' ||
              metricName == 'pct_below_nlnm') {
 

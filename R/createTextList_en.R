@@ -23,9 +23,9 @@ createTextList <- function(dataList, infoList) {
   # NOTE:  http://service.iris.edu/mustang/metrics/1/query
   
   # Add a metric title
-  metricTitles <- list(amplifier_saturation='Daily Flag Count: Amplifier Saturation Detected',
-                       calibration_signal='Daily Flag Count: Calibration Signals Present',
-                       clock_locked='Daily Flag Count: Clock locked',
+  metricTitles <- list(amplifier_saturation='MiniSEED Flag Count: Amplifier Saturation Detected',
+                       calibration_signal='MiniSEED Flag Count: Calibration Signals Present',
+                       clock_locked='MiniSEED Flag Count: Clock locked',
                        cross_talk='Cross-Talk Check: Channel Cross-Correlation Coefficient',
                        data_latency='Time Since Last Data Sample Was Acquired',
                        dc_offset='Indicator of Likelihood of DC Offset Shift',
@@ -33,46 +33,51 @@ createTextList <- function(dataList, infoList) {
                        dead_channel_exp='Dead Channel Metric: Exponential Fit',
                        dead_channel_gsn='Dead Channel Metric: GSN',
                        dead_channel_lin='Dead Channel Metric: Linear Fit',
-                       digital_filter_charging='Daily Flag Count: Digital Filter Charging',
-                       digitizer_clipping='Daily Flag Count: Digitizer Clipping Detected',
-                       event_begin='Daily Flag Count: Beginning of Event (Trigger)',
-                       event_end='Daily Flag Count: End of Event (Detrigger)',
-                       event_in_progress='Daily Flag Count: Event in Progress',
+                       digital_filter_charging='MiniSEED Flag Count: Digital Filter Charging',
+                       digitizer_clipping='MiniSEED Flag Count: Digitizer Clipping Detected',
+                       event_begin='MiniSEED Flag Count: Beginning of Event (Trigger)',
+                       event_end='MiniSEED Flag Count: End of Event (Detrigger)',
+                       event_in_progress='MiniSEED Flag Count: Event in Progress',
                        feed_latency='Time Since Latest Data Was Received',
-                       glitches='Daily Flag Count: Glitches Detected',
-                       max_gap='Daily Maximum Gap Length',
-                       max_overlap='Daily Maximum Overlap Length',
-                       max_stalta='Maximum Daily Short-Term Average/Long-Term Average Amplitude Ratio',
-                       missing_padded_data='Daily Flag instances: Missing/Padded Data Present',
-                       num_gaps='Gaps Per Day',
-                       num_overlaps='Overlaps Per Day',
-                       num_spikes='Spikes Per Day',
+                       glitches='MiniSEED Flag Count: Glitches Detected',
+                       max_gap='Maximum Gap Length',
+                       max_overlap='Maximum Overlap Length',
+                       max_stalta='Maximum Short-Term Average/Long-Term Average Amplitude Ratio',
+                       missing_padded_data='MiniSEED Flag Count: Missing/Padded Data Present',
+                       num_gaps='Number of Gaps',
+                       num_overlaps='Number of Overlaps',
+                       num_spikes='Number of Spikes',
                        pct_above_nhnm='Percent Above New High Noise Model',
                        pct_below_nlnm='Percent Below New Low Noise Model',
-                       percent_availability='Channel Percent Data Available Per Day',
+                       percent_availability='Channel Percent Data Available',
                        polarity_check='Nearest Station Polarity Reversal Check',
                        pressure_effects='Atmospheric Pressure Check: Barometer-Seismometer Cross-Correlation Coefficient',
-                       sample_max='Daily Maximum Amplitude',
-                       sample_mean='Daily Mean Amplitude',
-                       sample_median='Daily Median Amplitude',
-                       sample_min='Daily Minimum Amplitude',
-                       sample_rms='Daily Root Mean Squared Variance of Amplitudes',
+                       sample_max='Maximum Amplitude',
+                       sample_mean='Mean Amplitude',
+                       sample_median='Median Amplitude',
+                       sample_min='Minimum Amplitude',
+                       sample_rms='Root-Mean-Squared-Variance of Amplitudes',
                        sample_snr='P-Wave Signal-To-Noise Ratio',
-                       sample_unique='Daily Count of Unique Sample Values',
-                       spikes='Daily Flag Count: Spikes Detected',
-                       station_completeness='Station Percent Data Available Per Day',
+                       sample_unique='Count of Unique Sample Values',
+                       spikes='MiniSEED Flag Count: Spikes Detected',
+                       station_completeness='Station Percent Data Available',
                        station_up_down_times='Station Up/Down Time Spans',
-                       suspect_time_tag='Daily Flag Count: Time Tag Questionable',
-                       telemetry_sync_error='Daily Flag Count: Telemetry Synchronization Error',
-                       timing_correction='Daily Flag Count: Timing Correction Applied',
-                       timing_quality='Daily Average Timing Quality',
+                       suspect_time_tag='MiniSEED Flag Count: Time Tag Questionable',
+                       telemetry_sync_error='MiniSEED Flag Count: Telemetry Synchronization Error',
+                       timing_correction='MiniSEED Flag Count: Timing Correction Applied',
+                       timing_quality='MiniSEED Average Timing Quality',
                        total_latency='Total Latency',
+                       ts_num_gaps='TsIndex Number of Gaps',
+                       ts_max_gap='TsIndex Maximum Gap Length',
+                       ts_gap_length='TsIndex Sum of Gap Lengths in Seconds',
+                       ts_percent_availability='TsIndex Channel Percent Data Available',
+                       ts_channel_up_time='TsIndex Durations of Continuous Data',
                        up_down_times='Channel Up/Down Time Spans',
 
                        # multi-metrics
                        basic_stats='Basic Statistics',
                        latency='Latency',
-                       gaps_and_overlaps='Gaps and Overlaps',
+                       gaps_and_availability='Gaps and Availability',
                        SOH_flags='State-of-Health Daily Flag Counts',
                        transfer_function='Transfer Function Metrics',
                        # names within the transfer function dataframe
@@ -102,7 +107,7 @@ createTextList <- function(dataList, infoList) {
                       event_in_progress='flag count (number of occurrences)',
                       feed_latency='latency (seconds)',
                       glitches='flag count (number of occurrences)',
-                      max_gap='gap length (seconds)',
+                      max_gap='maximum gap length (seconds)',
                       max_overlap='overlap length (seconds)',
                       max_stalta='short-term average / long-term average', # no units
                       missing_padded_data='flag count (number of occurrences)',
@@ -127,6 +132,11 @@ createTextList <- function(dataList, infoList) {
                       timing_correction='flag count (number of occurrences)',
                       timing_quality='average timing quality (%)',
                       total_latency='latency (seconds)',
+                      ts_num_gaps='gap count (number of occurrences)',
+                      ts_max_gap='maximum gap length (seconds)',
+                      ts_gap_length='total gap length (seconds)',
+                      ts_percent_availability='availability (%)',
+                      ts_channel_up_time='trace segment length (seconds)',
                       
                       # transfer_function:
                       gain_ratio='data/metadata gain ratio', # no units
@@ -137,23 +147,11 @@ createTextList <- function(dataList, infoList) {
   textList$metricYlabsList <- metricYlabs
   
   textList$metricYlab <- metricYlabs[[metricName]]
+
   
-
-
-  # Adjust location as needed
-  if (metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff') {
-    # Transfer functions have two locations  # this should not be hardcoded like this
-    #if (infoList$location == '00')
-    #  location <- '10:00'
-    #else
-    #  location <- paste(infoList$location,'00',sep=':')
-    location <- infoList$location
-  } else {
-    location <- infoList$location
-  }
-
+  
   # Create the SNCL name
-   textList$snclName <- paste(infoList$network,infoList$station,location,infoList$channel,sep='.')    
+   textList$snclName <- paste(infoList$network,infoList$station,infoList$location,infoList$channel,sep='.')    
   
   
   # Add the network title if an appropriate dataframe exists
