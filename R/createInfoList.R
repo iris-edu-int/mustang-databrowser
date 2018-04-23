@@ -58,7 +58,7 @@ createInfoList <- function(request) {
   infoList$timeseriesChannelSet <- ifelse(is.null(infoList$timeseriesChannelSet),FALSE,TRUE)
   infoList$boxplotShowOutliers <- ifelse(is.null(infoList$boxplotShowOutliers),FALSE,TRUE)
   infoList$transferFunctionCoherenceThreshold <- ifelse(is.null(infoList$transferFunctionCoherenceThreshold),FALSE,TRUE)
-    
+  infoList$scaleSensitivity <- ifelse(is.null(infoList$scaleSensitivity),FALSE,TRUE) 
     
   
   # ----- Adjust height based on plotType ------------------

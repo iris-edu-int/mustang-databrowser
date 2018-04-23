@@ -9,7 +9,7 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
-var G_VERSION = "2.0.1";
+var G_VERSION = "2.0.2";
 
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
 
@@ -24,6 +24,11 @@ var G_multiMetrics = {
 
 // G_singleMetrics has both optgroups and options
 var G_singleMetrics = {
+  'latency metrics (every 4 hours)': {
+    'data_latency': 'data_latency: time between data acquisition and receipt',
+    'feed_latency': 'feed_latency: time since latest data was received',
+    'total_latency': 'total_latency: total data latency'
+  },
   'simple metrics (daily)': {
     'dc_offset': 'dc_offset: indicator of likelihood of DC offset shift',
     'max_gap': 'max_gap: maximum gap duration',
@@ -46,12 +51,6 @@ var G_singleMetrics = {
     'ts_max_gap': 'ts_max_gap: maximum gap duration',
     'ts_num_gaps': 'ts_num_gaps: number of gaps',
     'ts_percent_availability': 'ts_percent_availability: percentage data available'
-  },
-  'latency metrics': {
-    'data_latency': 'data_latency: time between data acquisition and receipt',
-    // 'data_latency': 'data_latency: time between latest data acquisition and receipt',
-    'feed_latency': 'feed_latency: time since latest data was received',
-    'total_latency': 'total_latency: total data latency'
   },
   'PSD metrics (daily)': {
     'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
@@ -100,14 +99,10 @@ var G_singleMetrics = {
 
 
 // NOTE:  Configurable list of channels curently in the MUSTANG database
-var G_mustangChannels = "CH?,DH?,LH?,MH?,SH?,EH?,EL?,BN?,HN?,LN?,BY?,DP?,BH?,HH?,BX?,HX?,VM?,EN?";
+var G_mustangChannels = "CH*,DH*,LH*,MH*,SH*,EH*,EL*,BN*,HN*,LN*,BY*,DP*,BH*,HH*,BX*,HX*,VM*,EN*";
 
 // SNCL selector arrays 
 var G_virtualNetworks = [];
-// var G_networks = DEFAULT_networks;                // DEFAULT_networks is defined in networks.js
-// var G_stations = DEFAULT_stations;                // DEFAULT_stations is defined in stations.js
-// var G_locations = DEFAULT_locations;              // DEFAULT_locations is defined in locations.js
-// var G_channels = DEFAULT_channels;                // DEFAULT_channels is defined in channels.js
 var G_networks = [];
 var G_stations = [];
 var G_locations = [];
@@ -166,7 +161,32 @@ function selectMetric() {
     G_singleMetric = $('#metric').val();
   }
   // Handle boxplot-transfer function options
-  if ( $('#plotType').val() == 'networkBoxplot' || $('#plotType').val() == 'stationBoxplot' ) {
+  if ( $('#plotType').val() == 'networkBoxplot') {
+
+    if ( G_singleMetric == 'sample_mean' || G_singleMetric == 'sample_median' || G_singleMetric == 'sample_rms' ||  G_singleMetric == 'sample_max' ||  G_singleMetric == 'sample_min') {
+      $('#scaleSensitivity').removeClass('doNotSerialize').show();
+      $('#sensitivityOptions').show();
+    } else {
+      $('#scaleSensitivity').addClass('doNotSerialize').hide();
+      $('#sensitivityOptions').hide();
+    }
+    if ( G_singleMetric == 'ms_coherence' || G_singleMetric == 'gain_ratio' || G_singleMetric == 'phase_diff' ) {
+      $('#transferFunctionCoherenceThreshold').removeClass('doNotSerialize').show();
+      $('#transferFunctionOptions').show();
+    } else {
+      $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
+      $('#transferFunctionOptions').hide();
+    }
+  }
+  if ($('#plotType').val() == 'stationBoxplot' ) {
+
+    if ( G_singleMetric == 'sample_mean' || G_singleMetric == 'sample_median' || G_singleMetric == 'sample_rms' ||  G_singleMetric == 'sample_max' ||  G_singleMetric == 'sample_min') {
+      $('#scaleSensitivity').removeClass('doNotSerialize').show();
+      $('#sensitivityOptions').show();
+    } else {
+      $('#scaleSensitivity').addClass('doNotSerialize').hide();
+      $('#sensitivityOptions').hide();
+    }
     if ( G_singleMetric == 'ms_coherence' || G_singleMetric == 'gain_ratio' || G_singleMetric == 'phase_diff' ) {
       $('#transferFunctionCoherenceThreshold').removeClass('doNotSerialize').show();
       $('#transferFunctionOptions').show();
@@ -199,6 +219,8 @@ function selectPlotType() {
     $('#plotOptionsLabel').text('Plot Options for Metric Timeseries');
     $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
     $('#boxplotOptions').hide();
+    $('#scaleSensitivity').addClass('doNotSerialize').hide();
+    $('#sensitivityOptions').hide();
     $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
     $('#transferFunctionOptions').hide();
     $('#timeseriesChannelSet').removeClass('doNotSerialize').show();
@@ -226,6 +248,8 @@ function selectPlotType() {
     $('#plotOptionsLabel').text('No Plot Options for Multi-Metric Timeseries');
     $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
     $('#boxplotOptions').hide();
+    $('#scaleSensitivity').addClass('doNotSerialize').hide();
+    $('#sensitivityOptions').hide();
     $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
     $('#transferFunctionOptions').hide();
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
@@ -262,6 +286,13 @@ function selectPlotType() {
     $('#boxplotShowOutliers').removeClass('doNotSerialize').show();
     $('#boxplotOptions').show();
     var metricName = $('#metric').val();
+    if ( metricName == 'sample_mean' || metricName == 'sample_median' || metricName == 'sample_rms' ||  metricName == 'sample_max' ||  metricName == 'sample_min') {
+      $('#scaleSensitivity').removeClass('doNotSerialize').show();
+      $('#sensitivityOptions').show();
+    } else {
+      $('#scaleSensitivity').addClass('doNotSerialize').hide();
+      $('#sensitivityOptions').hide();
+    }
     if (metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff') {
       $('#transferFunctionCoherenceThreshold').removeClass('doNotSerialize').show();
       $('#transferFunctionOptions').show();
@@ -271,7 +302,7 @@ function selectPlotType() {
     }
 
     // SNCL
-    // NOTE:  Leave station in place to provide full access to alll possible loc-cha
+    // NOTE:  Leave station in place to provide full access to all possible loc-cha
     // NOTE:  but prevent the choice of station from skipping over a cache hit.
     if ( G_virtualNetwork == 'No virtual network' ) {
       $('#network').removeClass('doNotSerialize');
@@ -279,8 +310,7 @@ function selectPlotType() {
       $('#network').addClass('doNotSerialize');
     }
     $('#station').addClass('doNotSerialize');
-    //$('#location').removeClass('doNotSerialize').show();
-    $('#location').addClass('doNotSerialize');
+    $('#location').addClass('doNotSerialize').show();
     $('#channel').removeClass('doNotSerialize').show();
     // $( "#location-auto").show();
     // $( "#channel-auto").show();
@@ -302,6 +332,13 @@ function selectPlotType() {
     $('#boxplotShowOutliers').removeClass('doNotSerialize').show();
     $('#boxplotOptions').show();
     var metricName = $('#metric').val();
+    if ( metricName == 'sample_mean' || metricName == 'sample_median' || metricName == 'sample_rms' ||  metricName == 'sample_max' ||  metricName == 'sample_min') {
+      $('#scaleSensitivity').removeClass('doNotSerialize').show();
+      $('#sensitivityOptions').show();
+    } else {
+      $('#scaleSensitivity').addClass('doNotSerialize').hide();
+      $('#sensitivityOptions').hide();
+    }
     if (metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff') {
       $('#transferFunctionCoherenceThreshold').removeClass('doNotSerialize').show();
       $('#transferFunctionOptions').show();
@@ -319,7 +356,8 @@ function selectPlotType() {
     // $( "#channel-auto").hide();
 
   } else if (plotType == 'trace' ||
-             plotType == 'pdf') {
+             plotType == 'pdf'   ||
+             plotType == 'noise-mode-timeseries') {
 
     // Metric
     $('#metric').addClass('doNotSerialize').hide();
@@ -336,6 +374,8 @@ function selectPlotType() {
     }
     $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
     $('#boxplotOptions').hide();
+    $('#scaleSensitivity').addClass('doNotSerialize').hide();
+    $('#sensitivityOptions').hide();
     $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
     $('#transferFunctionOptions').hide();
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
@@ -499,8 +539,6 @@ function generateStationsSelector(){
 
 function generateLocationsSelector(){
 
-  var plotType = $('#plotType').val();
-
   // Get the list of options
   var NS = G_network + '.' + G_station;
   var options = G_locations[NS].sort();
@@ -545,7 +583,7 @@ function generateChannelsSelector(){
   // Get the list of options
   var NSL = G_network + '.' + G_station + '.' + G_location;
   var options = G_channels[NSL].sort();
-  
+
   // If the current channel is not in the location
   if (options.indexOf(G_channel) < 0) {
     if (plotType == 'stationBoxplot') {
@@ -1015,7 +1053,7 @@ function validateDates() {
 // should be removed from the request to improve our cache hit rate.
 function sendPlotRequest() {
   validateDates(); // required to set starttime and endtime fields
-  var url = '/cgi-bin/__DATABROWSER__.cgi';
+  var url = '/mustang/__DATABROWSER__/__DATABROWSER___init.cgi';
   var paramsUrl = $('#controls_form').serialize();
   var removeList = $('.doNotSerialize');
   for (i=0; i<removeList.length; i++) {
@@ -1310,21 +1348,23 @@ function ajaxUpdateSNCLSelectors() {
     
     // Replace the G_channels "channel by net.sta.loc" associative array
     G_channels = {};
+
     $.each(uniqueNSLs, function(i, NSL) {
       // Find NSLCs that start with 'net.sta.loc'
       // Then create a unique, sorted list of these NSLCs
-      // Add an array of the 'cha' part to G_chananels with 'net.sta.loc' as the key
+      // Add an array of the 'cha' part to G_channels with 'net.sta.loc' as the key
+
       var NSL_NSLCs = NSLCs.filter( function(val) { return(val.startsWith(NSL + '.')); } );
       if (NSL_NSLCs.length > 0) {        
         var NSL_uniqueNSLCs = NSL_NSLCs.filter(function(val, i) { return(NSL_NSLCs.indexOf(val)==i); }).sort();
         G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
       }
     })
-    
+
     // Regenerate all selectors based on the new G_~ arrays
     generateStationsSelector();
 
-    // $(document).triggerHandler('finishedUpdatingSNCLSelectors');
+    //$(document).triggerHandler('finishedUpdatingSNCLSelectors');
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
 
@@ -1355,6 +1395,8 @@ $(function() {
   $('#spinner').hide();
   $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
   $('#boxplotOptions').hide();
+  $('#scaleSensitivity').addClass('doNotSerialize').hide();
+  $('#sensitivityOptions').hide();
   $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
   $('#transferFunctionOptions').hide();
   $('#profiling_container').hide();
@@ -1369,7 +1411,7 @@ $(function() {
   $('#location').change(selectLocation);
   $('#channel').change(selectChannel);
 
-  // Assoociated SNCL autocompletes
+  // Associated SNCL autocompletes
   $( "#network-auto").on( "autocompleteselect", selectNetworkAuto );
   $( "#station-auto").on( "autocompleteselect", selectStationAuto );
   $( "#location-auto").on( "autocompleteselect", selectLocationAuto );

@@ -119,6 +119,7 @@
                 <option value="stationBoxplot">Station Boxplots</option>
                 <option value="trace">Seismic Trace</option>
                 <option value="pdf">PDF Plot</option>
+                <option value="noise-mode-timeseries">PDF Noise Mode Timeseries Plot</option>
               </select>
             </div>
             <!-- END of plotTypeDiv -->
@@ -131,15 +132,18 @@
             <!-- END of metricNameDiv -->
 
             <div id="plotTypeOptionsDiv">
-              <label id="plotOptionsLabel" for="plotTypeOptions">No Plot Options for Metric Timeseries</label>
+              <label id="plotOptionsLabel" for="plotTypeOptions">Plot Options for Metric Timeseries</label>
               <img id="spinner" src="style/images/spinner.gif" />
               <br>
               <div id="boxplotOptions">
-                <input id="boxplotShowOutliers" name="boxplotShowOutliers" type="checkbox" checked="" /> outliers<br />
                 Box Plot Explainer
                 <span class="tooltip" id="tooltip_box_plots.html" title="Box Plots Explained">
                   <img class="tooltip_icon" src="style/images/info_icon_question.jpeg" />
-                </span>
+                </span> <br />
+                <input id="boxplotShowOutliers" name="boxplotShowOutliers" type="checkbox" checked="" /> outliers<br />
+              </div>
+              <div id="sensitivityOptions">
+                <input id="scaleSensitivity" name="scaleSensitivity" type="checkbox"/><span> scale by channel sensitivity</span>
               </div>
               <div id="transferFunctionOptions">
                 <input id="transferFunctionCoherenceThreshold" name="transferFunctionCoherenceThreshold" type="checkbox" checked="" /><span> coherence > 0.999</span>

@@ -1,4 +1,4 @@
-########################################################################
+#######################################################################n
 # createDataList.R
 #
 # Databrowser specific creation of dataframes for inclusion in dataList.
@@ -73,6 +73,7 @@ createDataList <- function(infoList) {
       dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
       if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
       dataList <- split(dataDF, dataDF$snclq)
+
     } else {
       logger.debug("getGeneralValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
       dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
@@ -81,11 +82,6 @@ createDataList <- function(infoList) {
            metricName == 'polarity_check' ||
            metricName == 'transfer_function') {
         dataList[[metricName]] <- dataDF
-      # } else if ( metricName == 'transfer_function' ) {
-      #   # NOTE:  transfer_function is unique in that a request for it returns a single dataframe
-      #   # NOTE:  with three separate variables:  ms_coherence, gain_ratio, phase_diff
-      #   # NOTE:  See stackedMetricTimeseriesPlot.R
-      #   dataList <- list('transfer_function'=dataDF)
       } else {
         dataList <- split(dataDF, dataDF$metricName)
       }
@@ -160,19 +156,33 @@ createDataList <- function(infoList) {
     dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime)
 
     # loads single values for each station based on whatever metric we ask for
-    #dataDF <- getGeneralValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
     dataDF <- getGeneralValueMetrics(iris,network,'','',channel,starttime,endtime,metricName) 
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
+    # add optional scaling by sensitivity
     if ( metricName == 'transfer_function' && infoList$transferFunctionCoherenceThreshold ) {
       dataList[['metric_DF']] <- dataDF[dataDF$ms_coherence > 0.999,]
+
+    } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median') && infoList$scaleSensitivity) { 
+      dataDF$starttime <- as.Date(dataDF$starttime)
+      metaDF <- getChannel(iris,network,'','',channel,starttime,endtime)
+      metaDF$starttime <- as.Date(if_else(difftime(metaDF$starttime,starttime) < 0, starttime, metaDF$starttime))
+      metaDF$endtime <- as.Date(if_else(difftime(metaDF$endtime,endtime) < 0, metaDF$endtime, endtime))
+      metaDF <- mutate(metaDF, snclq=paste(snclId,"M",sep="."))
+      metaDF <- metaDF %>%
+         select(snclq,scale,scaleunits,starttime,endtime) %>%
+         group_by(snclq,scale,scaleunits) %>%
+         expand(starttime = full_seq(c(starttime,endtime), 1))
+      scaledDF <- left_join(dataDF,metaDF,by=c("snclq","starttime"))
+      scaledDF <- mutate(scaledDF, value=value/scale)
+
+      dataList[['metric_DF']] <- scaledDF  
     } else {
       dataList[['metric_DF']] <- dataDF
     }
     
     # Return BSS URL
-    #dataList[['bssUrl']] <- createBssUrl(iris,network,'',location,channel,starttime,endtime,metricName)      
     dataList[['bssUrl']] <- createBssUrl(iris,network,'','',channel,starttime,endtime,metricName)
 
 
@@ -182,16 +192,31 @@ createDataList <- function(infoList) {
     dataList[['station_DF']] <- getStation(iris,network,station,'','',starttime,endtime)
 
     # loads single values for all seismic channels
-    # NOTE:  Here, we need to use '.' instead of '?'.
-    # TODO:  IRISMustangMetrics::getGeneralValueMetrics should settle on '.' or '?' as the single character wildcard or should support both.
     #allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN.|BX.|BY.|HX.|HY.|EH.|EN.|CH.|DH.|SH.|DP."
-    currentSeismicChannels <- "BH*,HH*,LH*,MH*,CH*,DH*,DP*,SH*,EH*,EL*,BN*,HN*,LN*,EN*,BY*,BX*,HX*,VM."
+    currentSeismicChannels <- "BH*,HH*,LH*,MH*,CH*,DH*,DP*,SH*,EH*,EL*,BN*,HN*,LN*,EN*,BY*,BX*,HX*"
     dataDF <- getGeneralValueMetrics(iris,network,station,'',currentSeismicChannels,starttime,endtime,metricName)
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
+    # add optional scaling by sensitivity
     if ( metricName == 'transfer_function' && infoList$transferFunctionCoherenceThreshold ) {
       dataList[['metric_DF']] <- dataDF[dataDF$ms_coherence > 0.999,]
+
+    } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median') && infoList$scaleSensitivity) {  
+      dataDF$starttime <- as.Date(dataDF$starttime)
+      metaDF <- getChannel(iris,network,station,'',currentSeismicChannels,starttime,endtime)
+      metaDF$starttime <- as.Date(if_else(difftime(metaDF$starttime,starttime) < 0, starttime, metaDF$starttime))
+      metaDF$endtime <- as.Date(if_else(difftime(metaDF$endtime,endtime) < 0, metaDF$endtime, endtime))
+      metaDF <- mutate(metaDF, snclq=paste(snclId,"M",sep="."))
+      metaDF <- metaDF %>%
+         select(snclq,scale,scaleunits,starttime,endtime) %>%
+         group_by(snclq,scale,scaleunits) %>%
+         expand(starttime = full_seq(c(starttime,endtime), 1))
+      scaledDF <- left_join(dataDF,metaDF,by=c("snclq","starttime"))
+      scaledDF <- mutate(scaledDF, value=value/scale)
+
+      dataList[['metric_DF']] <- scaledDF  
+
     } else {
       dataList[['metric_DF']] <- dataDF
     }
