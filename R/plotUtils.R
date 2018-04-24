@@ -147,8 +147,10 @@ timeseriesPlot <- function(time,
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
-      yAxTicks <- c(ylo,yhi)
-      yAxLabels <- format(yAxTicks,nsmall=0)
+      ##yAxTicks <- c(ylo,yhi)
+      ##yAxLabels <- format(yAxTicks,nsmall=0)
+      yAxTicks <- NULL
+      yAxLabels <- NULL
     } else {
       ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
       ylim <- c(ylo,yhi)
@@ -162,8 +164,10 @@ timeseriesPlot <- function(time,
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
-      yAxTicks <- c(ylo,yhi)
-      yAxLabels <- format(yAxTicks,nsmall=0)
+      #yAxTicks <- c(ylo,yhi)
+      #yAxLabels <- format(yAxTicks,nsmall=0)
+      yAxTicks <- NULL
+      yAxLabels <- NULL
     } else {
       ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
       ylim <- c(ylo,yhi)
@@ -177,8 +181,10 @@ timeseriesPlot <- function(time,
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
-      yAxTicks <- c(ylo,yhi)
-      yAxLabels <- c("FALSE","TRUE")
+      #yAxTicks <- c(ylo,yhi)
+      #yAxLabels <- c("FALSE","TRUE")
+      yAxTicks <- NULL
+      yAxLabels <- NULL
     } else {
       ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
       ylim <- c(ylo,yhi)
@@ -192,8 +198,10 @@ timeseriesPlot <- function(time,
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
-      yAxTicks <- c(ylo,yhi)
-      yAxLabels <- format(yAxTicks,nsmall=0)
+      #yAxTicks <- c(ylo,yhi)
+      #yAxLabels <- format(yAxTicks,nsmall=0)
+      yAxTicks <- NULL
+      yAxLabels <- NULL
     } else {
       ## <- ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
       ylim=c(ylo,yhi)
@@ -207,8 +215,10 @@ timeseriesPlot <- function(time,
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
-      yAxTicks <- c(ylo,yhi)
-      yAxLabels <- format(yAxTicks,nsmall=0)
+      #yAxTicks <- c(ylo,yhi)
+      #yAxLabels <- format(yAxTicks,nsmall=0)
+      yAxTicks <- NULL
+      yAxLabels <- NULL
     } else {
       ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
       ylim <- c(ylo,yhi)
@@ -220,8 +230,10 @@ timeseriesPlot <- function(time,
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
-      yAxTicks <- c(ylo,yhi)
-      yAxLabels <- format(yAxTicks,scientific=TRUE,digits=2)  
+      #yAxTicks <- c(ylo,yhi)
+      #yAxLabels <- format(yAxTicks,scientific=TRUE,digits=2)  
+      yAxTicks <- NULL
+      yAxLabels <- NULL
     } else {
       ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
       ylim <- c(ylo,yhi)
@@ -233,8 +245,10 @@ timeseriesPlot <- function(time,
     yrange <- yhi-ylo
     if (style == 'minimalA') {
       ylim <- c(ylo-0.2*yrange, yhi+0.4*yrange) # More room at the top for the label
-      yAxTicks <- c(ylo,yhi)
-      yAxLabels <- format(yAxTicks,scientific=TRUE,digits=2) 
+      #yAxTicks <- c(ylo,yhi)
+      #yAxLabels <- format(yAxTicks,scientific=TRUE,digits=2) 
+      yAxTicks <- NULL
+      yAxLabels <- NULL
     } else {
       ###ylim <- c(ylo-0.2*yrange, yhi+0.2*yrange)
       ylim <- c(ylo,yhi)

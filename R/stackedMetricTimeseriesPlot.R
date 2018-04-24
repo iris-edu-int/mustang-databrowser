@@ -67,7 +67,7 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     actualMetricNames <- c("ms_coherence",
                            "gain_ratio",
                            "phase_diff") 
-    yStyles <- c(rep('float',3))
+    yStyles <- c('zeroScaled1','zeroScaled1','float')
   } else {
     style='minimalA'
     actualMetricNames <- metricName
@@ -90,7 +90,7 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     if ( metricName == 'transfer_function' ) {
       df <- dataList[[1]]
     } else {
-      df <- dataList[[i]]
+      df <- dataList[[actualMetricNames[i]]]
     }
     tempMetricName <- actualMetricNames[i]
     metricTitle <- textList$metricTitlesList[[tempMetricName]]
@@ -101,6 +101,8 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
       metricValues <- df$phase_diff
     } else if ( tempMetricName == 'ms_coherence' ) {
       metricValues <- df$ms_coherence
+    } else if ( tempMetricName == 'gain_ratio') {
+      metricValues <- df$gain_ratio
     } else {
       metricValues <- df$value
     }
