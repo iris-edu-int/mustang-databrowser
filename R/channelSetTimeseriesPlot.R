@@ -99,21 +99,28 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
   mat <- matrix(c(seq(1,plotCount)), plotCount, 1)
   layout(mat)
   
+  # dataframe column name for values
+  if ( metricName == 'gain_ratio' ) { valueName <- "gain_ratio" }
+  else if ( metricName == 'phase_diff' ) { valueName <- "phase_diff" }
+  else if ( metricName == 'ms_coherence' ) { valueName <- "ms_coherence" }
+  else { valueName <- "value" }
+
+  # limits for group scaling
+  ymax <- max(unlist(lapply(dataList, function(x) max(x[,valueName],na.rm=TRUE))))
+  ymin <- min(unlist(lapply(dataList, function(x) min(x[,valueName],na.rm=TRUE))))
+  yRange <- c(ymin,ymax)
+  
   # plot all data series in dataList
   for (i in seq(plotCount)) {
     df <- dataList[[i]]
-    # NOTE:  dataframes returned by getSingleValueMetric have "metricName|value|snclq|starttime|endtime|loadtime"
-    # NOTE:  transfer function metrics gain_ratio, phase_diff and ms_coherence are in their own columns rather than 'value'
-    if ( metricName == 'gain_ratio' ) {
-      metricValues <- df$gain_ratio
-    } else if ( metricName == 'phase_diff' ) {
-      metricValues <- df$phase_diff
-    } else if ( metricName == 'ms_coherence' ) {
-      metricValues <- df$ms_coherence
+    metricValues <- df[,valueName]
+
+    if (infoList$timeseriesScale) {
+       timeseriesPlot(df$starttime, metricValues, style, xlim, yStyle, yRange=yRange)
     } else {
-      metricValues <- df$value
+       timeseriesPlot(df$starttime, metricValues, style, xlim, yStyle)
     }
-    timeseriesPlot(df$starttime, metricValues, style, xlim, yStyle)
+
     # NOTE:  For polarity_check we need to include the second station
     if ( metricName == 'polarity_check' ) {
       snclq1 <- substr(df$snclq[1],1,nchar(df$snclq[1])-2)

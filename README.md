@@ -22,11 +22,15 @@ The following R packages (and automatic dependencies) must be installed system w
  * maps
  * readr
  * sp
- * string
+ * stringr
  * MazamaWebUtils ( devtools::install_github('mazamascience/MazamaWebUtils' )
  * seismicRoll
  * IRISSeismic
  * IRISMustangMetrics
+ * dplyr
+ * tidyr
+ * png
+ * utf8
 
 ### Databrowser ###
 
@@ -37,7 +41,7 @@ After specifying the appropriate configuration settings, the databrowser can be 
 
 `make reboot_clear_cache location=SYSTEM`
 
-Log files at differewnt log levels are available and can be seen with:
+Log files at different log levels are available and can be seen with:
 
  * `make debug`
  * `make info`

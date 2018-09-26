@@ -1,0 +1,20 @@
+2018.269: 1.1.0 (2.1.0)
+         - 'channel set' option added for PDF and trace plots. 
+         - 'scale by channel set' option added for metric timeseries and trace plots. 
+           This option scales the y-axis of all 3 plots identically.
+         - network boxplot channel list now includes all available channels in the network.
+         - 'plot next' and 'plot previous' buttons for network boxplots iterate over channels
+         - 'plot next' and 'plot previous' buttons do not proceed to the next network when they
+           exhaust the station list; instead they start start over at the beginning/end of the 
+           station list (except when a virtual network is selected).
+         - improved trace plotting
+         - improved error messages
+         - other minor bug fixes
+2018.114:
+         - fixed bug in multiple metrics timeseries plots
+2018.113:
+         - added noise-mode-timeseries plots
+         - added 'scale by sensitivity' option to boxplots for sample_* metrics
+2018.108:
+         - added tsindex availability metrics
+2017.306 - Release version 1.0.2 (2.0.2)

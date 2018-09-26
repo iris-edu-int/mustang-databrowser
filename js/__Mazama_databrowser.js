@@ -9,7 +9,7 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
-var G_VERSION = "2.0.2";
+var G_VERSION = "2.1.0";
 
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
 
@@ -98,8 +98,9 @@ var G_singleMetrics = {
 // NOTE:  https://api.jquery.com/jquery.get/
 
 
-// NOTE:  Configurable list of channels curently in the MUSTANG database
-var G_mustangChannels = "CH*,DH*,LH*,MH*,SH*,EH*,EL*,BN*,HN*,LN*,BY*,DP*,BH*,HH*,BX*,HX*,VM*,EN*";
+// NOTE:  Configurable list of channels currently in the MUSTANG database
+//var G_mustangChannels = "CH*,DH*,LH*,MH*,SH*,EH*,EL*,BN*,HN*,LN*,BY*,DP*,BH*,HH*,BX*,HX*,VM*,EN*";
+var G_mustangChannels = "?H?,?L?,?N?,?P?,?G?,BX?,BY?,HX?,HY?,VM?,-?PB,-?PD,-?PL,-Q??";
 
 // SNCL selector arrays 
 var G_virtualNetworks = [];
@@ -107,6 +108,7 @@ var G_networks = [];
 var G_stations = [];
 var G_locations = [];
 var G_channels = [];
+var locationFlag=0;
 
 // SNCL selector current choice
 var G_virtualNetwork = G_previous_virtualNetwork = "No virtual network";
@@ -160,6 +162,7 @@ function selectMetric() {
   } else {
     G_singleMetric = $('#metric').val();
   }
+
   // Handle boxplot-transfer function options
   if ( $('#plotType').val() == 'networkBoxplot') {
 
@@ -204,6 +207,11 @@ function selectMetric() {
 function selectPlotType() {
 
   var plotType = $('#plotType').val();
+  G_autoPlot = false;
+
+  if($('#timeseriesChannelSet').prop("checked",false)) {
+      $('#timeseriesScale').prop("checked",false)
+  }
 
   if (plotType == 'metricTimeseries') {
 
@@ -212,8 +220,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
     
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous station').prop('disabled',false);
-    $('#nextPlot').prop('title','use next station').prop('disabled',false);
+    $('#previousPlot').prop('title','plot previous station.location').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next station.location').prop('disabled',false).show();
 
     // Plot Options
     $('#plotOptionsLabel').text('Plot Options for Metric Timeseries');
@@ -225,14 +233,16 @@ function selectPlotType() {
     $('#transferFunctionOptions').hide();
     $('#timeseriesChannelSet').removeClass('doNotSerialize').show();
     $('#timeseriesOptions').show();
+    $('#timeseriesScale').removeClass('doNotSerialize').show();
+    $('#tsScaleOptions').show();
 
     // SNCL
-    $('#network').removeClass('doNotSerialize');
-    $('#station').removeClass('doNotSerialize');
+    $('#network').removeClass('doNotSerialize').show();
+    $('#station').removeClass('doNotSerialize').show();
     $('#location').removeClass('doNotSerialize').show();
     $('#channel').removeClass('doNotSerialize').show();
-    // $( "#location-auto").show();
-    // $( "#channel-auto").show();
+
+    generateChannelsSelector();
 
   } else if (plotType == 'stackedMetricTimeseries') {
 
@@ -241,8 +251,8 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous station').prop('disabled',false);
-    $('#nextPlot').prop('title','use next station').prop('disabled',false);
+    $('#previousPlot').prop('title','plot previous station.location').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next station.location').prop('disabled',false).show();
 
     // Plot Options
     $('#plotOptionsLabel').text('No Plot Options for Multi-Metric Timeseries');
@@ -254,34 +264,33 @@ function selectPlotType() {
     $('#transferFunctionOptions').hide();
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
     $('#timeseriesOptions').hide();
+    $('#timeseriesScale').addClass('doNotSerialize').hide();
+    $('#tsScaleOptions').hide();
 
     // SNCL
-    $('#network').removeClass('doNotSerialize');
-    $('#station').removeClass('doNotSerialize');
+    $('#network').removeClass('doNotSerialize').show();
+    $('#station').removeClass('doNotSerialize').show();
     $('#location').removeClass('doNotSerialize').show();
     $('#channel').removeClass('doNotSerialize').show();
-    // $( "#location-auto").show();
-    // $( "#channel-auto").show();
+
+    generateChannelsSelector();
 
   } else if (plotType == 'networkBoxplot') {
+
 
     // Metric
     generateSingleMetricsSelector();
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    if ( G_virtualNetwork == 'No virtual network' ) {
-      $('#previousPlot').prop('title','use previous network').prop('disabled',false);
-      $('#nextPlot').prop('title','use next network').prop('disabled',false);      
-    } else {
-      // Disable prev/next for virtual networks which act as a single network
-      $('#previousPlot').prop('disabled',true);
-      $('#nextPlot').prop('disabled',true);
-    }
+    $('#previousPlot').prop('title','plot previous channel').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next channel').prop('disabled',false).show();     
 
     // Plot Options
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
     $('#timeseriesOptions').hide();
+    $('#timeseriesScale').addClass('doNotSerialize').hide();
+    $('#tsScaleOptions').hide();
     $('#plotOptionsLabel').text('Plot Options for Boxplots');
     $('#boxplotShowOutliers').removeClass('doNotSerialize').show();
     $('#boxplotOptions').show();
@@ -302,18 +311,16 @@ function selectPlotType() {
     }
 
     // SNCL
-    // NOTE:  Leave station in place to provide full access to all possible loc-cha
-    // NOTE:  but prevent the choice of station from skipping over a cache hit.
     if ( G_virtualNetwork == 'No virtual network' ) {
-      $('#network').removeClass('doNotSerialize');
+      $('#network').removeClass('doNotSerialize').show();
     } else {
-      $('#network').addClass('doNotSerialize');
+      $('#network').addClass('doNotSerialize').hide();
     }
-    $('#station').addClass('doNotSerialize');
-    $('#location').addClass('doNotSerialize').show();
+    $('#station').addClass('doNotSerialize').hide();
+    $('#location').addClass('doNotSerialize').hide();
     $('#channel').removeClass('doNotSerialize').show();
-    // $( "#location-auto").show();
-    // $( "#channel-auto").show();
+
+    generateChannelsSelector();
 
   } else if (plotType == 'stationBoxplot') {
 
@@ -322,12 +329,14 @@ function selectPlotType() {
     $('#metric').removeClass('doNotSerialize').show();
 
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous station').prop('disabled',false);
-    $('#nextPlot').prop('title','use next station').prop('disabled',false);
+    $('#previousPlot').prop('title','plot previous station').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next station').prop('disabled',false).show();
 
     // Plot Options
     $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
     $('#timeseriesOptions').hide();
+    $('#timeseriesScale').addClass('doNotSerialize').hide();
+    $('#tsScaleOptions').hide();
     $('#plotOptionsLabel').text('Plot Options for Boxplots');
     $('#boxplotShowOutliers').removeClass('doNotSerialize').show();
     $('#boxplotOptions').show();
@@ -348,54 +357,83 @@ function selectPlotType() {
     }
 
     // SNCL
-    $('#network').removeClass('doNotSerialize');
-    $('#station').removeClass('doNotSerialize');
+    $('#network').removeClass('doNotSerialize').show();
+    $('#station').removeClass('doNotSerialize').show();
     $('#location').addClass('doNotSerialize').hide();
     $('#channel').addClass('doNotSerialize').hide();
-    // $( "#location-auto").hide();
-    // $( "#channel-auto").hide();
 
-  } else if (plotType == 'trace' ||
-             plotType == 'pdf'   ||
-             plotType == 'noise-mode-timeseries') {
+    generateChannelsSelector();
 
+  } else if (plotType == 'trace') {
     // Metric
     $('#metric').addClass('doNotSerialize').hide();
 
     // Plot Buttons
-    $('#previousPlot').prop('title','use previous station').prop('disabled',false);
-    $('#nextPlot').prop('title','use next station').prop('disabled',false);
+    $('#previousPlot').prop('title','plot previous station.location').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next station.location').prop('disabled',false).show();
 
     // Plot Options
-    if (plotType == 'trace') {
-      $('#plotOptionsLabel').text('No Plot Options for Trace plots');
+    $('#plotOptionsLabel').text('Plot Options for Trace Plots');
+    $('#timeseriesChannelSet').removeClass('doNotSerialize').show();
+    $('#timeseriesOptions').show();
+    $('#timeseriesScale').removeClass('doNotSerialize').show();
+
+    if($('#timeseriesChannelSet').prop("checked")) {
+           $('#timeseriesScale').prop("disabled",false)
     } else {
-      $('#plotOptionsLabel').text('No Plot Options for PDF plots');
+           $('#timeseriesScale').prop("disabled",true)
     }
+
+    $('#tsScaleOptions').show();
     $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
     $('#boxplotOptions').hide();
     $('#scaleSensitivity').addClass('doNotSerialize').hide();
     $('#sensitivityOptions').hide();
     $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
     $('#transferFunctionOptions').hide();
-    $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
-    $('#timeseriesOptions').hide();
-    
+
     // SNCL
-    $('#network').removeClass('doNotSerialize');
-    $('#station').removeClass('doNotSerialize');
+    $('#network').removeClass('doNotSerialize').show();
+    $('#station').removeClass('doNotSerialize').show();
     $('#location').removeClass('doNotSerialize').show();
     $('#channel').removeClass('doNotSerialize').show();
-    // $( "#location-auto").show();
-    // $( "#channel-auto").show();
+
+    generateChannelsSelector();
+
+  } else if (plotType == 'pdf' || plotType == 'noise-mode-timeseries') {
+
+    // Metric
+    $('#metric').addClass('doNotSerialize').hide();
+
+    // Plot Buttons
+    $('#previousPlot').prop('title','plot previous station.location').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next station.location').prop('disabled',false).show();
+
+    // Plot Options
+    $('#plotOptionsLabel').text('Plot Options for PDF Plots');
+    $('#timeseriesChannelSet').removeClass('doNotSerialize').show();
+    $('#timeseriesOptions').show();
+    $('#timeseriesScale').addClass('doNotSerialize').hide();
+    $('#tsScaleOptions').hide();
+
+    $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
+    $('#boxplotOptions').hide();
+    $('#scaleSensitivity').addClass('doNotSerialize').hide();
+    $('#sensitivityOptions').hide();
+    $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
+    $('#transferFunctionOptions').hide();
+    
+    // SNCL
+    $('#network').removeClass('doNotSerialize').show();
+    $('#station').removeClass('doNotSerialize').show();
+    $('#location').removeClass('doNotSerialize').show();
+    $('#channel').removeClass('doNotSerialize').show();
+
+    generateChannelsSelector();
 
   } 
 
-  // We usually want to generate a plot
-  // // //if (G_autoPlot) sendPlotRequest();
-
 }
-
 
 /**** METRICS SELECTORS *******************************************************/
 
@@ -465,6 +503,7 @@ function generateVirtualNetworksSelector(){
 }
 
 
+
 // Generate Network selector ---------------------------------------------------
 
 function generateNetworksSelector() {
@@ -493,7 +532,14 @@ function generateNetworksSelector() {
   $("#network-auto").autocomplete({source: options});
   $("#network-auto").val("");
  
-  ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
+ 
+  if (G_previousPlotRequest) { //NEW
+     locationFlag=1;  //NEW
+     generateStationsSelector(); //NEW
+  } else {
+     
+     ajaxUpdateSNCLSelectors(); // ends with generateStationsSelector() and then running the passed in function
+  }
 }
 
 
@@ -543,6 +589,12 @@ function generateLocationsSelector(){
   var NS = G_network + '.' + G_station;
   var options = G_locations[NS].sort();
 
+  if (locationFlag == 1 ) {
+     G_location = options[options.length-1];
+     locationFlag=0;
+  }
+  
+
   // If the current location is not in the station
   if (options.indexOf(G_location) < 0) {
     if (G_previousPlotRequest) {
@@ -582,7 +634,17 @@ function generateChannelsSelector(){
 
   // Get the list of options
   var NSL = G_network + '.' + G_station + '.' + G_location;
-  var options = G_channels[NSL].sort();
+
+  if (plotType == 'networkBoxplot') {    
+     if (G_virtualNetwork == "No virtual network") {
+         var N = G_network;
+     } else {
+         var N = G_virtualNetwork;
+     }
+     var options = G_channels[N].sort(); 
+  } else {                               
+     var options = G_channels[NSL].sort();
+  }                                      
 
   // If the current channel is not in the location
   if (options.indexOf(G_channel) < 0) {
@@ -652,11 +714,11 @@ function selectVirtualNetwork(){
 
   // Adjust UI if networkBoxplot is selected
   if ( $('#plotType').val() == 'networkBoxplot' && G_virtualNetwork != 'No virtual network' ) {
-    $('#network').addClass('doNotSerialize');
-    $('#previousPlot').prop('disabled',true);
-    $('#nextPlot').prop('disabled',true);
+    $('#network').addClass('doNotSerialize').hide();
+    $('#previousPlot').prop('disabled',false);
+    $('#nextPlot').prop('disabled',false);
   } else {
-    $('#network').removeClass('doNotSerialize');
+    $('#network').removeClass('doNotSerialize').show();
     $('#previousPlot').prop('disabled',false);
     $('#nextPlot').prop('disabled',false);
   }
@@ -760,46 +822,63 @@ function previousPlot() {
   var plotType = $('#plotType').val();
 
   if (plotType == 'networkBoxplot') {
-
-    // dcrement the network
-    var networkIndex = G_networks.indexOf(G_network);
-    if (networkIndex == 0) {
-      $('#previousPlot').prop('disabled',true);
-      $('#activityMessage').text('no previous networks').addClass('alert');      
+    if (G_virtualNetwork == "No virtual network") {
+      var N = G_network;
     } else {
-      $('#previousPlot').prop('disabled',false);
-      networkIndex--;
-      G_network = G_networks[networkIndex];
-      generateNetworksSelector(); // trigger the cascading selectors
+      var N = G_virtualNetwork;
+    }
+
+    var allChannels = G_channels[N].sort();
+    var channelIndex = allChannels.indexOf(G_channel);
+
+    if (channelIndex == 0) {
+        channelIndex = allChannels.length;
+    }
+
+    // decrement the channel
+    while (channelIndex > 0 ) {
+      channelIndex--;
+      G_channel = allChannels[channelIndex];
+      generateChannelsSelector(); // trigger the cascading selectors
+      return;
     }
 
   } else if (plotType == 'stationBoxplot') {
 
     // stationBoxplots decrement the station within the network or virtualNetwork
-    
+
     var N = G_network;
-
+    var allNetworks = G_networks.sort();
     var allStations = G_stations[N].sort();
-
     var networkIndex = G_networks.indexOf(G_network);
     var stationIndex = allStations.indexOf(G_station);
 
+    if (G_virtualNetwork == "No virtual network") {
+       if (stationIndex == 0) {
+          stationIndex = allStations.length;
+       }
+    }
+
     // Try to decrement the station if possible
-    if (stationIndex > 0) {
+    while (stationIndex > 0) {
       stationIndex--;
       G_station = allStations[stationIndex];
       generateStationsSelector(); // trigger the cascading selectors
       return;
     }
 
-    // If we have run out of stations, try to decrement the network
+    if (networkIndex == 0) {
+       networkIndex = allNetworks.length;
+    }
+
     if (networkIndex > 0) {
       networkIndex--;
       G_network = G_networks[networkIndex];
-      ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+      //ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+      generateNetworksSelector(); //NEW
       return;
     } else {
-      $('#activityMessage').text('no previous stations').addClass('alert');      
+      $('#activityMessage').text('no more stations').addClass('alert');
     }
 
   } else {
@@ -815,6 +894,7 @@ function previousPlot() {
     var NS = currentNetwork + '.' + currentStation;
     var NSL = currentNetwork + '.' + currentStation + '.' + currentLocation;
 
+    var allNetworks = G_networks.sort();
     var allStations = G_stations[N].sort();
     var allLocations = G_locations[NS].sort();
     var allChannels = G_channels[NSL].sort();
@@ -825,7 +905,6 @@ function previousPlot() {
 
     // Try to decrement the location if possible
     while (locationIndex > 0) {
-
       locationIndex--;
       NSL = currentNetwork + '.' + currentStation + '.' + allLocations[locationIndex];
       allChannels = G_channels[NSL].sort();
@@ -838,9 +917,14 @@ function previousPlot() {
 
     }
 
+    if (G_virtualNetwork == "No virtual network") {
+       if (stationIndex == 0) {
+          stationIndex = allStations.length;
+       }
+    }
+
     // If we have run out of locations, try to decrement the station
     while (stationIndex > 0) {
-
       stationIndex--;
       currentStation = allStations[stationIndex];
       NS = currentNetwork + '.' + currentStation;
@@ -863,17 +947,29 @@ function previousPlot() {
 
       } // END locationIndex while loop
 
+      if (G_virtualNetwork == "No virtual network") {
+        if (stationIndex == 0) {
+          stationIndex = allStations.length;
+        }
+      }
+
     } // END stationIndex while loop
 
-    // If we have run out of stations, try to decrement the network
+    if (networkIndex == 0) {
+       networkIndex = allNetworks.length;
+    }
+
+    // If we have run out of stations, try to increment the network
     if (networkIndex > 0) {
       networkIndex--;
       G_network = G_networks[networkIndex];
-      ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+      //ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+      generateNetworksSelector(); //NEW
       return;
     } else {
-      $('#activityMessage').text('no previous stations with this channel').addClass('alert');      
+      $('#activityMessage').text('no more stations with this channel for this network').addClass('alert');
     }
+
 
   } // END plotType
 
@@ -893,41 +989,59 @@ function nextPlot() {
 
   if (plotType == 'networkBoxplot') {
 
-    // networkBoxplots increment the network
-
-    var networkIndex = G_networks.indexOf(G_network);
-    if (networkIndex == G_networks.length-1) {
-      $('#nextPlot').prop('disabled',true);
-      $('#activityMessage').text('no more networks').addClass('alert');      
-      return;
+    // networkBoxplots increment the channel
+    if (G_virtualNetwork == "No virtual network") {
+      var N = G_network;
     } else {
-      $('#nextPlot').prop('disabled',false);
-      networkIndex++;
-      G_network = G_networks[networkIndex];
-      generateNetworksSelector(sendPlotRequest); // trigger the cascading selectors
+      var N = G_virtualNetwork;
+    }
+
+    var allChannels = G_channels[N].sort();
+    var channelIndex = allChannels.indexOf(G_channel);
+
+    if (channelIndex == allChannels-1) {
+        channelIndex = -1;
+    }
+
+    // increment the channel
+    while (channelIndex <  allChannels.length-1 ) {
+      channelIndex++;
+      G_channel = allChannels[channelIndex];
+      generateChannelsSelector(); // trigger the cascading selectors
       return;
     }
 
   } else if (plotType == 'stationBoxplot') {
+  
 
     // stationBoxplots increment the station within the network or virtualNetwork
 
     var N = G_network;
 
     var allStations = G_stations[N].sort();
-
     var networkIndex = G_networks.indexOf(G_network);
     var stationIndex = allStations.indexOf(G_station);
 
+    if (G_virtualNetwork == "No virtual network") {
+       if (stationIndex == allStations.length-1) {
+           stationIndex = -1;
+       }
+    }
+
     // Try to increment the station if possible
-    if (stationIndex < allStations.length-1) {
+    while (stationIndex < allStations.length-1) {
       stationIndex++;
       G_station = allStations[stationIndex];
       generateStationsSelector(); // trigger the cascading selectors
       return;
     }
 
-    // If we have run out of stations, try to increment the network
+    // If we have run out of stations and we have a virtual network try to increment the network
+    
+    if (networkIndex == G_networks.length-1) {
+       networkIndex = -1;
+    }
+
     if (networkIndex < G_networks.length-1) {
       networkIndex++;
       G_network = G_networks[networkIndex];
@@ -975,10 +1089,18 @@ function nextPlot() {
     }
 
     // If we have run out of locations, try to increment the station
+
+    if (G_virtualNetwork == "No virtual network") {
+      if (stationIndex == allStations.length-1) {
+           stationIndex = -1;
+      }
+    }
+
     while (stationIndex < allStations.length-1) {
 
       stationIndex++;
       currentStation = allStations[stationIndex];
+
       NS = currentNetwork + '.' + currentStation;
       allLocations = G_locations[NS].sort();
       locationIndex = -1; // so that we start at index 0
@@ -999,16 +1121,26 @@ function nextPlot() {
 
       } // END locationIndex while loop
 
+      if (G_virtualNetwork == "No virtual network") {
+        if (stationIndex == allStations.length-1) {
+           stationIndex = -1;
+        }
+    }
+
     } // END stationIndex while loop
+
+    if (networkIndex == G_networks.length-1) {
+       networkIndex = -1;
+    }
 
     // If we have run out of stations, try to increment the network
     if (networkIndex < G_networks.length-1) {
-      networkIndex++;
-      G_network = G_networks[networkIndex];
-      ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
-      return;
+       networkIndex++;
+       G_network = G_networks[networkIndex];
+       ajaxUpdateNetworks(); // ultimate business logic is found in generateStationsSelector()
+       return;
     } else {
-      $('#activityMessage').text('no more stations with this channel').addClass('alert');      
+       $('#activityMessage').text('no more stations with this channel for this network').addClass('alert');      
     }
 
   } // END plotType
@@ -1055,7 +1187,9 @@ function sendPlotRequest() {
   validateDates(); // required to set starttime and endtime fields
   var url = '/mustang/__DATABROWSER__/__DATABROWSER___init.cgi';
   var paramsUrl = $('#controls_form').serialize();
+
   var removeList = $('.doNotSerialize');
+
   for (i=0; i<removeList.length; i++) {
      var valueString = $(removeList[i]).serialize();
      if (valueString != '') {
@@ -1065,8 +1199,7 @@ function sendPlotRequest() {
   }
   // Special handling for timseriesChannelSet option -- 10/31/2016
   // Make the last character a question mark.
-  if ($('#timeseriesChannelSet').prop('checked') &&
-      !$('#timeseriesChannelSet').hasClass('doNotSerialize')) {
+  if ($('#timeseriesChannelSet').prop('checked') && !$('#timeseriesChannelSet').hasClass('doNotSerialize')){
     var channelString = "channel=" + $('#channel').val();
     var chasetString = "channel=" + $('#channel').val().substr(0,2) + "?";
     paramsUrl = paramsUrl.replace(channelString,chasetString);
@@ -1113,7 +1246,8 @@ function sendPlotRequest() {
       $('#bssDataLink').attr('href',displayURL);
     }
   }).fail(function(jqXHR, textStatus, errorThrown) {
-    alert("CGI error: " + textStatus);
+    // alert("CGI error: " + textStatus);
+    alert("CGI error: " + errorThrown + " or Request too large");
   }).always(function() {
     G_previousPlotRequest = false;
     G_nextPlotRequest = true;
@@ -1229,8 +1363,9 @@ function ajaxUpdateNetworks() {
     $('#activityMessage').text('').removeClass('info').removeClass('alert');
 
     if (jqXHR.status == 404) {
-      alert("No station metadata found for the selected virtual network and time range.");
+       alert("No station metadata found for the selected network and time range.");
     }
+
     // Restore previous virtual network selection
     G_virtualNetwork = G_previousVirtualNetwork;
     generateVirtualNetworksSelector();   
@@ -1266,7 +1401,10 @@ function ajaxUpdateSNCLSelectors() {
               endtime:$('#endtime').val(),
               level:"channel",
               nodata:"404",
-              format:"text"};
+              format:"text",
+              includeavailability:"true",
+              //matchtimeseries:"true"};
+              matchtimeseries:"false"};
   console.log(url + "?" + $.param(data));
   $.get(url, data).done(function(serviceResponse) {
 
@@ -1296,7 +1434,7 @@ function ajaxUpdateSNCLSelectors() {
     var result = Papa.parse(serviceResponse, config);
     // TODO:  Could handler errors or parsing issues here
 
-    // Response is a '|' separated file with a hedaer like this:
+    // Response is a '|' separated file with a header like this:
     // #Network | Station | Location | Channel | Latitude | Longitude | Elevation | Depth | Azimuth | Dip | SensorDescription | Scale | ScaleFreq | ScaleUnits | SampleRate | StartTime | EndTime
 
     // Separate header from data
@@ -1315,10 +1453,13 @@ function ajaxUpdateSNCLSelectors() {
     var NSLs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2]); } );
     var NSLCs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2] + '.' + row[3]); } );
 
+    var NCs = $.map(data, function(row,i) { return(row[3]); }); 
+
     // Create unique arrays
     var uniqueNSs = NSs.filter(function(val, i) { return(NSs.indexOf(val)==i); }).sort();
     var uniqueNSLs = NSLs.filter(function(val, i) { return(NSLs.indexOf(val)==i); }).sort();
     var uniqueNSLCs = NSLCs.filter(function(val, i) { return(NSLCs.indexOf(val)==i); }).sort();
+    var uniqueNCs = NCs.filter(function(val, i) { return(NCs.indexOf(val)==i); }).sort(); 
 
     // Replace the G_stations "station by network" associative array
     G_stations = {};
@@ -1361,6 +1502,8 @@ function ajaxUpdateSNCLSelectors() {
       }
     })
 
+    G_channels[network] = uniqueNCs;
+
     // Regenerate all selectors based on the new G_~ arrays
     generateStationsSelector();
 
@@ -1368,10 +1511,10 @@ function ajaxUpdateSNCLSelectors() {
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
 
-    if (jqXHR.status == 404) {
-      // Service returned "no data found" -- possibly due to an inappropriate time range
-      alert('No station metadata found for the selected virtual network and time range.');
-    }
+      if (jqXHR.status == 404) {
+        // Service returned "no data found" -- possibly due to an inappropriate time range
+        alert('No station metadata found for the selected network and time range.');
+      }
 
   }).always(function() {
 
@@ -1391,6 +1534,9 @@ function ajaxUpdateSNCLSelectors() {
 /**** INITIALIZATION **********************************************************/
 
 $(function() {
+  // Activate tooltips
+  $('span.tooltip').cluetip({width: '500px', attribute: 'id', hoverClass: 'highlight'});
+
   // Hide things that shouldn't appear at first
   $('#spinner').hide();
   $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
@@ -1464,15 +1610,23 @@ $(function() {
   // Attach behavior to UI selectors
   $('#plotType').change(selectPlotType);
   $('#metric').change(selectMetric);
+
+  $('#timeseriesChannelSet').change(function() {
+      if($('#timeseriesChannelSet').prop("checked")) {
+           $('#timeseriesScale').prop("disabled",false)
+      } else {
+           $('#timeseriesScale').prop("disabled",true)
+           $('#timeseriesScale').prop("checked",false)
+      }
+    });
+          
   
   // Initialize the starttime and endtime fields
   validateDates();
 
-  // Activate tooltips
-  $('span.tooltip').cluetip({width: '500px', attribute: 'id', hoverClass: 'highlight'});
-  
   // set the initial plot type
   $('#plotType').val("metricTimeseries");
+  $('#timeseriesChannelSet').prop("checked",true)
 
   // Prevent accidental form submission associated with default behavior for buttons
   // https://stackoverflow.com/questions/9347282/using-jquery-preventing-form-from-submitting

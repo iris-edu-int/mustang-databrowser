@@ -1,4 +1,5 @@
 #######################################################################n
+
 # createDataList.R
 #
 # Databrowser specific creation of dataframes for inclusion in dataList.
@@ -48,35 +49,87 @@ createDataList <- function(infoList) {
   iris <- new("IrisClient",debug=FALSE)
   
   if ( infoList$plotType == 'trace' ) {
+
+    stationInfo <- data.frame()
+
+    stationInfo <- getChannel(iris,network,station,location,channel,starttime,endtime)
+    stationInfo <- dplyr::distinct(stationInfo,network,station,location,channel,.keep_all=TRUE)
+    if (stationInfo$samplerate[1] > 50 && stationInfo$samplerate[1] < 200 ) {
+       if (difftime(endtime,starttime,units="days") > 15) {
+          stop(paste("Please select time span of 15 days or less for",channel,"channels."))
+       }
+    } else if (stationInfo$samplerate[1] >= 200 && stationInfo$samplerate[1] < 300) {
+       if (difftime(endtime,starttime,units="days") > 7) {
+          stop(paste("Please select time span of 7 days or less for",channel,"channels."))
+       }
+    } else if (stationInfo$samplerate[1] >= 300) {
+       if (difftime(endtime,starttime,units="days") > 2) {
+          stop(paste("Please select time span of 2 days or less for",channel,"channels."))
+       }
+    } else {
+       if (difftime(endtime,starttime,units="days") > 31) {
+          stop(paste("Please select time span of 31 days or less for",channel,"channels."))
+       }
+    }
+
+    if (nrow(stationInfo) == 1 ) {
+       result <- try(dataList[['dataselect_DF']] <- getDataselect(iris,network,station,location,channel,starttime,endtime,ignoreEpoch=TRUE))
+       if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+       }
+    } else {
+       for (i in 1:nrow(stationInfo)) {
+          result <- try(dataList[[i]] <- getDataselect(iris,network,station,location,stationInfo$channel[i],starttime,endtime,ignoreEpoch=TRUE))
+          if ( "try-error" %in% class(result) ) {
+             stop(geterrmessage())
+          }
+       }
+    }
     
-    dataList[['dataselect_DF']] <- getDataselect(iris,network,station,location,channel,starttime,endtime,ignoreEpoch=TRUE)
-    
+    if(length(dataList)==0) stop("No data returned")
+    rm(result)
+
     # Return BSS URL
     dataList[['bssUrl']] <- ''
 
+  } else if ( infoList$plotType == 'pdf' || infoList$plotType == 'noise-mode-timeseries' ) {
+     stationInfo <- data.frame()
 
-  } else if ( infoList$plotType == 'metricTest' ) {
+     if (grepl("..\\?", channel)) {
+         stationInfo <- getChannel(iris,network,station,location,channel,starttime,endtime)
+         stationInfo <- dplyr::distinct(stationInfo,network,station,location,channel,.keep_all=TRUE)
+     }
 
-    dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
-    if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
-    dataList <- split(dataDF, dataDF$metricName)
+     if (nrow(stationInfo) == 0 ) {
+        dataList[['channel_DF']] <- infoList$channel
+     } else {
+        for (i in 1:nrow(stationInfo)) {
+           dataList[[i]] <- stationInfo$channel[i]
+        }
+     }
 
-    # Return BSS URL
-    dataList[['bssUrl']] <- createBssUrl(iris,network,station,location,channel,starttime,endtime,metricName)      
-
-    
   } else if ( infoList$plotType == 'metricTimeseries' ) {
 
     if  ( infoList$timeseriesChannelSet || metricName %in% c('transfer_function','cross_talk' )) {
       # Get the single dataframe including metric for an entire channelSet
       logger.debug("getGeneralValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
-      dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+
+      result <- try(dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName),silent=TRUE)
+      if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+      }
+
       if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
+    
       dataList <- split(dataDF, dataDF$snclq)
 
     } else {
       logger.debug("getGeneralValueMetrics(iris,'%s','%s','%s','%s',starttime,endtime,'%s')",network,station,location,channel,metricName)
-      dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName)
+      result <- try(dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName),silent=TRUE)
+      if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+      }
+
       if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
       if ( metricName == 'max_stalta' ||
            metricName == 'polarity_check' ||
@@ -129,8 +182,10 @@ createDataList <- function(infoList) {
       actualMetricNames <- c("transfer_function")
     }
     actualMetricNames <- paste0(actualMetricNames, collapse=",")
-    logger.debug("location = '%s', metrics = '%s'", location, actualMetricNames)
-    dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames)
+    result <- try(dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,actualMetricNames))
+    if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+    }
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
     
     if ( metricName == 'max_stalta' ||
@@ -153,10 +208,16 @@ createDataList <- function(infoList) {
     }
     
     # getNetwork returns network description
-    dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime)
+    result <- try(dataList[['network_DF']] <- getNetwork(iris,network,'','','',starttime,endtime))
+    if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+    }
 
     # loads single values for each station based on whatever metric we ask for
-    dataDF <- getGeneralValueMetrics(iris,network,'','',channel,starttime,endtime,metricName) 
+    result <- try(dataDF <- getGeneralValueMetrics(iris,network,'','',channel,starttime,endtime,metricName))
+    if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+    } 
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
@@ -166,7 +227,11 @@ createDataList <- function(infoList) {
 
     } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median') && infoList$scaleSensitivity) { 
       dataDF$starttime <- as.Date(dataDF$starttime)
-      metaDF <- getChannel(iris,network,'','',channel,starttime,endtime)
+      result <- try(metaDF <- getChannel(iris,network,'','',channel,starttime,endtime),siltent=TRUE)
+      if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+      }
+
       metaDF$starttime <- as.Date(if_else(difftime(metaDF$starttime,starttime) < 0, starttime, metaDF$starttime))
       metaDF$endtime <- as.Date(if_else(difftime(metaDF$endtime,endtime) < 0, metaDF$endtime, endtime))
       metaDF <- mutate(metaDF, snclq=paste(snclId,"M",sep="."))
@@ -189,12 +254,18 @@ createDataList <- function(infoList) {
   } else if ( infoList$plotType == 'stationBoxplot' ) {
     
     # get the station description
-    dataList[['station_DF']] <- getStation(iris,network,station,'','',starttime,endtime)
+    result <- try(dataList[['station_DF']] <- getStation(iris,network,station,'','',starttime,endtime))
+    if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+    }
 
     # loads single values for all seismic channels
-    #allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN.|BX.|BY.|HX.|HY.|EH.|EN.|CH.|DH.|SH.|DP."
-    currentSeismicChannels <- "BH*,HH*,LH*,MH*,CH*,DH*,DP*,SH*,EH*,EL*,BN*,HN*,LN*,EN*,BY*,BX*,HX*"
-    dataDF <- getGeneralValueMetrics(iris,network,station,'',currentSeismicChannels,starttime,endtime,metricName)
+    # allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN.|BX.|BY.|HX.|HY.|EH.|EN.|CH.|DH.|SH.|DP."
+    currentSeismicChannels <- "?H?,?P?,?L?,?N?,BY?,HY?,BX?,HX?"
+    result <- try(dataDF <- getGeneralValueMetrics(iris,network,station,'',currentSeismicChannels,starttime,endtime,metricName), silent=TRUE)
+    if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+    }
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
@@ -204,7 +275,10 @@ createDataList <- function(infoList) {
 
     } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median') && infoList$scaleSensitivity) {  
       dataDF$starttime <- as.Date(dataDF$starttime)
-      metaDF <- getChannel(iris,network,station,'',currentSeismicChannels,starttime,endtime)
+      result <- try(metaDF <- getChannel(iris,network,station,'',currentSeismicChannels,starttime,endtime),silent=TRUE)
+      if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+      }
       metaDF$starttime <- as.Date(if_else(difftime(metaDF$starttime,starttime) < 0, starttime, metaDF$starttime))
       metaDF$endtime <- as.Date(if_else(difftime(metaDF$endtime,endtime) < 0, metaDF$endtime, endtime))
       metaDF <- mutate(metaDF, snclq=paste(snclId,"M",sep="."))
@@ -266,7 +340,10 @@ createDataList <- function(infoList) {
     logger.debug("%f seconds to load simplemap.RData", round(elapsed,4))
     
     # get individual station measurements
-    dataDF <- getGeneralValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName)
+    result <- try(dataDF <- getGeneralValueMetrics(iris,network,'',location,channel,starttime,endtime,metricName))
+    if ( "try-error" %in% class(result) ) {
+           stop(geterrmessage())
+    }
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
     metricList <- split(dataDF, dataDF$metricName)
@@ -294,7 +371,6 @@ createDataList <- function(infoList) {
   }
   
   return(dataList)
-  
   
 }
 
