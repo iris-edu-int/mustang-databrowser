@@ -107,7 +107,7 @@ metricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     metricValues <- df$value
   }
   
-  timeseriesPlot(df$starttime, metricValues, style, xlim, yStyle)
+  timeseriesPlot(df$starttime, metricValues, style, xlim=xlim, yStyle=yStyle)
   
 
   # ----- Annnotation ----------------------------------------------------------

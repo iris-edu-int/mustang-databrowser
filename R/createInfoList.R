@@ -41,8 +41,6 @@ createInfoList <- function(request) {
   
   # TODO:  Sort out wildcards in the UI
   
-  # NOTE:  The old getSingleValueMeasurements() function used "." as a single character wildcard but
-  # NOTE:  the new getSingleValueMetrics() seems to expect "?".
   infoList$network <- stringr::str_replace(infoList$network, "\\.", "\\?")
   infoList$station <- stringr::str_replace(infoList$station, "\\.", "\\?")
   infoList$location <- stringr::str_replace(infoList$location, "\\.", "\\?")
@@ -56,6 +54,7 @@ createInfoList <- function(request) {
   
   # Optional parameters that sometimes come in
   infoList$timeseriesChannelSet <- ifelse(is.null(infoList$timeseriesChannelSet),FALSE,TRUE)
+  infoList$timeseriesScale <- ifelse(is.null(infoList$timeseriesScale),FALSE,TRUE)
   infoList$boxplotShowOutliers <- ifelse(is.null(infoList$boxplotShowOutliers),FALSE,TRUE)
   infoList$transferFunctionCoherenceThreshold <- ifelse(is.null(infoList$transferFunctionCoherenceThreshold),FALSE,TRUE)
   infoList$scaleSensitivity <- ifelse(is.null(infoList$scaleSensitivity),FALSE,TRUE) 
@@ -73,10 +72,6 @@ createInfoList <- function(request) {
     } else {
       infoList$plotHeight <- 0.6 * infoList$plotWidth
     }
-    
-  } else if (infoList$plotType == 'metricTest') {
-    
-    infoList$plotHeight <- 2.0 * infoList$plotWidth
     
   } else if (infoList$plotType == 'stackedMetricTimeseries') {
     
@@ -101,12 +96,22 @@ createInfoList <- function(request) {
     # NOTE:  we get the data.  For now we just use the default setting.
     infoList$plotHeight <- 0.6 * infoList$plotWidth
 
-  } else if (infoList$plotType == 'pdf') {
+  } else if (infoList$plotType == 'pdf' || infoList$plotType == 'noise-mode-timeseries') {
+    if (infoList$timeseriesChannelSet) {
+      infoList$plotHeight <- 1.4 * infoList$plotWidth
+    } else {
+      infoList$plotHeight <- 0.6 * infoList$plotWidth
+    }
     
-    infoList$plotHeight <- 0.8 * infoList$plotWidth
-    
-  }
-  
+  } else if (infoList$plotType == 'trace') {
+
+    if (infoList$timeseriesChannelSet) {
+      infoList$plotHeight <- 1.4 * infoList$plotWidth
+    } else {
+      infoList$plotHeight <- 0.6 * infoList$plotWidth
+    }
+
+ }  
   
   # ----- Extra info for specific plot types ---------------
   

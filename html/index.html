@@ -13,9 +13,9 @@
   The databrowser relies on javascript functionality found in the jquery javascript library.
   -->
   <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
-  <script type="text/javascript" src="js/jquery-ui.1.9.1.min.js"></script>
   <script type="text/javascript" src="js/jquery.hoverIntent.minified.js"></script>  <!-- generally improved behavior -->
   <script type="text/javascript" src="js/jquery.cluetip.min.js"></script>           <!-- tooltips associated with '?'-->
+  <script type="text/javascript" src="js/jquery-ui.1.9.1.min.js"></script>
   <script type="text/javascript" src="js/papaparse.4.3.6.min.js"></script>          <!-- parsing delimited file returns from the 'station' webservice -->
   
   <!-- 
@@ -107,9 +107,9 @@
             <div id="plotTypeDiv">
               <label for="plotType">Plot Type</label>
               <span id="plotSpan">
-                <button id="previousPlot" type="button" title="Use previous station/location/channel">&lt;</button>
+                <button id="previousPlot" type="button" title="plot previous station">&lt;</button>
                 <button id="plotData" type="button">Plot Data</button>
-                <button id="nextPlot" type="button" title="Use next station/location/channel">&gt;</button>
+                <button id="nextPlot" type="button" title="plot next station">&gt;</button>
               </span>
               <br>
               <select id="plotType" name="plotType">
@@ -138,8 +138,9 @@
               <div id="boxplotOptions">
                 Box Plot Explainer
                 <span class="tooltip" id="tooltip_box_plots.html" title="Box Plots Explained">
-                  <img class="tooltip_icon" src="style/images/info_icon_question.jpeg" />
-                </span> <br />
+                   <img class="tooltip_icon" src="style/images/info_icon_question.jpeg"/>
+                </span>
+                <br />
                 <input id="boxplotShowOutliers" name="boxplotShowOutliers" type="checkbox" checked="" /> outliers<br />
               </div>
               <div id="sensitivityOptions">
@@ -149,7 +150,10 @@
                 <input id="transferFunctionCoherenceThreshold" name="transferFunctionCoherenceThreshold" type="checkbox" checked="" /><span> coherence > 0.999</span>
               </div>
               <div id="timeseriesOptions">
-                <input id="timeseriesChannelSet" name="timeseriesChannelSet" type="checkbox" checked="" /><span> channel set</span>
+                <input id="timeseriesChannelSet" name="timeseriesChannelSet" type="checkbox" checked="checked" /><span> channel set</span> </br>
+              </div>
+              <div id="tsScaleOptions">
+                 <input id="timeseriesScale" name="timeseriesScale" type="checkbox" /> <span> scale by channel set</span>
               </div>
             </div>
             <!-- END of plotTypeOptionsDiv -->
@@ -165,7 +169,7 @@
           <fieldset id="data_source">
             <legend>
               <span id="data_source_legend">
-              <span class="tooltip" id="tooltip_data_source.html" title="Timespan and Data Sourcee">
+              <span class="tooltip" id="tooltip_data_source.html" title="Timespan and Data Source">
                 <img class="tooltip_icon" src="style/images/info_icon_question.jpeg" />
               </span>
                 Timespan and Data Source
