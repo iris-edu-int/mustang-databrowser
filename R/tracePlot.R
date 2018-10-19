@@ -15,8 +15,16 @@ traceReduce <- function(x, n=2^10) {
     return(x)
   }else {
     y  <- matrix(as.numeric(x@data[1:(L*n)]),n,L,byrow=TRUE)
-    y.min <- apply(y, 1, min)
-    y.max <- apply(y, 1, max)
+    y.min <- apply(y, 1, function(x) { if(any(!is.na(x))) { 
+                                         return(min(x,na.rm=T)) 
+                                      } else { 
+                                         return(NA) 
+                                      }})
+    y.max <- apply(y, 1, function(x) { if(any(!is.na(x))) { 
+                                         return(max(x,na.rm=T)) 
+                                      } else { 
+                                         return(NA) 
+                                      }})
     y.minmax <- matrix(rbind(y.min,y.max),2*n,1,byrow=FALSE)
 
     x@data <- as.vector(y.minmax)
