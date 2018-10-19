@@ -12,7 +12,7 @@
 library(methods)              # always included for Rscripts
 library(MazamaWebUtils)       # logging, cache management and cgi support
 
-# Specficic packages and scripts for this service -----------------------------
+# Specfic packages and scripts for this service -----------------------------
 
 # Specify global (configurable) variables -------------------------------------
 
