@@ -95,7 +95,6 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     tempMetricName <- actualMetricNames[i]
     metricTitle <- textList$metricTitlesList[[tempMetricName]]
     yStyle <- yStyles[i]
-    # NOTE:  dataframes returned by getSingleValueMetric have "metricName|value|snclq|starttime|endtime|loadtime"
     # NOTE:  transfer function metrics phase_diff and ms_coherence are in their own columns rather than 'value'
     if ( tempMetricName == 'phase_diff' ) {
       metricValues <- df$phase_diff

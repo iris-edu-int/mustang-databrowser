@@ -12,11 +12,11 @@
 library(methods)              # always included for Rscripts
 library(MazamaWebUtils)       # logging, cache management and cgi support
 
-# Specficic packages and scripts for this service -----------------------------
+# Specfic packages and scripts for this service -----------------------------
 
 # Specify global (configurable) variables -------------------------------------
 
-VERSION <- "1.0.2"
+VERSION <- "1.1.0"
 
 # Variables configured with config/Makefile_vars_~
 URL_PATH <- '__URL_PATH__'

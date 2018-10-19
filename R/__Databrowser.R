@@ -10,6 +10,9 @@ suppressPackageStartupMessages(library(IRISSeismic))
 suppressPackageStartupMessages(library(IRISMustangMetrics))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(png))
+suppressPackageStartupMessages(library(RCurl))
+suppressPackageStartupMessages(library(utf8))
 
 # Creation of textList and dataList
 source("__DATABROWSER_PATH__/R/createInfoList.R")
@@ -25,6 +28,7 @@ source("__DATABROWSER_PATH__/R/metricTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/channelSetTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/stackedMetricTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/tracePlot.R")
+source("__DATABROWSER_PATH__/R/pdfPlots.R")
 source("__DATABROWSER_PATH__/R/networkBoxplotPlot.R")
 ###source("__DATABROWSER_PATH__/R/networkMapPlot.R")
 source("__DATABROWSER_PATH__/R/stationBoxplotPlot.R")
@@ -47,140 +51,53 @@ __DATABROWSER__ <- function(request) {
   infoList <- createInfoList(request)
   
   # Add directories determined from Makefile settings
-  infoList$databrowserDir <- "__DATABROWSER_PATH__/"
-  infoList$scriptDir <- "__DATABROWSER_PATH__/R/"
-  infoList$dataDir <- "__DATABROWSER_PATH__/data/"
-  infoList$outputDir <- "__DATABROWSER_PATH__/__OUTPUT_DIR__/"
+  infoList$databrowserDir <- "__DATABROWSER_PATH__"
+  infoList$scriptDir <- "__DATABROWSER_PATH__R/"
+  infoList$dataDir <- "__DATABROWSER_PATH__data/"
+  infoList$outputDir <- "__DATABROWSER_PATH____OUTPUT_DIR__/"
 
-  # ----- PDF plots use a web service ----------------------------------------
-  
-  if ( infoList$plotType == 'pdf' ) {
-    
-    # First create the text response for the bssUrl
-    pdfServiceUrl <- 'http://service.iris.edu/mustang/noise-pdf/1/query?'
-    serviceParameters <- list(network=infoList$network,
-                              station=infoList$station,
-                              location=infoList$location,
-                              channel=infoList$channel,
-                              starttime=strftime(infoList$starttime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
-                              endtime=strftime(infoList$endtime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
-                              quality='M',
-                              format='text')
-    parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
-    bssUrl <- paste0(pdfServiceUrl,parameterString)
-    
-    # Now create the plot url which requires some extra parameters
-    serviceParameters$format='plot'
-    serviceParameters$plot.interpolation='bicubic'
-    serviceParameters$plot.power.min='-200'
-    serviceParameters$plot.power.max='-50'
-    parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
-    plotUrl <- paste0(pdfServiceUrl,parameterString)
-    
-    destfile <- paste0(infoList$outputDir,infoList$outputFileBase,'.png')
-
-    result <- try( download.file(plotUrl, destfile, quiet=TRUE, method='cur', mode='wb'),
-                   silent=TRUE )
-    
-    if ( "try-error" %in% class(result) ) {
-      err_msg <- geterrmessage()
-      logger.error(err_msg)
-      stop(err_msg, call.=FALSE)
-    }
-
-    totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
-    logger.info("Total elapsed = %f seconds", round(total_elapsed,4))
-
-    returnValues <- c(0.0,0.0,0.0,0.0) # Dummy values. returnValues is required by the UI
-    
-    returnList <- list(loadSecs=as.numeric(totalSecs),
-                       plotSecs=as.numeric(0),
-                       totalSecs=as.numeric(totalSecs),
-                       returnValues=returnValues,
-                       bssUrl=bssUrl)
-    
-    return(returnList)  
-    
-  }
-
-# ----- PDF Mode Timeseries plots use a web service ----------------------------------------
-
-  if ( infoList$plotType == 'noise-mode-timeseries' ) {
-
-    # First create the text response for the bssUrl
-    pdfServiceUrl <- 'http://service.iris.edu/mustang/noise-mode-timeseries/1/query?'
-    serviceParameters <- list(network=infoList$network,
-                              station=infoList$station,
-                              location=infoList$location,
-                              channel=infoList$channel,
-                              starttime=strftime(infoList$starttime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
-                              endtime=strftime(infoList$endtime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
-                              quality='M',
-                              format='text')
-    parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
-    bssUrl <- paste0(pdfServiceUrl,parameterString)
-
-    # Now create the plot url which requires some extra parameters
-    serviceParameters$format='plot'
-    serviceParameters$plot.height='500'
-    serviceParameters$plot.width='700'
-    serviceParameters$output='power'
-    serviceParameters$plot.power.min='-200'
-    serviceParameters$plot.power.max='-50'
-    serviceParameters$periods='0.1,1,6.5,10,30,100'
-    serviceParameters$plot.titlefont.size='18'
-    serviceParameters$plot.subtitlefont.size='16'
-    serviceParameters$plot.powerlabelfont.size='16'
-    serviceParameters$plot.poweraxisfont.size='14'
-    serviceParameters$plot.timeaxisfont.size='14'
-    serviceParameters$plot.legendfont.size='14'
-    serviceParameters$plot.linewidth='1.3'
-    serviceParameters$nodata='404'
-    parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
-    plotUrl <- paste0(pdfServiceUrl,parameterString)
-
-    destfile <- paste0(infoList$outputDir,infoList$outputFileBase,'.png')
-
-    result <- try( download.file(plotUrl, destfile, quiet=TRUE, method='cur', mode='wb'),
-                   silent=TRUE )
-
-    if ( "try-error" %in% class(result) ) {
-      err_msg <- geterrmessage()
-      logger.error(err_msg)
-      stop(err_msg, call.=FALSE)
-    }
-
-    totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
-    logger.info("Total elapsed = %f seconds", round(total_elapsed,4))
-
-    returnValues <- c(0.0,0.0,0.0,0.0) # Dummy values. returnValues is required by the UI
-
-    returnList <- list(loadSecs=as.numeric(totalSecs),
-                       plotSecs=as.numeric(0),
-                       totalSecs=as.numeric(totalSecs),
-                       returnValues=returnValues,
-                       bssUrl=bssUrl)
-  return(returnList)
-
-  }
-
-
-    
-  # If we made it to here, we need to generate a plot in R
-  
-
-  # ----- Read in the data ----------------------------------------------------
-
-  result <- try( dataList <- createDataList(infoList),
-                 silent=TRUE)
-
+  # ------ Create the dataList ------------------------------------------------
+  result <- try( dataList <- createDataList(infoList), silent=TRUE)
+ 
   # Handle error response
   if (class(result) == "try-error" ) {
-    err_msg <- translateErrors(geterrmessage(),infoList)
+    err_msg <- geterrmessage()
+    err_msg <- translateErrors(err_msg,infoList)
     if ( stringr::str_detect(err_msg, "no lines available in input") ) stop("No metric values found.", call.=FALSE)
+    if ( stringr::str_detect(err_msg, "No data returned") ) stop("No data found.", call.=FALSE)
     else stop(err_msg, call.=FALSE)
   }
-  
+
+# ----- PDF plots and PDF Mode Timeseries plots use a web service ----------------------------------------
+
+
+  if ( infoList$plotType == 'noise-mode-timeseries' || infoList$plotType == 'pdf' ) {
+      logger.info("----- PDF Plots -----")
+
+      result <- try(bssUrl <- downloadPngs(dataList,infoList),silent=TRUE)
+      if (class(result) == "try-error" ) {
+         if (infoList$plotType == 'noise-mode-timeseries') {
+            stop("No PDF Noise Mode Timeseries plots returned", call.=FALSE)
+         } else if (infoList$plotType == 'pdf') {
+            stop("No PDF plots returned", call.=FALSE)
+         }
+      }
+      totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
+      logger.info("Total elapsed = %f seconds", round(total_elapsed,4))
+
+      returnValues <- c(0.0,0.0,0.0,0.0) # Dummy values. returnValues is required by the UI
+
+      returnList <- list(loadSecs=as.numeric(totalSecs),
+                       plotSecs=as.numeric(0),
+                       totalSecs=as.numeric(totalSecs),
+                       returnValues=returnValues,
+                       bssUrl=bssUrl)
+      return(returnList)
+  }
+
+
+# ------- If we made it to here, we need to generate a plot in R --------------------------------------------
+
   # Extract 'bssUrl' and remove it from dataList so it doesn't interfere with plotting functions
   bssUrl <- dataList[['bssUrl']]
   dataList[['bssUrl']] <- NULL
@@ -226,11 +143,19 @@ __DATABROWSER__ <- function(request) {
   
   # ----- Create appropriate plot device -------------------
 
-  logger.debug("creating %s", absPlotPNG)
-  
-  png(filename=absPlotPNG, 
-      width=infoList$plotWidth, height=infoList$plotHeight, 
-      units='px', bg='white')
+  if (infoList$plotType == 'pdf' ) {
+    logger.debug("creating pdf plot")
+  } else if (infoList$plotType == 'trace' && infoList$timeseriesChannelSet) {
+    logger.debug("creating %s", absPlotPNG)
+     png(filename=absPlotPNG,
+         width=infoList$plotWidth, height=infoList$plotHeight,
+         units='px', bg='white',pointsize=14)
+  } else {
+      logger.debug("creating %s", absPlotPNG)
+      png(filename=absPlotPNG, 
+          width=infoList$plotWidth, height=infoList$plotHeight, 
+          units='px', bg='white')
+  }
   
   # ----- Subset the data -----------------------------------------------------
 
@@ -244,15 +169,11 @@ __DATABROWSER__ <- function(request) {
 
   if (infoList$plotType == 'metricTimeseries') {
 
-    if (infoList$timeseriesChannelSet || infoList$metricName %in% c('gain_ratio','phase_diff','ms_coherence','cross_talk')) {
-      returnValues <- channelSetTimeseriesPlot(dataList, infoList, textList)
-    } else {
-      returnValues <- metricTimeseriesPlot(dataList, infoList, textList)
-    }
-
-  } else if (infoList$plotType == 'metricTest') {
-
-    returnValues <- dailyDCOffsetDevelopmentPlot(dataList, infoList, textList)
+     if (infoList$timeseriesChannelSet || infoList$metricName %in% c('gain_ratio','phase_diff','ms_coherence','cross_talk')) {
+        returnValues <- channelSetTimeseriesPlot(dataList, infoList, textList)
+     } else {
+        returnValues <- metricTimeseriesPlot(dataList, infoList, textList)
+     }
 
   } else if (infoList$plotType == 'stackedMetricTimeseries') {
 
@@ -293,7 +214,6 @@ __DATABROWSER__ <- function(request) {
   logger.info("Total elapsed = %f seconds", round(total_elapsed,4))
 
   dev.off()
-
 
   # ----- Return ---------------------------------------------------------------
 

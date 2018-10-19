@@ -86,20 +86,18 @@ irisTickTimes <- function(starttime, endtime) {
 
 # ----- Basic timeseries plot --------------------------------------------------
 
-# TODO:  This is WRONG!
-# TODO:  I need to send in the requested starttime and endtime so I can create the
-# TODO:  proper axes even if half the data are missing.
-
 timeseriesPlot <- function(time,
                            metric,
                            style='matlab',
                            xlim="",
                            yStyle='zeroScaled',
+                           yRange="",
                            ...) {
   
   logger.info("----- timeseriesPlot -----")
   
   logger.debug("style = %s, yStyle = %s", style, yStyle)
+  logger.debug(paste("yRange", yRange))
   
   # ----- Style ------------------------
   
@@ -139,8 +137,14 @@ timeseriesPlot <- function(time,
   
   # ----- Set up ylim and y-axis -------
 
-  ylo <- min(metric, na.rm=TRUE)
-  yhi <- max(metric, na.rm=TRUE)
+  if ( yRange == "") {
+     ylo <- min(metric, na.rm=TRUE)
+     yhi <- max(metric, na.rm=TRUE)
+  } else {
+     ylo <- yRange[1]
+     yhi <- yRange[2]
+  }
+
   if (yStyle == 'zeroScaled') { # 0:10 or 0:max, whichever is larger
     ylo <- 0
     yhi <- max(10,yhi)

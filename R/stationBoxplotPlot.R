@@ -121,6 +121,11 @@ stationBoxplotPlot <- function(dataList,infoList,textList) {
   mtext(textList$metricTitle, side=3, line=2.5, cex=1.2)
   mtext(textList$dataRange, side=1, line=2.5, cex=1.2)
 
+  if (length(unique(sncl)) == 1 ) {
+     slabel= paste(sncl[1],"\u2014")
+     mtext(slabel,side=2)
+  }
+
   # TODO:  Add date range description
   
   # Restore old par() settings
