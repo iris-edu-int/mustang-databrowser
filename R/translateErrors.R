@@ -32,13 +32,16 @@ translateErrors <- function(err_msg,infoList) {
     snclName <- paste(infoList$network,infoList$station,'*.*',sep='.')
   } else {
     if (infoList$timeseriesChannelSet) {
-      snclName <- paste(infoList$network,'.',infoList$station,'.',location,'.',infoList$channel,'?',sep='')        
+      #snclName <- paste(infoList$network,'.',infoList$station,'.',location,'.',infoList$channel,'?',sep='')        
+      snclName <- paste(infoList$network,'.',infoList$station,'.',location,'.',infoList$channel,sep='')
     } else {
       snclName <- paste(infoList$network,infoList$station,location,infoList$channel,sep='.')    
     }
   }
   
   if (stringr::str_detect(err_msg,"No targets were found after filtering")) {
+    return(paste("No",metricName,"values found for",snclName))
+  } else if (stringr::str_detect(err_msg,"Query returned no results")) {
     return(paste("No",metricName,"values found for",snclName))
   } else if (stringr::str_detect(err_msg,"cannot open the connection")) {
     # getNetwork could not find a network

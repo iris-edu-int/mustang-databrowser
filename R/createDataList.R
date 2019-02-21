@@ -227,7 +227,7 @@ createDataList <- function(infoList) {
 
     } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median') && infoList$scaleSensitivity) { 
       dataDF$starttime <- as.Date(dataDF$starttime)
-      result <- try(metaDF <- getChannel(iris,network,'','',channel,starttime,endtime),siltent=TRUE)
+      result <- try(metaDF <- getChannel(iris,network,'','',channel,starttime,endtime),silent=TRUE)
       if ( "try-error" %in% class(result) ) {
            stop(geterrmessage())
       }

@@ -9,7 +9,7 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
-var G_VERSION = "2.1.0";
+var G_VERSION = "2.1.1";
 
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
 

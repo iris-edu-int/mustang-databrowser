@@ -1,3 +1,5 @@
+2018.332: 1.1.1 (2.1.1)
+         - added Google Analytics tracking bug to index.html
 2018.269: 1.1.0 (2.1.0)
          - 'channel set' option added for PDF and trace plots. 
          - 'scale by channel set' option added for metric timeseries and trace plots. 
