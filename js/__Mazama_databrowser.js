@@ -9,7 +9,7 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
-var G_VERSION = "2.1.1";
+var G_VERSION = "2.2.0";
 
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
 
@@ -20,6 +20,10 @@ var G_multiMetrics = {
   'gaps_and_availability':'gaps and availability',
   'SOH_flags':'state-of-health flag counts',
   'transfer_function':'transfer function'
+};
+
+var G_gapDurations = {
+  'gap_list':'gap_list: time durations for data gaps'
 };
 
 // G_singleMetrics has both optgroups and options
@@ -53,7 +57,6 @@ var G_singleMetrics = {
     'ts_percent_availability': 'ts_percent_availability: percentage data available'
   },
   'PSD metrics (daily)': {
-    'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
     'dead_channel_gsn': 'dead_channel_gsn: TRUE/FALSE',
     'dead_channel_lin': 'dead_channel_lin: residuals of linear fit to PSD mean',
     'pct_above_nhnm': 'pct_above_nhnm: percent of PDF above New High Noise Model',
@@ -86,7 +89,7 @@ var G_singleMetrics = {
     'telemetry_sync_error': 'telemetry_sync_error: telemetry synchronization error',
     'timing_correction': 'timing_correction: time correction applied'
   },
-  'miniSEED state-of- health metrics (other)': {
+  'miniSEED state-of-health metrics (other)': {
     'timing_quality': 'timing_quality: average timing quality'
   }
 };
@@ -120,6 +123,7 @@ var G_channel = "BHZ";
 // metric selector current choice
 var G_singleMetric = 'sample_rms';
 var G_multiMetric = 'basic_stats';
+//var G_gapDurations = 'gap_list';
 
 // response profiling information
 var G_loadSecs;
@@ -144,8 +148,8 @@ function displayError(errorText) {
     alert(errorText);
   } else {
     // Clean up error messages
-    i = errorText.lastIndexOf("Error :")
-    if (i >= 0 ) { errorText = errorText.substr(i+8) }
+    //i = errorText.lastIndexOf("Error :")
+    //if (i >= 0 ) { errorText = errorText.substr(i+8) }
     i = errorText.lastIndexOf("Error:")
     if (i >= 0) { errorText = errorText.substr(i+7) }
 
@@ -162,6 +166,11 @@ function selectMetric() {
   } else {
     G_singleMetric = $('#metric').val();
   }
+
+  // gap duration
+  if ( $('#plotType').val() == 'gapDurationPlot' ) {
+    G_gapDurations = $('#metric').val();
+  } 
 
   // Handle boxplot-transfer function options
   if ( $('#plotType').val() == 'networkBoxplot') {
@@ -198,6 +207,7 @@ function selectMetric() {
       $('#transferFunctionOptions').hide();
     }
   }
+  
 }
 
 
@@ -274,6 +284,35 @@ function selectPlotType() {
     $('#channel').removeClass('doNotSerialize').show();
 
     generateChannelsSelector();
+
+  } else if (plotType == 'gapDurationPlot') {
+     generateGapMetricsSelector();   
+
+      // Plot Buttons
+    $('#previousPlot').prop('title','plot previous station.location').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next station.location').prop('disabled',false).show();
+
+    // Plot Options
+    $('#plotOptionsLabel').text('No Plot Options for Gap Duration Plots');
+    $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
+    $('#boxplotOptions').hide();
+    $('#scaleSensitivity').addClass('doNotSerialize').hide();
+    $('#sensitivityOptions').hide();
+    $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
+    $('#transferFunctionOptions').hide();
+    $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
+    $('#timeseriesOptions').hide();
+    $('#timeseriesScale').addClass('doNotSerialize').hide();
+    $('#tsScaleOptions').hide();
+
+    // SNCL
+    $('#network').removeClass('doNotSerialize').show();
+    $('#station').removeClass('doNotSerialize').show();
+    $('#location').removeClass('doNotSerialize').show();
+    $('#channel').removeClass('doNotSerialize').show();
+
+    generateChannelsSelector();
+
 
   } else if (plotType == 'networkBoxplot') {
 
@@ -400,7 +439,7 @@ function selectPlotType() {
 
     generateChannelsSelector();
 
-  } else if (plotType == 'pdf' || plotType == 'noise-mode-timeseries') {
+  } else if (plotType == 'pdf' || plotType == 'noise-mode-timeseries' || plotType == 'spectrogram') {
 
     // Metric
     $('#metric').addClass('doNotSerialize').hide();
@@ -470,6 +509,21 @@ function generateMultiMetricsSelector(){
       sel.append('<option value="' + option + '">' + optionDict[option] + '</option>');
     }
   }
+}
+
+function generateGapMetricsSelector(){
+  var sel = $('#metric');
+  sel.empty();
+
+  optionDict = G_gapDurations
+  for (option in optionDict) {
+    if (option == G_gapDurations) { // Retain previously chosen metric
+      sel.append('<option selected="selected" value="' + option + '">' + optionDict[option] + '</option>');
+    } else {
+      sel.append('<option value="' + option + '">' + optionDict[option] + '</option>');
+    }
+  }
+
 }
 
 
@@ -1584,11 +1638,11 @@ $(function() {
             }
   $('#datepicker1').datepicker(options);
   
-  // get today's date
+  // get today's date minus 1
   var today = new Date();
   // set start date to be a certain number of days earlier
   var yesterday = new Date();
-  yesterday.setDate(today.getDate()-14);
+  yesterday.setDate(today.getDate()-31);
   $('#datepicker1').datepicker("setDate",yesterday);
 
   options = { minDate: new Date(1975,1-1,1),
@@ -1599,6 +1653,7 @@ $(function() {
               changeYear: true,
               onClose: selectEndDate
             }
+  today.setDate(today.getDate()-1);
   $('#datepicker2').datepicker(options);
   $('#datepicker2').datepicker("setDate",today);
   

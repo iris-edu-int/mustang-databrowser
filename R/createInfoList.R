@@ -67,13 +67,16 @@ createInfoList <- function(request) {
   
   if (infoList$plotType == 'metricTimeseries') {
     
-    if (infoList$timeseriesChannelSet) {
+    if (infoList$timeseriesChannelSet && metricName != 'polarity_check') {
       infoList$plotHeight <- 1.8 * infoList$plotWidth
     } else {
       infoList$plotHeight <- 0.6 * infoList$plotWidth
     }
     
-  } else if (infoList$plotType == 'stackedMetricTimeseries') {
+  }else if (infoList$plotType == 'gapDurationPlot') { 
+     infoList$plotHeight <- 1.3 * infoList$plotWidth
+
+  }else if (infoList$plotType == 'stackedMetricTimeseries') {
     
     # TODO:  could adjust per metricName
     if (metricName == 'basic_stats' ||
@@ -96,7 +99,7 @@ createInfoList <- function(request) {
     # NOTE:  we get the data.  For now we just use the default setting.
     infoList$plotHeight <- 0.6 * infoList$plotWidth
 
-  } else if (infoList$plotType == 'pdf' || infoList$plotType == 'noise-mode-timeseries') {
+  } else if (infoList$plotType == 'pdf' || infoList$plotType == 'noise-mode-timeseries' || infoList$plotType == 'spectrogram') {
     if (infoList$timeseriesChannelSet) {
       infoList$plotHeight <- 1.4 * infoList$plotWidth
     } else {

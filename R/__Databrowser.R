@@ -13,6 +13,8 @@ suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(png))
 suppressPackageStartupMessages(library(RCurl))
 suppressPackageStartupMessages(library(utf8))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(gridExtra))
 
 # Creation of textList and dataList
 source("__DATABROWSER_PATH__/R/createInfoList.R")
@@ -23,6 +25,7 @@ source("__DATABROWSER_PATH__/R/createDataList.R")
 source("__DATABROWSER_PATH__/R/translateErrors.R")
 
 # Plotting functions
+source("__DATABROWSER_PATH__/R/gapDurationPlot.R")
 source("__DATABROWSER_PATH__/R/plotUtils.R")
 source("__DATABROWSER_PATH__/R/metricTimeseriesPlot.R")
 source("__DATABROWSER_PATH__/R/channelSetTimeseriesPlot.R")
@@ -49,12 +52,13 @@ __DATABROWSER__ <- function(request) {
   # ----- Create the infoList -------------------------------------------------
 
   infoList <- createInfoList(request)
-  
+
   # Add directories determined from Makefile settings
   infoList$databrowserDir <- "__DATABROWSER_PATH__"
   infoList$scriptDir <- "__DATABROWSER_PATH__R/"
   infoList$dataDir <- "__DATABROWSER_PATH__data/"
   infoList$outputDir <- "__DATABROWSER_PATH____OUTPUT_DIR__/"
+
 
   # ------ Create the dataList ------------------------------------------------
   result <- try( dataList <- createDataList(infoList), silent=TRUE)
@@ -71,7 +75,7 @@ __DATABROWSER__ <- function(request) {
 # ----- PDF plots and PDF Mode Timeseries plots use a web service ----------------------------------------
 
 
-  if ( infoList$plotType == 'noise-mode-timeseries' || infoList$plotType == 'pdf' ) {
+  if ( infoList$plotType == 'noise-mode-timeseries' || infoList$plotType == 'pdf' || infoList$plotType == 'spectrogram' ) {
       logger.info("----- PDF Plots -----")
 
       result <- try(bssUrl <- downloadPngs(dataList,infoList),silent=TRUE)
@@ -80,6 +84,8 @@ __DATABROWSER__ <- function(request) {
             stop("No PDF Noise Mode Timeseries plots returned", call.=FALSE)
          } else if (infoList$plotType == 'pdf') {
             stop("No PDF plots returned", call.=FALSE)
+         } else if (infoList$plotType == 'spectrogram') {
+            stop("No PDF Noise Mode Spectrogram plots returned",call.=FALSE)
          }
       }
       totalSecs <- total_elapsed <- ( (proc.time())[3] - start )
@@ -174,6 +180,10 @@ __DATABROWSER__ <- function(request) {
      } else {
         returnValues <- metricTimeseriesPlot(dataList, infoList, textList)
      }
+
+  } else if (infoList$plotType == 'gapDurationPlot') {
+
+    returnValues <- gapDurationPlot(dataList,infoList,textList)
 
   } else if (infoList$plotType == 'stackedMetricTimeseries') {
 
