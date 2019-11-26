@@ -125,11 +125,13 @@
               <select id="plotType" name="plotType">
                 <option selected value="metricTimeseries">Metric Timeseries</option>
                 <option value="stackedMetricTimeseries">Multiple Metric Timeseries</option>
+                <option value="gapDurationPlot">Gap Duration Plots</option>
                 <option value="networkBoxplot">Network Boxplots</option>
                 <option value="stationBoxplot">Station Boxplots</option>
                 <option value="trace">Seismic Trace</option>
                 <option value="pdf">PDF Plot</option>
                 <option value="noise-mode-timeseries">PDF Noise Mode Timeseries Plot</option>
+                <option value="spectrogram">PDF Noise Mode Spectrogram Plot</option>
               </select>
             </div>
             <!-- END of plotTypeDiv -->
@@ -164,6 +166,18 @@
               </div>
               <div id="tsScaleOptions">
                  <input id="timeseriesScale" name="timeseriesScale" type="checkbox" /> <span> scale by channel set</span>
+              </div>
+              <div id="spectrogramOptions">
+                 <input id="spectrogramScale" name="spectrogramScale" type="checkbox" /> <span> fixed color scale limits -200,-80 dB</span> </br>
+                 <select id="colorPalette" name="colorPalette">
+                    <option selected value="rainbow">rainbow</option>
+                    <option value="BrBG">BrBG</option>
+                    <option value="OrRd">OrRd</option>
+                    <option value="RdBu">RdBu</option>
+                    <option value="RdYlBu">RdYlBu</option>
+                    <option value="YlGnBu">YlGnBu</option>
+                    <option value="viridis">viridis</option>
+                 </select> <span> color palette </span>
               </div>
             </div>
             <!-- END of plotTypeOptionsDiv -->
@@ -209,23 +223,28 @@
               </tr>
               <tr>
                 <td><span class="label">Network: </span></td>
-                <td><input id="network-auto" type="text"></td>
+                <td><input id="network-auto" type="text" style="width: 6em"></td>
                 <td><select id="network" name="network"></select></td>
               </tr>
               <tr>
                 <td><span class="label">Station: </span></td>
-                <td><input id="station-auto" type="text"></td>
+                <td><input id="station-auto" type="text" style="width: 6em"></td>
                 <td><select id="station" name="station"></select></td>
               </tr>
               <tr>
                 <td><span class="label">Location: </span></td>
-                <td><input id="location-auto" type="text"></td>
+                <td><input id="location-auto" type="text" style="width: 6em"></td>
                 <td><select id="location" name="location"></select></td>
               </tr>
               <tr>
                 <td><span class="label">Channel: </span></td>
-                <td><input id="channel-auto" type="text"></td>
+                <td><input id="channel-auto" type="text" style="width: 6em"></td>
                 <td><select id="channel" name="channel"></select></td>
+              </tr>
+              <tr>
+                <td><span class="label2">Archive: </span></td>
+                <td><label for="primary">Primary</label><input id="primary" name="archive" value="fdsnws" type="radio" checked=""></td>
+                <td><label for="ph5">PH5</label><input id="ph5" name="archive" value="ph5wsbeta" type="radio" ></td>
               </tr>
             </tbody>
             </table>

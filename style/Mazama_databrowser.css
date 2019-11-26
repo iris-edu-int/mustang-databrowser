@@ -59,7 +59,7 @@ img#spinner {
 }
 
 #snclSelectors {
-  width: fit-content;
+    width: auto
 }
 
 #snclSelectors td {
@@ -71,16 +71,13 @@ img#spinner {
   text-align: right;
 }
 
-#snclSelectors input {
-  width: 6em;
-}
-
 .ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
     width: 40%;
 }
 
 #datepickers {
-  width: fit-content;
+/*  width: fit-content; */
+  width: auto
 }
 
 #datepickers td {

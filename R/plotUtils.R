@@ -100,6 +100,7 @@ timeseriesPlot <- function(time,
   logger.debug(paste("yRange", yRange))
   
   # ----- Style ------------------------
+
   
   # Style dependent graphical parameters
   if (style == 'minimalA') {    

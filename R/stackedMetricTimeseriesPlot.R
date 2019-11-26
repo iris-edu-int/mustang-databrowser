@@ -43,10 +43,16 @@ stackedMetricTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     yStyles <- rep('zeroScaled',length(actualMetricNames))
   } else if ( metricName == 'gaps_and_availability' ) {
     style <- 'minimalA'
-    actualMetricNames <- c("ts_num_gaps",
+    if (infoList$archive == "fdsnws") {
+       actualMetricNames <- c("ts_num_gaps",
                            "ts_max_gap",
                            "ts_percent_availability",
                            "ts_gap_length") 
+    } else {
+       actualMetricNames <- c("num_gaps",
+                           "max_gap",
+                           "percent_availability")
+    }
     yStyles <- c('zeroScaled','zeroScaled','zeroScaled','zeroScaled','percent')
   } else if ( metricName == 'basic_stats' ) {
     style <- 'minimalA'

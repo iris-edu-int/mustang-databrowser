@@ -11,19 +11,20 @@ translateErrors <- function(err_msg,infoList) {
 
   # Log error message for debugging. Helps when we need to add more/better string detection.
   logger.debug("err_msg = %s", err_msg)
+  err_msg <- gsub("Error : ","",err_msg)
   
   metricName <- infoList$metricName
   
   # Adjust location as needed
-  if (metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff') {
+  #if (metricName == 'transfer_function' || metricName == 'ms_coherence' || metricName == 'gain_ratio' || metricName == 'phase_diff') {
     # Transfer functions have two locations
-    if (infoList$location == '00')
-      location <- '10:00'
-    else
-      location <- paste(infoList$location,'00',sep=':')
-  } else {
-    location <- infoList$location
-  }
+  #  if (infoList$location == '00')
+  #    location <- '10:00'
+  #  else
+  #    location <- paste(infoList$location,'00',sep=':')
+  #} else {
+  location <- infoList$location
+  #}
 
   # Create the SNCL name
   if (infoList$plotType == "networkBoxplot") {
@@ -54,8 +55,11 @@ translateErrors <- function(err_msg,infoList) {
   } else if (stringr::str_detect(err_msg,"miniseed2Stream: No data found")) {
     
     # dataselect web service failed
-    return(paste("Dataselect service returns no data for ",snclName))      
+    return(paste("No data found for ",snclName))      
     
+  } else if (stringr::str_detect(err_msg,"getDataselect.IrisClient: No Data")) {
+    return(paste("No data found for ",snclName))
+
   } else if (stringr::str_detect(err_msg,"Could not resolve host:") ||
                stringr::str_detect(err_msg,"unable to resolve")) {
     

@@ -16,7 +16,7 @@ library(MazamaWebUtils)       # logging, cache management and cgi support
 
 # Specify global (configurable) variables -------------------------------------
 
-VERSION <- "1.1.0"
+VERSION <- "1.3.0"
 
 # Variables configured with config/Makefile_vars_~
 URL_PATH <- '__URL_PATH__'
@@ -42,7 +42,7 @@ options(warn=-1) # -1=ignore, 0=save/print, 1=print, 2=error
 
 stopOnError <- function(result, errorPrefix="", useErrorMessage=TRUE, contentType="json") {
   if ( "try-error" %in% class(result) ) {
-    err_msg <- ifelse(useErrorMessage, paste0(errorPrefix, geterrmessage()), errorPrefix)
+    err_msg <- ifelse(useErrorMessage, paste0(errorPrefix, gsub("Error : ","", geterrmessage())), errorPrefix)
     logger.error(err_msg)
     # NOTE:  The UI uses the modal alert() alert function to displaly error messages >80
     # NOTE:  characters long. To avoid this modal UI we simply truncate at this point.
@@ -180,11 +180,12 @@ stopOnError(result, "CGI ERROR sourcing the main script: ")
 
 # ----- Generate a new result -------------------------------------------------
 
+
 result <- try({
   returnList <- __DATABROWSER__(request)
   returnJSON <- jsonlite::toJSON(returnList, auto_unbox=TRUE, pretty=FALSE)
 }, silent=TRUE)
-stopOnError(result, "R ERROR: ")
+stopOnError(result, "")
 
 result <- try({
   logger.debug("Saving %s", abs_json)

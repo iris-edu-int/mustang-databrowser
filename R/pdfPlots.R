@@ -10,8 +10,9 @@ pdfUrl <- function(channel,infoList) {
                               channel=channel,
                               starttime=strftime(infoList$starttime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
                               endtime=strftime(infoList$endtime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
-                              quality='M',
+                              quality=dplyr::if_else(infoList$archive == "fdsnws","M","D"),
                               format='text')
+
      parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
      bssUrl <- paste0(serviceUrl,parameterString)
 
@@ -26,16 +27,52 @@ pdfUrl <- function(channel,infoList) {
      return(paste0(serviceUrl,parameterString))
 }
 
+pdfSpectrogramUrl <- function(channel,infoList) {
+    serviceUrl <- 'http://service.iris.edu/mustang/noise-spectrogram/1/query?'
+    
+    serviceParameters <- list(network=infoList$network,
+                              station=infoList$station,
+                              location=infoList$location,
+                              channel=channel,
+                              starttime=strftime(infoList$starttime,"%Y-%m-%d", tz="UTC"),
+                              endtime=strftime(infoList$endtime,"%Y-%m-%d", tz="UTC"),
+                              quality=dplyr::if_else(infoList$archive == "fdsnws","M","D"),
+                              format='text')
+
+    parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
+    bssUrl <- paste0(serviceUrl,parameterString)
+
+    serviceParameters$output='power'
+    serviceParameters$format='plot'
+    serviceParameters$plot.height='400'
+    serviceParameters$plot.width='600'
+    serviceParameters$plot.horzaxis='time'
+    serviceParameters$plot.powerscale.show='true'
+    serviceParameters$plot.powerscale.orientation='horz'
+    if(infoList$spectrogramScale){
+      serviceParameters$plot.powerscale.range='-200,-80'
+    }
+    serviceParameters$plot.color.palette=infoList$colorPalette
+    serviceParameters$nodata='404'
+
+    parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
+    return(paste0(serviceUrl,parameterString))
+    
+
+   
+}
+
 pdfModeUrl <- function(channel,infoList) {
     serviceUrl <- 'http://service.iris.edu/mustang/noise-mode-timeseries/1/query?'
     serviceParameters <- list(network=infoList$network,
                               station=infoList$station,
                               location=infoList$location,
                               channel=channel,
-                              starttime=strftime(infoList$starttime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
-                              endtime=strftime(infoList$endtime,"%Y-%m-%dT%H:%M:%S", tz="UTC"),
-                              quality='M',
+                              starttime=strftime(infoList$starttime,"%Y-%m-%d", tz="UTC"),
+                              endtime=strftime(infoList$endtime,"%Y-%m-%d", tz="UTC"),
+                              quality=dplyr::if_else(infoList$archive == "fdsnws","M","D"),
                               format='text')
+
     parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
     bssUrl <- paste0(serviceUrl,parameterString)
 
@@ -67,6 +104,8 @@ downloadPngs <- function(dataList,infoList) {
         urls <- lapply(dataList,pdfModeUrl,infoList=infoList)
     } else if ( infoList$plotType == 'pdf' ) {
         urls <- lapply(dataList,pdfUrl,infoList=infoList)
+    } else if ( infoList$plotType == 'spectrogram') {
+        urls <- lapply(dataList,pdfSpectrogramUrl,infoList=infoList)
     }
 
     n <- length(urls)
@@ -84,6 +123,7 @@ downloadPngs <- function(dataList,infoList) {
            destfile2 <- paste0(infoList$outputDir,i,'.png')
            destList[[i]] <- destfile2
            result <- try(x <- download.file(url,destfile2,quiet=TRUE,mod='wb'),silent=TRUE)
+           #x <- download.file(url,destfile2,quiet=TRUE,mod='wb')
 
            if(file.exists(destfile2)) {
               flg=flg+1
@@ -97,10 +137,10 @@ downloadPngs <- function(dataList,infoList) {
 
     if (infoList$plotType == 'noise-mode-timeseries' ) {
          cmd1 <- paste0("montage ",paste(destList,collapse=" ")," -geometry 600x425+0+10 -tile 1x ",destfile)
-         logger.debug(cmd1);
     } else if ( infoList$plotType == 'pdf' ) {
          cmd1 <- paste("montage ",paste(destList,collapse=" ")," -geometry 600x450+0+10 -tile 1x ",destfile)
-         logger.debug(cmd1);
+    } else if ( infoList$plotType == 'spectrogram') {
+         cmd1 <- paste("montage ",paste(destList,collapse=" ")," -geometry 600x400+0+10 -tile 1x ",destfile)
     }
 
     cmd2 <- paste("rm",paste(destList,collapse=" "))

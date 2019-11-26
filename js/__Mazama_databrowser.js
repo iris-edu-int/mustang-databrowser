@@ -9,7 +9,7 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
-var G_VERSION = "2.1.1";
+var G_VERSION = "2.4.0";
 
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
 
@@ -22,15 +22,20 @@ var G_multiMetrics = {
   'transfer_function':'transfer function'
 };
 
+var G_gapDurations = {
+  'gap_list':'gap_list: time durations for data gaps'
+};
+
 // G_singleMetrics has both optgroups and options
+// check for proper display on Windows 10 Chrome, limit to length
 var G_singleMetrics = {
   'latency metrics (every 4 hours)': {
-    'data_latency': 'data_latency: time between data acquisition and receipt',
+    'data_latency': 'data_latency: time between data acquisition,receipt',
     'feed_latency': 'feed_latency: time since latest data was received',
     'total_latency': 'total_latency: total data latency'
   },
   'simple metrics (daily)': {
-    'dc_offset': 'dc_offset: indicator of likelihood of DC offset shift',
+    'dc_offset': 'dc_offset: indicator, likelihood of DC offset shift',
     'max_gap': 'max_gap: maximum gap duration',
     'max_overlap': 'max_overlap: maximum overlap duration',
     'max_stalta': 'max_stalta: maximum STA/LTA amplitude ratio',
@@ -53,17 +58,14 @@ var G_singleMetrics = {
     'ts_percent_availability': 'ts_percent_availability: percentage data available'
   },
   'PSD metrics (daily)': {
-    'dead_channel_exp': 'dead_channel_exp: residuals of exponential fit to PSD mean',
     'dead_channel_gsn': 'dead_channel_gsn: TRUE/FALSE',
     'dead_channel_lin': 'dead_channel_lin: residuals of linear fit to PSD mean',
-    'pct_above_nhnm': 'pct_above_nhnm: percent of PDF above New High Noise Model',
-    'pct_below_nlnm': 'pct_below_nlnm: percent of PDF below New Low Noise Model'
-    // 'pct_above_nhnm': 'pct_above_nhnm: percent of PDF matrix above New High Noise Model',
-    // 'pct_below_nlnm': 'pct_below_nlnm: percent of PDF matrix below New Low Noise Model'
+    'pct_above_nhnm': 'pct_above_nhnm: PDF percent > New High Noise Model',
+    'pct_below_nlnm': 'pct_below_nlnm: PDF percent < New Low Noise Model'
   },
   'event based metrics': {
     'cross_talk': 'cross_talk: channel cross-correlation',
-    'polarity_check': 'polarity_check: near neighbor station cross-correlation',
+    'polarity_check': 'polarity_check: neighbor station cross-correlation',
     'sample_snr': 'sample_snr: P-wave signal-to-noise ratio'
   },
   'transfer function metrics': {
@@ -86,7 +88,7 @@ var G_singleMetrics = {
     'telemetry_sync_error': 'telemetry_sync_error: telemetry synchronization error',
     'timing_correction': 'timing_correction: time correction applied'
   },
-  'miniSEED state-of- health metrics (other)': {
+  'miniSEED state-of-health metrics (other)': {
     'timing_quality': 'timing_quality: average timing quality'
   }
 };
@@ -120,6 +122,7 @@ var G_channel = "BHZ";
 // metric selector current choice
 var G_singleMetric = 'sample_rms';
 var G_multiMetric = 'basic_stats';
+//var G_gapDurations = 'gap_list';
 
 // response profiling information
 var G_loadSecs;
@@ -144,8 +147,8 @@ function displayError(errorText) {
     alert(errorText);
   } else {
     // Clean up error messages
-    i = errorText.lastIndexOf("Error :")
-    if (i >= 0 ) { errorText = errorText.substr(i+8) }
+    //i = errorText.lastIndexOf("Error :")
+    //if (i >= 0 ) { errorText = errorText.substr(i+8) }
     i = errorText.lastIndexOf("Error:")
     if (i >= 0) { errorText = errorText.substr(i+7) }
 
@@ -163,9 +166,13 @@ function selectMetric() {
     G_singleMetric = $('#metric').val();
   }
 
+  // gap duration
+  if ( $('#plotType').val() == 'gapDurationPlot' ) {
+    G_gapDurations = $('#metric').val();
+  } 
+
   // Handle boxplot-transfer function options
   if ( $('#plotType').val() == 'networkBoxplot') {
-
     if ( G_singleMetric == 'sample_mean' || G_singleMetric == 'sample_median' || G_singleMetric == 'sample_rms' ||  G_singleMetric == 'sample_max' ||  G_singleMetric == 'sample_min') {
       $('#scaleSensitivity').removeClass('doNotSerialize').show();
       $('#sensitivityOptions').show();
@@ -182,7 +189,6 @@ function selectMetric() {
     }
   }
   if ($('#plotType').val() == 'stationBoxplot' ) {
-
     if ( G_singleMetric == 'sample_mean' || G_singleMetric == 'sample_median' || G_singleMetric == 'sample_rms' ||  G_singleMetric == 'sample_max' ||  G_singleMetric == 'sample_min') {
       $('#scaleSensitivity').removeClass('doNotSerialize').show();
       $('#sensitivityOptions').show();
@@ -198,6 +204,7 @@ function selectMetric() {
       $('#transferFunctionOptions').hide();
     }
   }
+  
 }
 
 
@@ -214,7 +221,7 @@ function selectPlotType() {
   }
 
   if (plotType == 'metricTimeseries') {
-
+ 
     // Metric
     generateSingleMetricsSelector();
     $('#metric').removeClass('doNotSerialize').show();
@@ -235,6 +242,9 @@ function selectPlotType() {
     $('#timeseriesOptions').show();
     $('#timeseriesScale').removeClass('doNotSerialize').show();
     $('#tsScaleOptions').show();
+    $('#spectrogramScale').addClass('doNotSerialize').hide();
+    $('#colorPalette').addClass('doNotSerialize').hide();
+    $('#spectrogramOptions').hide();
 
     // SNCL
     $('#network').removeClass('doNotSerialize').show();
@@ -245,6 +255,7 @@ function selectPlotType() {
     generateChannelsSelector();
 
   } else if (plotType == 'stackedMetricTimeseries') {
+
 
     // Metric
     generateMultiMetricsSelector();
@@ -266,6 +277,9 @@ function selectPlotType() {
     $('#timeseriesOptions').hide();
     $('#timeseriesScale').addClass('doNotSerialize').hide();
     $('#tsScaleOptions').hide();
+    $('#spectrogramScale').addClass('doNotSerialize').hide();
+    $('#colorPalette').addClass('doNotSerialize').hide();
+    $('#spectrogramOptions').hide();
 
     // SNCL
     $('#network').removeClass('doNotSerialize').show();
@@ -274,6 +288,39 @@ function selectPlotType() {
     $('#channel').removeClass('doNotSerialize').show();
 
     generateChannelsSelector();
+
+  } else if (plotType == 'gapDurationPlot') {
+    generateGapMetricsSelector();   
+    $('#metric').removeClass('doNotSerialize').show();
+
+      // Plot Buttons
+    $('#previousPlot').prop('title','plot previous station.location').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next station.location').prop('disabled',false).show();
+
+    // Plot Options
+    $('#plotOptionsLabel').text('No Plot Options for Gap Duration Plots');
+    $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
+    $('#boxplotOptions').hide();
+    $('#scaleSensitivity').addClass('doNotSerialize').hide();
+    $('#sensitivityOptions').hide();
+    $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
+    $('#transferFunctionOptions').hide();
+    $('#timeseriesChannelSet').addClass('doNotSerialize').hide();
+    $('#timeseriesOptions').hide();
+    $('#timeseriesScale').addClass('doNotSerialize').hide();
+    $('#tsScaleOptions').hide();
+    $('#spectrogramScale').addClass('doNotSerialize').hide();
+    $('#colorPalette').addClass('doNotSerialize').hide();
+    $('#spectrogramOptions').hide();
+
+    // SNCL
+    $('#network').removeClass('doNotSerialize').show();
+    $('#station').removeClass('doNotSerialize').show();
+    $('#location').removeClass('doNotSerialize').show();
+    $('#channel').removeClass('doNotSerialize').show();
+
+    generateChannelsSelector();
+
 
   } else if (plotType == 'networkBoxplot') {
 
@@ -291,6 +338,9 @@ function selectPlotType() {
     $('#timeseriesOptions').hide();
     $('#timeseriesScale').addClass('doNotSerialize').hide();
     $('#tsScaleOptions').hide();
+    $('#spectrogramScale').addClass('doNotSerialize').hide();
+    $('#colorPalette').addClass('doNotSerialize').hide();
+    $('#spectrogramOptions').hide();
     $('#plotOptionsLabel').text('Plot Options for Boxplots');
     $('#boxplotShowOutliers').removeClass('doNotSerialize').show();
     $('#boxplotOptions').show();
@@ -324,6 +374,7 @@ function selectPlotType() {
 
   } else if (plotType == 'stationBoxplot') {
 
+
     // Metric
     generateSingleMetricsSelector();
     $('#metric').removeClass('doNotSerialize').show();
@@ -337,6 +388,9 @@ function selectPlotType() {
     $('#timeseriesOptions').hide();
     $('#timeseriesScale').addClass('doNotSerialize').hide();
     $('#tsScaleOptions').hide();
+    $('#spectrogramScale').addClass('doNotSerialize').hide();
+    $('#colorPalette').addClass('doNotSerialize').hide();
+    $('#spectrogramOptions').hide();
     $('#plotOptionsLabel').text('Plot Options for Boxplots');
     $('#boxplotShowOutliers').removeClass('doNotSerialize').show();
     $('#boxplotOptions').show();
@@ -365,6 +419,8 @@ function selectPlotType() {
     generateChannelsSelector();
 
   } else if (plotType == 'trace') {
+
+
     // Metric
     $('#metric').addClass('doNotSerialize').hide();
 
@@ -391,6 +447,9 @@ function selectPlotType() {
     $('#sensitivityOptions').hide();
     $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
     $('#transferFunctionOptions').hide();
+    $('#spectrogramScale').addClass('doNotSerialize').hide();
+    $('#colorPalette').addClass('doNotSerialize').hide();
+    $('#spectrogramOptions').hide();
 
     // SNCL
     $('#network').removeClass('doNotSerialize').show();
@@ -415,6 +474,9 @@ function selectPlotType() {
     $('#timeseriesOptions').show();
     $('#timeseriesScale').addClass('doNotSerialize').hide();
     $('#tsScaleOptions').hide();
+    $('#spectrogramScale').addClass('doNotSerialize').hide();
+    $('#colorPalette').addClass('doNotSerialize').hide();
+    $('#spectrogramOptions').hide();
 
     $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
     $('#boxplotOptions').hide();
@@ -431,7 +493,41 @@ function selectPlotType() {
 
     generateChannelsSelector();
 
-  } 
+  } else if (plotType=='spectrogram') {
+
+    // Metric
+    $('#metric').addClass('doNotSerialize').hide();
+
+    // Plot Buttons
+    $('#previousPlot').prop('title','plot previous station.location').prop('disabled',false).show();
+    $('#nextPlot').prop('title','plot next station.location').prop('disabled',false).show();
+
+    // Plot Options
+    $('#plotOptionsLabel').text('Plot Options for PDF Plots');
+    $('#timeseriesChannelSet').removeClass('doNotSerialize').show();
+    $('#timeseriesOptions').show();
+    $('#timeseriesScale').addClass('doNotSerialize').hide();
+    $('#tsScaleOptions').hide();
+    $('#spectrogramScale').removeClass('doNotSerialize').show();
+    $('#colorPalette').removeClass('doNotSerialize').show();
+    $('#spectrogramOptions').show();
+
+    $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
+    $('#boxplotOptions').hide();
+    $('#scaleSensitivity').addClass('doNotSerialize').hide();
+    $('#sensitivityOptions').hide();
+    $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
+    $('#transferFunctionOptions').hide();
+   
+    // SNCL
+    $('#network').removeClass('doNotSerialize').show();
+    $('#station').removeClass('doNotSerialize').show();
+    $('#location').removeClass('doNotSerialize').show();
+    $('#channel').removeClass('doNotSerialize').show();
+
+    generateChannelsSelector();
+
+  }
 
 }
 
@@ -472,11 +568,25 @@ function generateMultiMetricsSelector(){
   }
 }
 
+function generateGapMetricsSelector(){
+  var sel = $('#metric');
+  sel.empty();
+
+  optionDict = G_gapDurations
+  for (option in optionDict) {
+    if (option == G_gapDurations) { // Retain previously chosen metric
+      sel.append('<option selected="selected" value="' + option + '">' + optionDict[option] + '</option>');
+    } else {
+      sel.append('<option value="' + option + '">' + optionDict[option] + '</option>');
+    }
+  }
+
+}
+
 
 /**** CASCADING SNCL SELECTORS ************************************************/
 
 // Generate Virtual Network selector -------------------------------------------
-// NOTE:  Should only be called once during startup
 
 function generateVirtualNetworksSelector(){
   // Get the list of options
@@ -492,14 +602,17 @@ function generateVirtualNetworksSelector(){
   sel.empty();
 
   // Repopulate the selector
-  for (var i=0; i<options.length; i++) {
-    if (options[i] == G_virtualNetwork) {
-      sel.append('<option selected="selected" value="' + options[i] + '">' + options[i] + '</option>');
-    } else {
-      sel.append('<option value="' + options[i] + '">' + options[i] + '</option>');
+  if ($('input:radio[name="archive"]:checked').val() == "fdsnws"){
+    for (var i=0; i<options.length; i++) {
+      if (options[i] == G_virtualNetwork) {
+        sel.append('<option selected="selected" value="' + options[i] + '">' + options[i] + '</option>');
+      } else {
+        sel.append('<option value="' + options[i] + '">' + options[i] + '</option>');
+      }
     }
+  } else {
+    sel.append('<option value="'+ "No virtual network" + '">' + "No virtual network" + '</option>');   
   }
-
 }
 
 
@@ -572,11 +685,11 @@ function generateStationsSelector(){
       sel.append('<option value="' + options[i] + '">' + options[i] + '</option>');
     }
   }
-  
+
   // Update the associated autocomplete box
   $("#station-auto").autocomplete({source: options});
   $("#station-auto").val("");
- 
+
   generateLocationsSelector();
 }
 
@@ -700,7 +813,6 @@ function generateChannelsSelector(){
   } else if (G_autoPlot) {
     sendPlotRequest();
   }
-
 }
 
 // ***** USER INITIATED SELECTIONS *******************************************/
@@ -724,6 +836,15 @@ function selectVirtualNetwork(){
   }
 
   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
+}
+
+function selectArchive(){
+  G_autoPlot = false;
+  G_previousPlotRequest = false;
+  G_nextPlotRequest = false;
+  var value = $('input:radio[name="archive"]:checked').val();
+  console.log("archive changed to " + value);
+  ajaxUpdateNetworks();
 }
 
 function selectNetwork(){
@@ -1170,7 +1291,12 @@ function validateDates() {
     endDate.setDate(endDate.getDate() + 1);
     $('#datepicker2').datepicker("setDate",endDate);
   }
-
+  if (endDate.getTime() == startDate.getTime()) {
+    alert("End date = start date. Adding one day to end date.")
+    endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1);
+    $('#datepicker2').datepicker("setDate",endDate);
+  }
   var starttimeString = $.datepicker.formatDate('yy-mm-dd',startDate);
   var endtimeString = $.datepicker.formatDate('yy-mm-dd',endDate);
   $('#starttime').val(starttimeString);
@@ -1187,7 +1313,6 @@ function sendPlotRequest() {
   validateDates(); // required to set starttime and endtime fields
   var url = '/mustang/__DATABROWSER__/__DATABROWSER___init.cgi';
   var paramsUrl = $('#controls_form').serialize();
-
   var removeList = $('.doNotSerialize');
 
   for (i=0; i<removeList.length; i++) {
@@ -1197,13 +1322,14 @@ function sendPlotRequest() {
        paramsUrl = paramsUrl.replace(removeString,'');
      }
   }
-  // Special handling for timseriesChannelSet option -- 10/31/2016
+  // Special handling for timeseriesChannelSet option -- 10/31/2016
   // Make the last character a question mark.
   if ($('#timeseriesChannelSet').prop('checked') && !$('#timeseriesChannelSet').hasClass('doNotSerialize')){
     var channelString = "channel=" + $('#channel').val();
     var chasetString = "channel=" + $('#channel').val().substr(0,2) + "?";
     paramsUrl = paramsUrl.replace(channelString,chasetString);
   }
+
   // UI changes
   $('#spinner').fadeIn(200);
   $('#profiling_container').hide();
@@ -1254,7 +1380,9 @@ function sendPlotRequest() {
     // UI changes
     $('#spinner').hide();
     $('#profiling_container').show();
-    $('#dataLink_container').show();
+    if(displayURL != '') { //GKS
+      $('#dataLink_container').show();
+    }
     $('#activityMessage').text('').removeClass('info').removeClass('alert');
   });
 }
@@ -1297,7 +1425,8 @@ function ajaxUpdateNetworks() {
     network = "*";
   }
 
-  var url = 'https://service.iris.edu/fdsnws/station/1/query';
+  var url = 'https://service.iris.edu/'+$('input:radio[name="archive"]:checked').val()+'/station/1/query';
+
   var data = {net:network,
               sta:"*",
               loc:"*",
@@ -1355,6 +1484,7 @@ function ajaxUpdateNetworks() {
     G_networks = uniqueNs;
 
     // Trigger the cascading selectors
+    generateVirtualNetworksSelector();
     generateNetworksSelector();
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -1363,12 +1493,21 @@ function ajaxUpdateNetworks() {
     $('#activityMessage').text('').removeClass('info').removeClass('alert');
 
     if (jqXHR.status == 404) {
-       alert("No station metadata found for the selected network and time range.");
+       if ($('input:radio[name="archive"]:checked').val() == "primary") {
+          alert("No station metadata found for the selected virtual network and time span. Try a different start and end time.");
+       } else {
+          alert("No station metadata found for the selected archive and time span. Try a different start and end time.");
+       }
     }
 
     // Restore previous virtual network selection
-    G_virtualNetwork = G_previousVirtualNetwork;
-    generateVirtualNetworksSelector();   
+    if ($('input:radio[name="archive"]:checked').val() == "primary"){
+      G_virtualNetwork = G_previousVirtualNetwork;
+      generateVirtualNetworksSelector();   
+    } else {
+      G_virtualNetwork = "No virtual network";
+      generateVirtualNetworksSelector();
+    }
 
   }).always(function() {
 
@@ -1392,7 +1531,8 @@ function ajaxUpdateSNCLSelectors() {
     network = G_network;
   }
 
-  var url = 'https://service.iris.edu/fdsnws/station/1/query';
+  var url = 'https://service.iris.edu/'+$('input:radio[name="archive"]:checked').val()+'/station/1/query';
+
   var data = {net:network,
               sta:"*",
               loc:"*",
@@ -1403,10 +1543,10 @@ function ajaxUpdateSNCLSelectors() {
               nodata:"404",
               format:"text",
               includeavailability:"true",
-              //matchtimeseries:"true"};
               matchtimeseries:"false"};
   console.log(url + "?" + $.param(data));
-  $.get(url, data).done(function(serviceResponse) {
+
+  $.get(url,data).done(function(serviceResponse) {
 
     $('#activityMessage').text("rebuilding SNCL selectors");
 
@@ -1431,6 +1571,7 @@ function ajaxUpdateSNCLSelectors() {
       beforeFirstChunk: undefined,
       withCredentials: undefined
     }
+
     var result = Papa.parse(serviceResponse, config);
     // TODO:  Could handler errors or parsing issues here
 
@@ -1454,6 +1595,7 @@ function ajaxUpdateSNCLSelectors() {
     var NSLCs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2] + '.' + row[3]); } );
 
     var NCs = $.map(data, function(row,i) { return(row[3]); }); 
+    console.log(NSs);
 
     // Create unique arrays
     var uniqueNSs = NSs.filter(function(val, i) { return(NSs.indexOf(val)==i); }).sort();
@@ -1486,7 +1628,7 @@ function ajaxUpdateSNCLSelectors() {
         G_locations[NS] = $.map(NS_uniqueNSLs, function(elem, i) { return(elem.split('.')[2]); } );        
       }
     })
-    
+
     // Replace the G_channels "channel by net.sta.loc" associative array
     G_channels = {};
 
@@ -1501,9 +1643,9 @@ function ajaxUpdateSNCLSelectors() {
         G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
       }
     })
-
+    
     G_channels[network] = uniqueNCs;
-
+ 
     // Regenerate all selectors based on the new G_~ arrays
     generateStationsSelector();
 
@@ -1581,14 +1723,14 @@ $(function() {
               changeMonth: true,
               changeYear: true,
               onClose: selectStartDate
-            }
+        }
   $('#datepicker1').datepicker(options);
   
-  // get today's date
+  // get today's date minus 1
   var today = new Date();
   // set start date to be a certain number of days earlier
   var yesterday = new Date();
-  yesterday.setDate(today.getDate()-14);
+  yesterday.setDate(today.getDate()-31);
   $('#datepicker1').datepicker("setDate",yesterday);
 
   options = { minDate: new Date(1975,1-1,1),
@@ -1599,6 +1741,7 @@ $(function() {
               changeYear: true,
               onClose: selectEndDate
             }
+  today.setDate(today.getDate()-1);
   $('#datepicker2').datepicker(options);
   $('#datepicker2').datepicker("setDate",today);
   
@@ -1620,6 +1763,7 @@ $(function() {
       }
     });
           
+  $('input:radio[name="archive"]').change(selectArchive);
   
   // Initialize the starttime and endtime fields
   validateDates();
@@ -1627,6 +1771,9 @@ $(function() {
   // set the initial plot type
   $('#plotType').val("metricTimeseries");
   $('#timeseriesChannelSet').prop("checked",true)
+  $('#spectrogramScale').addClass('doNotSerialize').hide();
+  $('#colorPalette').addClass('doNotSerialize').hide();
+  $('#spectrogramOptions').hide();
 
   // Prevent accidental form submission associated with default behavior for buttons
   // https://stackoverflow.com/questions/9347282/using-jquery-preventing-form-from-submitting

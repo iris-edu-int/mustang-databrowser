@@ -140,6 +140,7 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     } else {
       snclq <- df$snclq[1]
     }
+
     mtext(snclq, line=0.5, adj=0.05, cex=1.3)
     i <- i + 1
     # Y axis label
