@@ -85,7 +85,6 @@ __DATABROWSER__ <- function(request) {
          } else if (infoList$plotType == 'pdf') {
             stop("No PDF plots returned", call.=FALSE)
          } else if (infoList$plotType == 'spectrogram') {
-            #stop(geterrmessage(),call.=FALSE)
             stop("No PDF Noise Mode Spectrogram plots returned",call.=FALSE)
          }
       }

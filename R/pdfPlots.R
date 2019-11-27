@@ -29,7 +29,6 @@ pdfUrl <- function(channel,infoList) {
 
 pdfSpectrogramUrl <- function(channel,infoList) {
     serviceUrl <- 'http://service.iris.edu/mustang/noise-spectrogram/1/query?'
-    
     serviceParameters <- list(network=infoList$network,
                               station=infoList$station,
                               location=infoList$location,
@@ -57,8 +56,6 @@ pdfSpectrogramUrl <- function(channel,infoList) {
 
     parameterString <- paste0(names(serviceParameters),'=',as.character(serviceParameters),collapse='&')
     return(paste0(serviceUrl,parameterString))
-    
-
    
 }
 

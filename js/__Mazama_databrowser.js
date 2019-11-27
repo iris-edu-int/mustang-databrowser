@@ -321,7 +321,6 @@ function selectPlotType() {
 
     generateChannelsSelector();
 
-
   } else if (plotType == 'networkBoxplot') {
 
 
@@ -459,7 +458,7 @@ function selectPlotType() {
 
     generateChannelsSelector();
 
-  } else if (plotType == 'pdf' || plotType == 'noise-mode-timeseries') {
+  } else if (plotType == 'pdf' || plotType == 'noise-mode-timeseries' || plotType == 'spectrogram') {
 
     // Metric
     $('#metric').addClass('doNotSerialize').hide();

@@ -339,16 +339,6 @@ createDataList <- function(infoList) {
         err_msg <- gsub("Error : ","",geterrmessage())
         stop(err_msg,call.=FALSE)
       }
-      
-      if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No trace information found."), call.=FALSE)
-
-      #TODO deal with discontinuities in epochs
-
-      result <- try(metadataDF <- getAvailability(iris,network,station,location,channel,starttime,endtime),silent=TRUE)
-      if ( "try-error" %in% class(result) ) {
-        err_msg <- gsub("Error : ","",geterrmessage())
-        stop(err_msg,call.=FALSE)
-      }
 
       k <- nrow(metadataDF)
       if (metadataDF$starttime[1] > starttime) { 
@@ -375,7 +365,6 @@ createDataList <- function(infoList) {
                                               +as.numeric(format(gapDF$gapStart, "%OS6")))
 
       gapDF <- dplyr::mutate(gapDF,calendar = as.Date(gapStart))
-      
       dataList[['gapList_DF']] <- gapDF
 
       # Return BSS URL
