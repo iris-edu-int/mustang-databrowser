@@ -27,9 +27,6 @@ createDataList <- function(infoList) {
   endtime <- infoList$endtime
   metricName  <- infoList$metricName
   archive <- infoList$archive
-  if (archive == "ph5wsbeta") {
-      archive <- "ph5ws"
-  }
 
   # # Default settings for optional parameters associated with different plot types
   # if ( infoList$plotType == "networkMap" ) { 
@@ -51,13 +48,14 @@ createDataList <- function(infoList) {
   
   # Open a connection to IRIS DMC webservices
   iris <- new("IrisClient",service_type=archive,debug=FALSE)
+
+  stationInfo <- data.frame()
+  stationInfo <- getChannel(iris,network,station,location,channel,starttime,endtime)
+
+  stationInfo <- dplyr::distinct(stationInfo,network,station,location,channel,.keep_all=TRUE) 
   
   if ( infoList$plotType == 'trace' ) {
 
-    stationInfo <- data.frame()
-
-    stationInfo <- getChannel(iris,network,station,location,channel,starttime,endtime)
-    stationInfo <- dplyr::distinct(stationInfo,network,station,location,channel,.keep_all=TRUE)
     if (stationInfo$samplerate[1] > 50 && stationInfo$samplerate[1] < 200 ) {
        if (difftime(endtime,starttime,units="days") > 15) {
           stop(paste("Please select time span of 15 days or less for",channel,"channels."),call.=FALSE)
@@ -115,7 +113,13 @@ createDataList <- function(infoList) {
      }
 
      # Return BSS URL
-     dataList[['bssUrl']] <- ''
+     if (infoList$plotType == 'pdf') {
+         dataList[['bssUrl']] <- pdfUrl(stationInfo$channel[1],infoList)
+     } else if (infoList$plotType == 'noise-mode-timeseries') {
+         dataList[['bssUrl']] <- pdfModeUrl(stationInfo$channel[1],infoList)
+     } else if (infoList$plotType == 'spectrogram') {
+         dataList[['bssUrl']] <- pdfSpectrogramUrl(stationInfo$channel[1],infoList)
+     }
 
   } else if ( infoList$plotType == 'metricTimeseries' ) {
 
@@ -168,7 +172,7 @@ createDataList <- function(infoList) {
                              "feed_latency",
                              "total_latency") 
     } else if ( metricName == 'gaps_and_availability' ) {
-       if (infoList$archive == "fdsnws") {
+       if (service_type == "fdsnws") {
           actualMetricNames <- c("ts_num_gaps",
                            "ts_max_gap",
                            "ts_percent_availability",
@@ -340,6 +344,16 @@ createDataList <- function(infoList) {
         stop(err_msg,call.=FALSE)
       }
 
+      if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No trace information found."), call.=FALSE)
+
+      #TODO deal with discontinuities in epochs
+
+      result <- try(metadataDF <- getAvailability(iris,network,station,location,channel,starttime,endtime),silent=TRUE)
+      if ( "try-error" %in% class(result) ) {
+        err_msg <- gsub("Error : ","",geterrmessage())
+        stop(err_msg,call.=FALSE)
+      }
+
       k <- nrow(metadataDF)
       if (metadataDF$starttime[1] > starttime) { 
           starttime <- metadataDF$starttime[1]
@@ -366,6 +380,13 @@ createDataList <- function(infoList) {
 
       gapDF <- dplyr::mutate(gapDF,calendar = as.Date(gapStart))
       dataList[['gapList_DF']] <- gapDF
+
+      #result <- try(dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName="num_gaps"),silent=TRUE)
+      #if ( "try-error" %in% class(result) ) {
+      #  err_msg <- gsub("Error : ","",geterrmessage())
+      #  stop(err_msg,call.=FALSE)
+      #}
+      #dataList[['num_gaps']] <- dataDF
 
       # Return BSS URL
       dataList[['bssUrl']] <- ''

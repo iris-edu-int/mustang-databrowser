@@ -4,6 +4,7 @@
 
 pdfUrl <- function(channel,infoList) {
      serviceUrl <- 'http://service.iris.edu/mustang/noise-pdf/1/query?'
+
      serviceParameters <- list(network=infoList$network,
                               station=infoList$station,
                               location=infoList$location,

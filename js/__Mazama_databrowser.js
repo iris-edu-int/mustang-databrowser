@@ -10,6 +10,7 @@
 /**** GLOBAL VARIABLES ********************************************************/
 
 var G_VERSION = "2.4.0";
+var archive = "fdsnws";
 
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
 
@@ -233,7 +234,6 @@ function selectPlotType() {
     // Plot Options
     $('#plotOptionsLabel').text('Plot Options for Metric Timeseries');
     $('#boxplotShowOutliers').addClass('doNotSerialize').hide();
-    $('#boxplotOptions').hide();
     $('#scaleSensitivity').addClass('doNotSerialize').hide();
     $('#sensitivityOptions').hide();
     $('#transferFunctionCoherenceThreshold').addClass('doNotSerialize').hide();
@@ -601,16 +601,12 @@ function generateVirtualNetworksSelector(){
   sel.empty();
 
   // Repopulate the selector
-  if ($('input:radio[name="archive"]:checked').val() == "fdsnws"){
-    for (var i=0; i<options.length; i++) {
-      if (options[i] == G_virtualNetwork) {
-        sel.append('<option selected="selected" value="' + options[i] + '">' + options[i] + '</option>');
-      } else {
-        sel.append('<option value="' + options[i] + '">' + options[i] + '</option>');
-      }
+  for (var i=0; i<options.length; i++) {
+    if (options[i] == G_virtualNetwork) {
+      sel.append('<option selected="selected" value="' + options[i] + '">' + options[i] + '</option>');
+    } else {
+      sel.append('<option value="' + options[i] + '">' + options[i] + '</option>');
     }
-  } else {
-    sel.append('<option value="'+ "No virtual network" + '">' + "No virtual network" + '</option>');   
   }
 }
 
@@ -835,15 +831,6 @@ function selectVirtualNetwork(){
   }
 
   ajaxUpdateNetworks(); // ends with generateNetworksSelector()
-}
-
-function selectArchive(){
-  G_autoPlot = false;
-  G_previousPlotRequest = false;
-  G_nextPlotRequest = false;
-  var value = $('input:radio[name="archive"]:checked').val();
-  console.log("archive changed to " + value);
-  ajaxUpdateNetworks();
 }
 
 function selectNetwork(){
@@ -1329,6 +1316,9 @@ function sendPlotRequest() {
     paramsUrl = paramsUrl.replace(channelString,chasetString);
   }
 
+  paramsUrl += "&archive=";
+  paramsUrl += archive;
+
   // UI changes
   $('#spinner').fadeIn(200);
   $('#profiling_container').hide();
@@ -1424,97 +1414,104 @@ function ajaxUpdateNetworks() {
     network = "*";
   }
 
-  var url = 'https://service.iris.edu/'+$('input:radio[name="archive"]:checked').val()+'/station/1/query';
+  let urlA = 'https://service.iris.edu/fdsnws/station/1/query';
+  let urlB = 'http://service.iris.edu/ph5wsbeta/station/1/query';
 
-  var data = {net:network,
+  let urlVar = {net:network,
               sta:"*",
               loc:"*",
               cha:G_mustangChannels,
               starttime:$('#starttime').val(),
               endtime:$('#endtime').val(),
               level:"network",
-              nodata:"404",
+              nodata:"204",
               format:"text"};
-  console.log(url + "?" + $.param(data));
-  $.get(url, data).done(function(serviceResponse) {
 
-    $('#requestMessage').text('').removeClass('alert');
-    $('#activityMessage').text("rebuilding Network selectors").removeClass('alert').addClass('info');
+  console.log(urlA + "?" + $.param(urlVar));
+  console.log(urlB + "?" + $.param(urlVar));
 
-    // Read in the response with PapaParse
-    var config = {
-      delimiter: "",  // auto-detect
-      newline: "",  // auto-detect
-      quoteChar: '"',
-      header: false, // NOTE:  When 'true', each row becomes an associative array and it all gets more complicated
-      dynamicTyping: false,
-      preview: 0,
-      encoding: "",
-      worker: false,
-      comments: false,
-      step: undefined,
-      complete: undefined,
-      error: undefined,
-      download: false,
-      skipEmptyLines: true, // false,
-      chunk: undefined,
-      fastMode: undefined,
-      beforeFirstChunk: undefined,
-      withCredentials: undefined
-    }
-    var result = Papa.parse(serviceResponse, config);
-    // TODO:  Could handler errors or parsing issues here
+  let getA = $.get(urlA,urlVar);
+  let getB = $.get(urlB,urlVar);
+  let data = [];
+ 
+  $.when(getA).done(function(dataA) {
+       $('#requestMessage').text('').removeClass('alert');
+       $('#activityMessage').text("rebuilding Network selectors").removeClass('alert').addClass('info');
+       
+       $.when(getB).done(dataB => {
+           $('#requestMessage').text('').removeClass('alert');
+           $('#activityMessage').text("rebuilding Network selectors").removeClass('alert').addClass('info');
 
-    // Response is a '|' separated file with a hedaer like this:
-    // #Network | Description | StartTime | EndTime | TotalStations
+           let config = {
+               delimiter: "",  // auto-detect
+               newline: "",  // auto-detect
+               quoteChar: '"',
+               header: false, // NOTE:  When 'true', each row becomes an associative array and it all gets more complicated
+               dynamicTyping: false,
+               preview: 0,
+               encoding: "",
+               worker: false,
+               comments: "#",
+               step: undefined,
+               complete: undefined,
+               error: undefined,
+               download: false,
+               skipEmptyLines: true, // false,
+               chunk: undefined,
+               fastMode: undefined,
+               beforeFirstChunk: undefined,
+               withCredentials: undefined
+            }
 
-    // Separate header from data
-    var header = result.data.slice(0,1);
-    var data = result.data.slice(1);
+           let resultA = Papa.parse(dataA, config).data.slice(0);
+           console.log("resultA here");
+           console.log(resultA);
+        
+           if(dataB != null) {
+              let resultB = Papa.parse(dataB, config).data.slice(0);       
+              console.log("resultB here");
+              console.log(resultB);
+              data = resultA.concat(resultB);
+              console.log(data);
+           } else {
+              data = resultA;
+           }
+ 
+           if (data.length == 0) {
+               $('#requestMessage').text('').removeClass('alert');
+               $('#activityMessage').text('').removeClass('info').removeClass('alert');
+               alert("No station metadata found for the time span");
+           } else {
+              // Extract columns of data
+              var Ns = $.map(data, function(row, i) { return(row[0]); } );
+             // Create unique arrays
+             var uniqueNs = Ns.filter(function(val, i) { return(Ns.indexOf(val)==i); }).sort();
+             // Replace the G_networks array
+             G_networks = uniqueNs;
 
-    // NOTE:  By having the timerange in the request, all returned data should be valid
+             // Trigger the cascading selectors
+             generateVirtualNetworksSelector();
+             generateNetworksSelector();
+           }
 
-    // Extract columns of data
-    var Ns = $.map(data, function(row, i) { return(row[0]); } );
-    // Create unique arrays
-    var uniqueNs = Ns.filter(function(val, i) { return(Ns.indexOf(val)==i); }).sort();
-
-    // Replace the G_networks array
-    G_networks = uniqueNs;
-
-    // Trigger the cascading selectors
-    generateVirtualNetworksSelector();
-    generateNetworksSelector();
-
+       }).fail(function(jqXHR, textStatus, errorThrown) {
+           $('#requestMessage').text('').removeClass('alert');
+           $('#activityMessage').text('').removeClass('info').removeClass('alert');
+           alert("Error occurred: " + testStatus);
+       });
   }).fail(function(jqXHR, textStatus, errorThrown) {
+        $('#requestMessage').text('').removeClass('alert');
+        $('#activityMessage').text('').removeClass('info').removeClass('alert');
+        alert("Error occurred: " + testStatus);
 
-    $('#requestMessage').text('').removeClass('alert');
-    $('#activityMessage').text('').removeClass('info').removeClass('alert');
-
-    if (jqXHR.status == 404) {
-       if ($('input:radio[name="archive"]:checked').val() == "primary") {
-          alert("No station metadata found for the selected virtual network and time span. Try a different start and end time.");
-       } else {
-          alert("No station metadata found for the selected archive and time span. Try a different start and end time.");
-       }
-    }
-
-    // Restore previous virtual network selection
-    if ($('input:radio[name="archive"]:checked').val() == "primary"){
-      G_virtualNetwork = G_previousVirtualNetwork;
-      generateVirtualNetworksSelector();   
-    } else {
-      G_virtualNetwork = "No virtual network";
-      generateVirtualNetworksSelector();
-    }
-
+        // Restore previous virtual network selection
+        G_virtualNetwork = G_previousVirtualNetwork;
+        generateVirtualNetworksSelector();
   }).always(function() {
-
-    var a = 1;
-
-  });
-
+        var a = 1;
+  }); 
 }
+
 
 /* ------------------------------------------------------------------------- */
 // Query for level=channel metadata for the current network and repopulate all SNCL selectors
@@ -1530,137 +1527,153 @@ function ajaxUpdateSNCLSelectors() {
     network = G_network;
   }
 
-  var url = 'https://service.iris.edu/'+$('input:radio[name="archive"]:checked').val()+'/station/1/query';
+  let urlA = 'https://service.iris.edu/fdsnws/station/1/query';
+  let urlB = 'https://service.iris.edu/ph5wsbeta/station/1/query';
 
-  var data = {net:network,
+  let urlVar = {net:network,
               sta:"*",
               loc:"*",
               cha:G_mustangChannels,
               starttime:$('#starttime').val(),
               endtime:$('#endtime').val(),
               level:"channel",
-              nodata:"404",
+              nodata:"204",
               format:"text",
               includeavailability:"true",
               matchtimeseries:"false"};
-  console.log(url + "?" + $.param(data));
+ 
+  let getA = $.get(urlA,urlVar);
+  let getB = $.get(urlB,urlVar);
+  let result = [];
+  let data = [];
 
-  $.get(url,data).done(function(serviceResponse) {
+  console.log(urlA + "?" + $.param(urlVar));
+  console.log(urlB + "?" + $.param(urlVar));
+
+  $.when(getA).done(function(dataA) {
 
     $('#activityMessage').text("rebuilding SNCL selectors");
 
-    // Read in the response with PapaParse
-    var config = {
-      delimiter: "",  // auto-detect
-      newline: "",  // auto-detect
-      quoteChar: '"',
-      header: false, // NOTE:  When 'true', each row becomes an associative array and it all gets more complicated
-      dynamicTyping: false,
-      preview: 0,
-      encoding: "",
-      worker: false,
-      comments: false,
-      step: undefined,
-      complete: undefined,
-      error: undefined,
-      download: false,
-      skipEmptyLines: true, // false,
-      chunk: undefined,
-      fastMode: undefined,
-      beforeFirstChunk: undefined,
-      withCredentials: undefined
-    }
+    $.when(getB).done(function(dataB) {
 
-    var result = Papa.parse(serviceResponse, config);
-    // TODO:  Could handler errors or parsing issues here
+        // Read in the response with PapaParse
+	let config = {
+	  delimiter: "",  // auto-detect
+	  newline: "",  // auto-detect
+	  quoteChar: '"',
+	  header: false, // NOTE:  When 'true', each row becomes an associative array and it all gets more complicated
+	  dynamicTyping: false,
+	  preview: 0,
+	  encoding: "",
+	  worker: false,
+	  comments: "#",
+	  step: undefined,
+	  complete: undefined,
+	  error: undefined,
+	  download: false,
+	  skipEmptyLines: true, // false,
+	  chunk: undefined,
+	  fastMode: undefined,
+	  beforeFirstChunk: undefined,
+	  withCredentials: undefined
+	}
 
-    // Response is a '|' separated file with a header like this:
-    // #Network | Station | Location | Channel | Latitude | Longitude | Elevation | Depth | Azimuth | Dip | SensorDescription | Scale | ScaleFreq | ScaleUnits | SampleRate | StartTime | EndTime
+        if (dataA != null) {
+           data = Papa.parse(dataA, config).data.slice(0);
+           archive = "fdsnws";
+        } else {
+           data = Papa.parse(dataB, config).data.slice(0);
+           archive = "ph5wsbeta";
+        }
 
-    // Separate header from data
-    var header = result.data.slice(0,1);
-    var data = result.data.slice(1);
+        if (data.length == 0) {
+            $('#requestMessage').text('').removeClass('alert');
+            $('#activityMessage').text('').removeClass('info').removeClass('alert');
+            alert("No station metadata found for the time span");
+        } else {
 
-    // NOTE:  By having the timerange in the request, all returned data should be valid
+	   // NOTE:  By having the timerange in the request, all returned data should be valid
 
-    // Convert returned locations of "" into "--"
-    $.each(data, function(i, row) {
-      if ( row[2] == "" ) data[i][2] = "--";
-    });
+	   // Convert returned locations of "" into "--"
+	   $.each(data, function(i, row) {
+	       if ( row[2] == "" ) data[i][2] = "--";
+	   });
 
-    // Extract columns of data
-    var NSs = $.map(data, function(row, i) { return(row[0] + '.' + row[1]); } );
-    var NSLs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2]); } );
-    var NSLCs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2] + '.' + row[3]); } );
+	   // Extract columns of data
+	   var NSs = $.map(data, function(row, i) { return(row[0] + '.' + row[1]); } );
+	   var NSLs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2]); } );
+	   var NSLCs = $.map(data, function(row, i) { return(row[0] + '.' + row[1] + '.' + row[2] + '.' + row[3]); } );
 
-    var NCs = $.map(data, function(row,i) { return(row[3]); }); 
-    console.log(NSs);
+	   var NCs = $.map(data, function(row,i) { return(row[3]); });
 
-    // Create unique arrays
-    var uniqueNSs = NSs.filter(function(val, i) { return(NSs.indexOf(val)==i); }).sort();
-    var uniqueNSLs = NSLs.filter(function(val, i) { return(NSLs.indexOf(val)==i); }).sort();
-    var uniqueNSLCs = NSLCs.filter(function(val, i) { return(NSLCs.indexOf(val)==i); }).sort();
-    var uniqueNCs = NCs.filter(function(val, i) { return(NCs.indexOf(val)==i); }).sort(); 
+	   // Create unique arrays
+	   var uniqueNSs = NSs.filter(function(val, i) { return(NSs.indexOf(val)==i); }).sort();
+	   var uniqueNSLs = NSLs.filter(function(val, i) { return(NSLs.indexOf(val)==i); }).sort();
+	   var uniqueNSLCs = NSLCs.filter(function(val, i) { return(NSLCs.indexOf(val)==i); }).sort();
+	   var uniqueNCs = NCs.filter(function(val, i) { return(NCs.indexOf(val)==i); }).sort();
 
-    // Replace the G_stations "station by network" associative array
-    G_stations = {};
-    $.each(G_networks, function(i, N) {
-      // Find NSs that start with 'net'
-      // Then create a unique, sorted list of these NSs
-      // Add an array of the 'sta' part to G_stations with 'net' as the key
-      var N_NSs = NSs.filter( function(val) { return(val.startsWith(N + '.')); } );
-      if (N_NSs.length > 0) {
-        var N_uniqueNSs = N_NSs.filter(function(val, i) { return(N_NSs.indexOf(val)==i); }).sort();
-        G_stations[N] = $.map(N_uniqueNSs, function(elem, i) { return(elem.split('.')[1]); } );
+	   // Replace the G_stations "station by network" associative array
+	   G_stations = {};
+	   $.each(G_networks, function(i, N) {
+	       // Find NSs that start with 'net'
+	       // Then create a unique, sorted list of these NSs
+	       // Add an array of the 'sta' part to G_stations with 'net' as the key
+	       var N_NSs = NSs.filter( function(val) { return(val.startsWith(N + '.')); } );
+	       if (N_NSs.length > 0) {
+		  var N_uniqueNSs = N_NSs.filter(function(val, i) { return(N_NSs.indexOf(val)==i); }).sort();
+		  G_stations[N] = $.map(N_uniqueNSs, function(elem, i) { return(elem.split('.')[1]); } );
+	       }
+	   })
+
+	  // Replace the G_locations "location by net.sta" associative array
+	  G_locations = {};
+	  $.each(uniqueNSs, function(i, NS) {
+	     // Find NSLs that start with 'net.sta'
+	     // Then create a unique, sorted list of these NSLs
+	     // Add an array of the 'loc' part to G_locations with 'net.sta' as the key
+	    var NS_NSLs = NSLs.filter( function(val) { return(val.startsWith(NS + '.')); } );
+	    if (NS_NSLs.length > 0) {
+	       var NS_uniqueNSLs = NS_NSLs.filter(function(val, i) { return(NS_NSLs.indexOf(val)==i); }).sort();
+	       G_locations[NS] = $.map(NS_uniqueNSLs, function(elem, i) { return(elem.split('.')[2]); } );
+	     }
+	  })
+
+	 // Replace the G_channels "channel by net.sta.loc" associative array
+	 G_channels = {};
+
+	 $.each(uniqueNSLs, function(i, NSL) {
+	    // Find NSLCs that start with 'net.sta.loc'
+	    // Then create a unique, sorted list of these NSLCs
+	    // Add an array of the 'cha' part to G_channels with 'net.sta.loc' as the key
+
+	    var NSL_NSLCs = NSLCs.filter( function(val) { return(val.startsWith(NSL + '.')); } );
+	    if (NSL_NSLCs.length > 0) {
+	      var NSL_uniqueNSLCs = NSL_NSLCs.filter(function(val, i) { return(NSL_NSLCs.indexOf(val)==i); }).sort();
+	      G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
+	    }
+	  })
+
+	  G_channels[network] = uniqueNCs;
+
+	  // Regenerate all selectors based on the new G_~ arrays
+	  generateStationsSelector();
+
+	  //$(document).triggerHandler('finishedUpdatingSNCLSelectors');
       }
-    })
 
-    // Replace the G_locations "location by net.sta" associative array
-    G_locations = {};
-    $.each(uniqueNSs, function(i, NS) {
-      // Find NSLs that start with 'net.sta' 
-      // Then create a unique, sorted list of these NSLs
-      // Add an array of the 'loc' part to G_locations with 'net.sta' as the key
-      var NS_NSLs = NSLs.filter( function(val) { return(val.startsWith(NS + '.')); } );
-      if (NS_NSLs.length > 0) {
-        var NS_uniqueNSLs = NS_NSLs.filter(function(val, i) { return(NS_NSLs.indexOf(val)==i); }).sort();
-        G_locations[NS] = $.map(NS_uniqueNSLs, function(elem, i) { return(elem.split('.')[2]); } );        
-      }
-    })
 
-    // Replace the G_channels "channel by net.sta.loc" associative array
-    G_channels = {};
-
-    $.each(uniqueNSLs, function(i, NSL) {
-      // Find NSLCs that start with 'net.sta.loc'
-      // Then create a unique, sorted list of these NSLCs
-      // Add an array of the 'cha' part to G_channels with 'net.sta.loc' as the key
-
-      var NSL_NSLCs = NSLCs.filter( function(val) { return(val.startsWith(NSL + '.')); } );
-      if (NSL_NSLCs.length > 0) {        
-        var NSL_uniqueNSLCs = NSL_NSLCs.filter(function(val, i) { return(NSL_NSLCs.indexOf(val)==i); }).sort();
-        G_channels[NSL] = $.map(NSL_uniqueNSLCs, function(elem, i) { return(elem.split('.')[3]); } );
-      }
-    })
-    
-    G_channels[network] = uniqueNCs;
- 
-    // Regenerate all selectors based on the new G_~ arrays
-    generateStationsSelector();
-
-    //$(document).triggerHandler('finishedUpdatingSNCLSelectors');
+     }).fail(function(jqXHR, textStatus, errorThrown) {
+        $('#requestMessage').text('').removeClass('alert');
+        $('#activityMessage').text('').removeClass('info').removeClass('alert');
+        alert("Error occurred: " + testStatus);
+     });
 
   }).fail(function(jqXHR, textStatus, errorThrown) {
-
-      if (jqXHR.status == 404) {
-        // Service returned "no data found" -- possibly due to an inappropriate time range
-        alert('No station metadata found for the selected network and time range.');
-      }
-
+        $('#requestMessage').text('').removeClass('alert');
+        $('#activityMessage').text('').removeClass('info').removeClass('alert');
+        alert("Error occurred: " + textStatus);
   }).always(function() {
-
-    var a = 1;
-
+        var a = 1;
   });
 
 }
@@ -1762,8 +1775,6 @@ $(function() {
       }
     });
           
-  $('input:radio[name="archive"]').change(selectArchive);
-  
   // Initialize the starttime and endtime fields
   validateDates();
 

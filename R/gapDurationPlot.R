@@ -56,6 +56,7 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
   
   # ----- Plotting -------------------------------------------------------------
   
+  #plotCount <- 4
   plotCount <- 3
   mat <- matrix(c(seq(1,plotCount)), plotCount, 1)
   layout(mat)
@@ -115,6 +116,11 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
   mtext("frequency", side=2, line=line, cex=1.0)
   line <- par('oma')[1] - 1
   mtext("Gap Length (seconds)",side=1,line=line,cex=1.0)
+
+  #yStyle <- 'zeroScaled'
+  #style <- 'matlab'
+  #timeseriesPlot(df2$starttime, df2$value, style, xlim, yStyle)
+  
 
   # ----- Annotations ----------------------------------------------------------
 

@@ -25,6 +25,7 @@ createInfoList <- function(request) {
   # NOTE:  a character string identifier.
   infoList$metricName <- ifelse(is.null(infoList$metric),'',infoList$metric)
   metricName <- infoList$metricName
+  archive <- infoList$archive
 
   # Convert incoming parameters to appropriate type
   infoList$plotWidth <- as.numeric(infoList$plotWidth)
@@ -74,6 +75,7 @@ createInfoList <- function(request) {
     }
     
   }else if (infoList$plotType == 'gapDurationPlot') { 
+     #infoList$plotHeight <- 2.4 * infoList$plotWidth
      infoList$plotHeight <- 1.8 * infoList$plotWidth
 
   }else if (infoList$plotType == 'stackedMetricTimeseries') {
