@@ -1415,7 +1415,7 @@ function ajaxUpdateNetworks() {
   }
 
   let urlA = 'https://service.iris.edu/fdsnws/station/1/query';
-  let urlB = 'http://service.iris.edu/ph5wsbeta/station/1/query';
+  let urlB = 'http://service.iris.edu/ph5ws/station/1/query';
 
   let urlVar = {net:network,
               sta:"*",
@@ -1528,7 +1528,7 @@ function ajaxUpdateSNCLSelectors() {
   }
 
   let urlA = 'https://service.iris.edu/fdsnws/station/1/query';
-  let urlB = 'https://service.iris.edu/ph5wsbeta/station/1/query';
+  let urlB = 'https://service.iris.edu/ph5ws/station/1/query';
 
   let urlVar = {net:network,
               sta:"*",
@@ -1583,7 +1583,7 @@ function ajaxUpdateSNCLSelectors() {
            archive = "fdsnws";
         } else {
            data = Papa.parse(dataB, config).data.slice(0);
-           archive = "ph5wsbeta";
+           archive = "ph5ws";
         }
 
         if (data.length == 0) {

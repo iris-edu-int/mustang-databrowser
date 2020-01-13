@@ -334,10 +334,10 @@ createDataList <- function(infoList) {
 
   } else if (infoList$plotType == 'gapDurationPlot' ) {
 
-      logger.debug("getDataAvailability(iris,'%s','%s','%s','%s',starttime,endtime)",network,station,location,channel)
+      logger.debug("getDataAvailability(iris,'%s','%s','%s','%s',starttime,endtime)",network,station,location,channel,includerestricted=TRUE,excludetoolarge=FALSE)
       logger.debug("infoList$metric '%s'", infoList$metric)
       
-      result <- try(dataDF <- getDataAvailability(iris,network,station,location,channel,starttime,endtime),silent=TRUE)
+      result <- try(dataDF <- getDataAvailability(iris,network,station,location,channel,starttime,endtime,includerestricted=TRUE,excludetoolarge=FALSE),silent=TRUE)
       
       if ( "try-error" %in% class(result) ) {
         err_msg <- gsub("Error : ","",geterrmessage())
@@ -379,14 +379,14 @@ createDataList <- function(infoList) {
                                               +as.numeric(format(gapDF$gapStart, "%OS6")))
 
       gapDF <- dplyr::mutate(gapDF,calendar = as.Date(gapStart))
-      dataList[['gapList_DF']] <- gapDF
+      dataList[['gapListDF']] <- gapDF
 
-      #result <- try(dataDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName="num_gaps"),silent=TRUE)
-      #if ( "try-error" %in% class(result) ) {
-      #  err_msg <- gsub("Error : ","",geterrmessage())
-      #  stop(err_msg,call.=FALSE)
-      #}
-      #dataList[['num_gaps']] <- dataDF
+      result <- try(numGapDF <- getGeneralValueMetrics(iris,network,station,location,channel,starttime,endtime,metricName="num_gaps"),silent=TRUE)
+      if ( "try-error" %in% class(result) ) {
+        err_msg <- gsub("Error : ","",geterrmessage())
+        stop(err_msg,call.=FALSE)
+      }
+      dataList[['numGapDF']] <- numGapDF
 
       # Return BSS URL
       dataList[['bssUrl']] <- ''

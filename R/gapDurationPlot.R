@@ -1,9 +1,10 @@
 # gapDurationPlot.R
 #
-# Create 3 plots based on a gap duration list:
+# Create 4 plots based on a gap duration list:
 # Date vs Gap Duration
 # Time of Day vs Gap Duration
 # Histogram
+# Date vs Gap Count
 #
 # Author: Gillian Sharer
 #         
@@ -18,19 +19,14 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
   starttime <- infoList$starttime
   endtime <- infoList$endtime
   xlim <- c(starttime,endtime)
-  #xlim <- c(as.Date(starttime),as.Date(endtime))
+  xlim2 <- as.Date(xlim)  #
   options(scipen=5)
 
-  df <- dataList[['gapList_DF']]
-  ylo <- min(df$gapLength, na.rm=TRUE)
-  yhi <- max(df$gapLength, na.rm=TRUE)
-
-  logger.debug("gapDurationPlot here")
-  logger.debug("snclName")
-  logger.debug(textList$snclName)
-  logger.debug("Title")
-  logger.debug(textList$metricTitle)
-  logger.debug("gapDurationPlot here2")
+  df <- dataList[['gapListDF']]
+  df2 <- dataList[['numGapDF']]
+  ylo <- min(df2$value, na.rm=TRUE)
+  yhi <- max(df2$value, na.rm=TRUE)
+  yhi <- max(10,yhi)
 
   # ----- Style ----------------------------------------------------------------
   
@@ -39,10 +35,6 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
   par(bg='gray95', mar=c(4,3,3,4), oma=c(4,4,4,0))
   las <- 1
   par(cex=1.0)
-
-  ylo <- 1
-  yhi <- max(10,yhi)
-  yrange <- yhi-ylo
 
   ylim <- c(1,10^ceiling(log10(max(df$gapLength, na.rm=TRUE))))
 
@@ -56,8 +48,8 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
   
   # ----- Plotting -------------------------------------------------------------
   
-  #plotCount <- 4
-  plotCount <- 3
+  plotCount <- 4
+  #plotCount <- 3
   mat <- matrix(c(seq(1,plotCount)), plotCount, 1)
   layout(mat)
 
@@ -74,7 +66,8 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
     trns <- 1
   }
 
-  plot(df$gapStart,df$gapLength, 
+  #plot(df$gapStart,df$gapLength, 
+  plot(as.POSIXct(df$calendar,tz="GMT"),df$gapLength,
        panel.first=rect(par('usr')[1],10^par('usr')[3],par('usr')[2],10^par('usr')[4], col='white'),
        log='y', pch=15, col=rgb(red=1,green=0,blue=0,alpha=trns),
        xlim=xlim, ylim=ylim,cex=1.5,cex.axis=1.5,ylab="",xlab="",axes=FALSE)
@@ -92,12 +85,12 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
   abline(h=yAxTicks, col="lightgray", lty="dotted", lwd=par("lwd"))
 
 
-  xlim <- c(0,86400)
-  xAxTicks <- seq(0,86400,14400)
+  xlim2 <- c(0,86400)
+  xAxTicks2 <- seq(0,86400,14400)
   plot(df$timeOfDay,df$gapLength, 
        panel.first=rect(par('usr')[1],10^par('usr')[3],par('usr')[2],10^par('usr')[4], col='white'),
        log='y', pch=15, col=rgb(red=1,green=0,blue=0,alpha=trns),
-       axes=FALSE, ylim=ylim,cex=1.5,cex.axis=1.5,xlim=xlim,xlab="",ylab="")
+       axes=FALSE, ylim=ylim,cex=1.5,cex.axis=1.5,xlim=xlim2,xlab="",ylab="")
 
   box()
   line <- par('oma')[2] + 1.5
@@ -105,12 +98,30 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
   line <- par('oma')[1] - 1
   mtext("Time of Day (UTC)",side=1,line=line,cex=1.0)
 
-  axis(side=1,at=xAxTicks,labels=c("00:00","04:00","08:00","12:00","16:00","20:00","24:00"),cex.axis=1.5)
-  abline(v=xAxTicks, col="lightgray", lty="dotted", lwd=par("lwd"))
+  axis(side=1,at=xAxTicks2,labels=c("00:00","04:00","08:00","12:00","16:00","20:00","24:00"),cex.axis=1.5)
+  abline(v=xAxTicks2, col="lightgray", lty="dotted", lwd=par("lwd"))
   axis(side=2, at=yAxTicks, las=1,cex.axis=1.5)
   abline(h=yAxTicks, col="lightgray", lty="dotted", lwd=par("lwd"))
 
-  hist(df$gapLength,breaks=5,xlab="",col="lightblue",main="",cex.axis=1.5)
+  h <- hist(df$gapLength,plot=FALSE)
+  hyhi <- max(5,h$counts)
+  hylim <- c(0,hyhi)
+
+  # Rice's rule for histogram breaks: cubed root of the number of obervations times 2
+  # https://www.statisticshowto.datasciencecentral.com/choose-bin-sizes-statistics/
+  # but also set minimum number of breaks at 5 
+  breaks <- 2*(length(df$gapLength)^(1/3))
+
+  # can also try the square root rule
+  #breaks <- sqrt(length(df$gapLength))
+
+  if (breaks < 5) {
+      breaks <- 5
+  }
+
+  hist(df$gapLength,breaks=breaks,ylim=hylim,xlab="",col="lightblue",main="",cex.axis=1.5,
+       panel.first=rect(par('usr')[1],par('usr')[3],par('usr')[2],par('usr')[4], col='white'))
+
   box()
   line <- par('oma')[2] + 1.5
   mtext("frequency", side=2, line=line, cex=1.0)
@@ -119,7 +130,34 @@ gapDurationPlot <- function(dataList, infoList, textList, ...) {
 
   #yStyle <- 'zeroScaled'
   #style <- 'matlab'
-  #timeseriesPlot(df2$starttime, df2$value, style, xlim, yStyle)
+  #timeseriesPlot(df2$starttime, df2$value, style, xlim=xlim, ystyle=yStyle)
+
+  ylim <- c(ylo,yhi)
+  
+  plot(df2$starttime, df2$value,
+       panel.first=rect(par('usr')[1],par('usr')[3],par('usr')[2],par('usr')[4], col='white'),
+       pch=15, col=rgb(red=1,green=0,blue=0,alpha=1),
+       xlim=xlim, ylim=ylim, cex=1.5,cex.axis=1.5,ylab="",xlab="",axes=FALSE)
+
+  box()
+  line <- par('oma')[2] + 1.5
+  mtext("gap count (number of occurences)", side=2, line=line, cex=1.0)
+
+  line <- par('oma')[1] - 1
+  mtext("Date",side=1,line=line,cex=1.0)
+
+  yAxTicks <- axTicks(2)
+  if (max(abs(yAxTicks)) >= 1e7) {
+      yAxLabels <- formatC(yAxTicks, digits=2, format="e")
+  } else {
+      yAxLabels <- yAxTicks
+  }
+
+  axis.POSIXct(1, at=xAxTicks, labels=xAxLabels, line=0,cex.axis=1.5)
+  abline(v=xAxTicks, col="lightgray", lty="dotted", lwd=par("lwd"))
+  axis(side=2, at=yAxTicks, las=1,cex.axis=1.5)
+  abline(h=yAxTicks, col="lightgray", lty="dotted", lwd=par("lwd"))
+  
   
 
   # ----- Annotations ----------------------------------------------------------

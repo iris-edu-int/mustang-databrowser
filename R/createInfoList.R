@@ -75,8 +75,8 @@ createInfoList <- function(request) {
     }
     
   }else if (infoList$plotType == 'gapDurationPlot') { 
-     #infoList$plotHeight <- 2.4 * infoList$plotWidth
-     infoList$plotHeight <- 1.8 * infoList$plotWidth
+     infoList$plotHeight <- 2.4 * infoList$plotWidth
+     #infoList$plotHeight <- 1.8 * infoList$plotWidth
 
   }else if (infoList$plotType == 'stackedMetricTimeseries') {
     

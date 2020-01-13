@@ -1,5 +1,9 @@
-2019.339: 1.4.0 (2.4.0)
-         - added radio button to select archive data source (primary or ph5)
+2020.013: 1.4.0 (2.4.0)
+         - dropdown network/station selection boxes now include stations in the PH5 archive
+         - gap duration plot vs date now disregards hours,minutes,seconds and plots the 
+           time at 00:00:00. All values for each date line up at same x-axis mark.
+         - added gap count vs date plot to the gap duration plot view.
+         - minor bug fix, gap duration plots now work for restricted data
          - added plot option to spectrogram plots to use fixed scale -200,-50 dB for color
            scale limits. This had previously been default; default is now 5th,95th percentile
            of PSD power values (same as the spectrogram web service)
