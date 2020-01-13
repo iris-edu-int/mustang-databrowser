@@ -458,7 +458,7 @@ function selectPlotType() {
 
     generateChannelsSelector();
 
-  } else if (plotType == 'pdf' || plotType == 'noise-mode-timeseries' || plotType == 'spectrogram') {
+  } else if (plotType == 'pdf' || plotType == 'noise-mode-timeseries') {
 
     // Metric
     $('#metric').addClass('doNotSerialize').hide();
