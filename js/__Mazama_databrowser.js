@@ -1381,7 +1381,7 @@ function sendPlotRequest() {
 
 // Get a list of virtual network codes and repopulate the virtual networks selector
 function ajaxUpdateVirtualNetworksSelector() {
-  var url = 'https://service.iris.edu/irisws/virtualnetwork/1/codes'; // response is always XML
+  var url = '//service.iris.edu/irisws/virtualnetwork/1/codes'; // response is always XML
   $.get(url).done(function(serviceResponse) {
     // NOTE:  This function is a 'promise' that gets evaluated asynchronously
     var vnetNodes = serviceResponse.getElementsByTagName("virtualNetwork");
@@ -1414,8 +1414,8 @@ function ajaxUpdateNetworks() {
     network = "*";
   }
 
-  let urlA = 'https://service.iris.edu/fdsnws/station/1/query';
-  let urlB = 'http://service.iris.edu/ph5ws/station/1/query';
+  let urlA = '//service.iris.edu/fdsnws/station/1/query';
+  let urlB = '//service.iris.edu/ph5ws/station/1/query';
 
   let urlVar = {net:network,
               sta:"*",
@@ -1527,8 +1527,8 @@ function ajaxUpdateSNCLSelectors() {
     network = G_network;
   }
 
-  let urlA = 'https://service.iris.edu/fdsnws/station/1/query';
-  let urlB = 'https://service.iris.edu/ph5ws/station/1/query';
+  let urlA = '//service.iris.edu/fdsnws/station/1/query';
+  let urlB = '//service.iris.edu/ph5ws/station/1/query';
 
   let urlVar = {net:network,
               sta:"*",

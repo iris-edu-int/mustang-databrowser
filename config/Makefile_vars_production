@@ -26,8 +26,8 @@
 SERVER=mustang-cgi.iris.washington.edu
 OWNERSHIP=www:apache
 CGI_PATH=/wwwshared/cgi-bin/mustang
-DATABROWSER_PATH=/wwwshared/HTML/mustang/databrowserTest/
-DATABROWSER=databrowserTest
+DATABROWSER_PATH=/wwwshared/HTML/mustang/databrowser/
+DATABROWSER=databrowser
 DATA_DIR=data_local
 OUTPUT_DIR=output
 CACHE_SIZE=1000

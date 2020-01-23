@@ -3,7 +3,7 @@
 ############################################################
 
 pdfUrl <- function(channel,infoList) {
-     serviceUrl <- 'http://service.iris.edu/mustang/noise-pdf/1/query?'
+     serviceUrl <- 'https://service.iris.edu/mustang/noise-pdf/1/query?'
 
      serviceParameters <- list(network=infoList$network,
                               station=infoList$station,
@@ -29,7 +29,7 @@ pdfUrl <- function(channel,infoList) {
 }
 
 pdfSpectrogramUrl <- function(channel,infoList) {
-    serviceUrl <- 'http://service.iris.edu/mustang/noise-spectrogram/1/query?'
+    serviceUrl <- 'https://service.iris.edu/mustang/noise-spectrogram/1/query?'
     serviceParameters <- list(network=infoList$network,
                               station=infoList$station,
                               location=infoList$location,
@@ -61,7 +61,7 @@ pdfSpectrogramUrl <- function(channel,infoList) {
 }
 
 pdfModeUrl <- function(channel,infoList) {
-    serviceUrl <- 'http://service.iris.edu/mustang/noise-mode-timeseries/1/query?'
+    serviceUrl <- 'https://service.iris.edu/mustang/noise-mode-timeseries/1/query?'
     serviceParameters <- list(network=infoList$network,
                               station=infoList$station,
                               location=infoList$location,
