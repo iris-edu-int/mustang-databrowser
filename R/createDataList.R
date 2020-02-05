@@ -49,6 +49,10 @@ createDataList <- function(infoList) {
   # Open a connection to IRIS DMC webservices
   iris <- new("IrisClient",service_type=archive,debug=FALSE)
 
+  # allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN.|BX.|BY.|HX.|HY.|EH.|EN.|CH.|DH.|SH.|DP."
+  currentSeismicChannels <- "?H?,?P?,?L?,?N?,?G?,BY?,HY?,BX?,HX?"
+  if (channel == '') { channel <- currentSeismicChannels }
+
   stationInfo <- data.frame()
   stationInfo <- getChannel(iris,network,station,location,channel,starttime,endtime)
 
@@ -239,6 +243,7 @@ createDataList <- function(infoList) {
 
     # loads single values for each station based on whatever metric we ask for
     result <- try(dataDF <- getGeneralValueMetrics(iris,network,'','',channel,starttime,endtime,metricName))
+    dataDF <- dplyr::mutate(dataDF, snclq=gsub(".{2}$","",snclq))  #remove quality code
     if ( "try-error" %in% class(result) ) {
            err_msg <- gsub("Error : ","",geterrmessage())
            stop(err_msg,call.=FALSE)
@@ -259,10 +264,8 @@ createDataList <- function(infoList) {
            stop(err_msg,call.=FALSE)
       }
 
-      metaDF$starttime <- as.Date(if_else(difftime(metaDF$starttime,starttime) < 0, starttime, metaDF$starttime))
-      metaDF$endtime <- as.Date(if_else(difftime(metaDF$endtime,endtime) < 0, metaDF$endtime, endtime))
-
-      dataDF <- dplyr::mutate(dataDF, snclq=gsub(".{2}$","",snclq))  #remove quality code
+      metaDF$starttime <- as.Date(dplyr::if_else(difftime(metaDF$starttime,starttime) < 0, starttime, metaDF$starttime))
+      metaDF$endtime <- as.Date(dplyr::if_else(difftime(metaDF$endtime,endtime) < 0, metaDF$endtime, endtime, missing=endtime))
       metaDF <- dplyr::rename(metaDF,snclq=snclId)
 
       metaDF <- metaDF %>%
@@ -292,8 +295,6 @@ createDataList <- function(infoList) {
     }
 
     # loads single values for all seismic channels
-    # allSeismicChannels <- "LH.|LL.|LG.|LM.|LN.|MH.|ML.|MG.|MM.|MN.|BH.|BL.|BG.|BM.|BN.|HH.|HL.|HG.|HM.|HN.|BX.|BY.|HX.|HY.|EH.|EN.|CH.|DH.|SH.|DP."
-    currentSeismicChannels <- "?H?,?P?,?L?,?N?,?G?,BY?,HY?,BX?,HX?"
     result <- try(dataDF <- getGeneralValueMetrics(iris,network,station,'',currentSeismicChannels,starttime,endtime,metricName), silent=TRUE)
     if ( "try-error" %in% class(result) ) {
            err_msg <- gsub("Error : ","",geterrmessage())
@@ -314,7 +315,7 @@ createDataList <- function(infoList) {
            stop(err_msg,call.=FALSE) 
       }
       metaDF$starttime <- as.Date(if_else(difftime(metaDF$starttime,starttime) < 0, starttime, metaDF$starttime))
-      metaDF$endtime <- as.Date(if_else(difftime(metaDF$endtime,endtime) < 0, metaDF$endtime, endtime))
+      metaDF$endtime <- as.Date(if_else(difftime(metaDF$endtime,endtime) < 0, metaDF$endtime, endtime,missing=endtime))
       metaDF <- mutate(metaDF, snclq=paste(snclId,"M",sep="."))
       metaDF <- metaDF %>%
          select(snclq,scale,scaleunits,starttime,endtime) %>%

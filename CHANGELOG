@@ -1,3 +1,6 @@
+2020.036: 1.4.1 (2.4.1)
+         - fixes for new fdsnws/station webservice output
+         - bug fix, station labels now appear correctly for scaled network boxplots
 2020.013: 1.4.0 (2.4.0)
          - dropdown network/station selection boxes now include stations in the PH5 archive
          - gap duration plot vs date now disregards hours,minutes,seconds and plots the 

@@ -34,14 +34,6 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   network_DF <- dataList[['network_DF']]
   metric_DF <- dataList[['metric_DF']]
   
-  logger.debug("metric_DF")
-  logger.debug(paste("metricName",metric_DF$metricName[1]))
-  logger.debug(paste("sncl",metric_DF$sncl[1]))
-  logger.debug(paste("value",metric_DF$value[1]))
-  logger.debug(paste("starttime",metric_DF$starttime[1]))
-  logger.debug(paste("endtime",metric_DF$endtime[1]))
-  logger.debug(paste("loadtime",metric_DF$loadtime[1]))
-  
   # Need to remove missing values for boxplot to work properly (seiscode bug #630)
   # NOTE:  transfer function metrics phase_diff and ms_coherence are in their own columns rather than 'value'
   if ( infoList$metricName %in% c("gain_ratio","phase_diff","ms_coherence") ) {
@@ -61,8 +53,7 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   } else {
     metricValues <- metric_DF$value
   }
-  snclq <- metric_DF$snclq
-  sncl <- stringr::str_replace(snclq,"..$","")  # remove last two characters
+  sncl <- metric_DF$snclq
   
   # NOTE:  Support for different plot orders:
   # NOTE:  atValue passes a numbered order that tells boxplot in what order to plot the boxes/snclq values
