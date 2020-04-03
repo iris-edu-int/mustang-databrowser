@@ -355,10 +355,16 @@ createDataList <- function(infoList) {
         stop(err_msg,call.=FALSE)
       }
 
+      
       k <- nrow(metadataDF)
       if (metadataDF$starttime[1] > starttime) { 
           starttime <- metadataDF$starttime[1]
       }
+
+      if (is.na(metadataDF$endtime[k])){
+          metadataDF$endtime[k] <- endtime
+      }
+
       if (metadataDF$endtime[k] < endtime) {
           endtime <- metadataDF$endtime[k]
       }

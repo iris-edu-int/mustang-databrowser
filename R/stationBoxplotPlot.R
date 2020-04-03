@@ -111,7 +111,7 @@ stationBoxplotPlot <- function(dataList,infoList,textList) {
   plotMetrics <- boxplot(metricValues ~ sncl, ylim=ylim,
                          outline=infoList$boxplotShowOutliers,
                          horizontal=TRUE, at=atValue,
-                         xlab="")
+                         xlab="",ylab="",show.names=TRUE)
   
   axis(3)
   
@@ -120,11 +120,6 @@ stationBoxplotPlot <- function(dataList,infoList,textList) {
   title(textList$stationTitle, line=5)
   mtext(textList$metricTitle, side=3, line=2.5, cex=1.2)
   mtext(textList$dataRange, side=1, line=2.5, cex=1.2)
-
-  if (length(unique(sncl)) == 1 ) {
-     slabel= paste(sncl[1],"\u2014")
-     mtext(slabel,side=2)
-  }
 
   # TODO:  Add date range description
   

@@ -110,7 +110,7 @@ networkBoxplotPlot <- function(dataList,infoList,textList) {
   plotMetrics <- boxplot(metricValues ~ sncl, ylim=ylim,
                          outline=infoList$boxplotShowOutliers,
                          horizontal=TRUE, at=atValue,
-                         xlab="")
+                         xlab="",ylab="",show.names=TRUE)
   
   axis(3)
   
