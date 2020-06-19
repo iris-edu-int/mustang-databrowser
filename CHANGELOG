@@ -1,3 +1,6 @@
+2020.170: 1.5.0 (2.5.0)
+         - addition of new MUSTANG metrics: sample_rate_channel, sample_rate_resp,
+           max_range
 2020.036: 1.4.1 (2.4.1)
          - fixes for new fdsnws/station webservice output
          - bug fix, station labels now appear correctly for scaled network boxplots

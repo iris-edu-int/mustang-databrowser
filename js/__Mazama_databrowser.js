@@ -9,7 +9,7 @@
 
 /**** GLOBAL VARIABLES ********************************************************/
 
-var G_VERSION = "2.4.0";
+var G_VERSION = "2.5.0";
 var archive = "fdsnws";
 
 // TODO:  These lists of metrics might be moved to a separate file to be loaded by the html page. 
