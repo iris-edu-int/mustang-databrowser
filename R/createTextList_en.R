@@ -30,7 +30,6 @@ createTextList <- function(dataList, infoList) {
                        data_latency='Time Since Last Data Sample Was Acquired',
                        dc_offset='Indicator of Likelihood of DC Offset Shift',
                        dc_offset_times='Times of DC Offsets Detected',
-                       dead_channel_exp='Dead Channel Metric: Exponential Fit',
                        dead_channel_gsn='Dead Channel Metric: GSN',
                        dead_channel_lin='Dead Channel Metric: Linear Fit',
                        digital_filter_charging='MiniSEED Flag Count: Digital Filter Charging',
@@ -43,6 +42,7 @@ createTextList <- function(dataList, infoList) {
                        glitches='MiniSEED Flag Count: Glitches Detected',
                        max_gap='Maximum Gap Length',
                        max_overlap='Maximum Overlap Length',
+                       max_range='Maximum Range',
                        max_stalta='Maximum Short-Term Average/Long-Term Average Amplitude Ratio',
                        missing_padded_data='MiniSEED Flag Count: Missing/Padded Data Present',
                        num_gaps='Number of Gaps',
@@ -57,6 +57,8 @@ createTextList <- function(dataList, infoList) {
                        sample_mean='Mean Amplitude',
                        sample_median='Median Amplitude',
                        sample_min='Minimum Amplitude',
+                       sample_rate_channel='Sample Rate Channel',
+                       sample_rate_resp='Sample Rate Response',
                        sample_rms='Root-Mean-Squared-Variance of Amplitudes',
                        sample_snr='P-Wave Signal-To-Noise Ratio',
                        sample_unique='Count of Unique Sample Values',
@@ -98,7 +100,6 @@ createTextList <- function(dataList, infoList) {
                       cross_talk='correlation coefficient', # no units
                       data_latency='latency (seconds)',
                       dc_offset='indicator of likelihood of DC offset shift', # no units
-                      dead_channel_exp='standard deviation of residuals (log10(dB))',
                       dead_channel_gsn='indicator',
                       dead_channel_lin='standard deviation of residuals (dB)',
                       digital_filter_charging='flag count (number of occurrences)',
@@ -111,6 +112,7 @@ createTextList <- function(dataList, infoList) {
                       glitches='flag count (number of occurrences)',
                       max_gap='maximum gap length (seconds)',
                       max_overlap='overlap length (seconds)',
+                      max_range='maximum amplitude range, windowed (counts)',
                       max_stalta='short-term average / long-term average', # no units
                       missing_padded_data='flag count (number of occurrences)',
                       num_gaps='gap count (number of occurrences)',
@@ -125,6 +127,8 @@ createTextList <- function(dataList, infoList) {
                       sample_mean='mean amplitude (counts)',
                       sample_median='median amplitude (counts)',
                       sample_min='minimum amplitude (counts)',
+                      sample_rate_channel='indicator',
+                      sample_rate_resp='indicator',
                       sample_rms='root-mean-square variance (counts)',
                       sample_snr='signal-to-noise ratio', # no units
                       sample_unique='unique sample values (number of occurrences)',

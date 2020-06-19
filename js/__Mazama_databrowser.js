@@ -39,6 +39,7 @@ var G_singleMetrics = {
     'dc_offset': 'dc_offset: indicator, likelihood of DC offset shift',
     'max_gap': 'max_gap: maximum gap duration',
     'max_overlap': 'max_overlap: maximum overlap duration',
+    'max_range': 'max_range: maximum amplitude range, windowed',
     'max_stalta': 'max_stalta: maximum STA/LTA amplitude ratio',
     'num_gaps': 'num_gaps: number of gaps',
     'num_overlaps': 'num_overlaps: number of overlaps',
@@ -48,6 +49,8 @@ var G_singleMetrics = {
     'sample_max': 'sample_max: maximum amplitude',
     'sample_mean': 'sample_mean: mean amplitude',
     'sample_median': 'sample_median: median amplitude',
+    'sample_rate_channel': 'sample_rate_channel: TRUE/FALSE',
+    'sample_rate_resp': 'sample_rate_resp: TRUE/FALSE',
     'sample_rms': 'sample_rms: root-mean-square variance of amplitudes',
     'sample_unique': 'sample_unique: count of unique sample values'
   },
@@ -174,7 +177,7 @@ function selectMetric() {
 
   // Handle boxplot-transfer function options
   if ( $('#plotType').val() == 'networkBoxplot') {
-    if ( G_singleMetric == 'sample_mean' || G_singleMetric == 'sample_median' || G_singleMetric == 'sample_rms' ||  G_singleMetric == 'sample_max' ||  G_singleMetric == 'sample_min') {
+    if ( G_singleMetric == 'sample_mean' || G_singleMetric == 'sample_median' || G_singleMetric == 'sample_rms' ||  G_singleMetric == 'sample_max' ||  G_singleMetric == 'sample_min' || G_singleMetric == 'max_range') {
       $('#scaleSensitivity').removeClass('doNotSerialize').show();
       $('#sensitivityOptions').show();
     } else {
@@ -190,7 +193,7 @@ function selectMetric() {
     }
   }
   if ($('#plotType').val() == 'stationBoxplot' ) {
-    if ( G_singleMetric == 'sample_mean' || G_singleMetric == 'sample_median' || G_singleMetric == 'sample_rms' ||  G_singleMetric == 'sample_max' ||  G_singleMetric == 'sample_min') {
+    if ( G_singleMetric == 'sample_mean' || G_singleMetric == 'sample_median' || G_singleMetric == 'sample_rms' ||  G_singleMetric == 'sample_max' ||  G_singleMetric == 'sample_min' || G_singleMetric == 'max_range') {
       $('#scaleSensitivity').removeClass('doNotSerialize').show();
       $('#sensitivityOptions').show();
     } else {
@@ -344,7 +347,7 @@ function selectPlotType() {
     $('#boxplotShowOutliers').removeClass('doNotSerialize').show();
     $('#boxplotOptions').show();
     var metricName = $('#metric').val();
-    if ( metricName == 'sample_mean' || metricName == 'sample_median' || metricName == 'sample_rms' ||  metricName == 'sample_max' ||  metricName == 'sample_min') {
+    if ( metricName == 'sample_mean' || metricName == 'sample_median' || metricName == 'sample_rms' ||  metricName == 'sample_max' ||  metricName == 'sample_min' || metricName == 'max_range') {
       $('#scaleSensitivity').removeClass('doNotSerialize').show();
       $('#sensitivityOptions').show();
     } else {
@@ -394,7 +397,7 @@ function selectPlotType() {
     $('#boxplotShowOutliers').removeClass('doNotSerialize').show();
     $('#boxplotOptions').show();
     var metricName = $('#metric').val();
-    if ( metricName == 'sample_mean' || metricName == 'sample_median' || metricName == 'sample_rms' ||  metricName == 'sample_max' ||  metricName == 'sample_min') {
+    if ( metricName == 'sample_mean' || metricName == 'sample_median' || metricName == 'sample_rms' ||  metricName == 'sample_max' ||  metricName == 'sample_min' || metricName == 'max_range') {
       $('#scaleSensitivity').removeClass('doNotSerialize').show();
       $('#sensitivityOptions').show();
     } else {

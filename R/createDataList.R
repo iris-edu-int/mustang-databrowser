@@ -243,20 +243,20 @@ createDataList <- function(infoList) {
 
     # loads single values for each station based on whatever metric we ask for
     result <- try(dataDF <- getGeneralValueMetrics(iris,network,'','',channel,starttime,endtime,metricName))
-    dataDF <- dplyr::mutate(dataDF, snclq=gsub(".{2}$","",snclq))  #remove quality code
     if ( "try-error" %in% class(result) ) {
            err_msg <- gsub("Error : ","",geterrmessage())
            stop(err_msg,call.=FALSE)
     } 
     if ( is.null(dataDF) || nrow(dataDF) == 0 ) stop(paste0("No ",metricName," values found."), call.=FALSE)
 
+    dataDF <- dplyr::mutate(dataDF, snclq=gsub(".{2}$","",snclq))  #remove quality code
 
     # transferFunctionCoherenceThreshold should only be used for transfer_function metrics
     # add optional scaling by sensitivity
     if ( metricName == 'transfer_function' && infoList$transferFunctionCoherenceThreshold ) {
       dataList[['metric_DF']] <- dataDF[dataDF$ms_coherence > 0.999,]
 
-    } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median') && infoList$scaleSensitivity) { 
+    } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median','max_range') && infoList$scaleSensitivity) { 
       dataDF$starttime <- as.Date(dataDF$starttime)
       result <- try(metaDF <- getChannel(iris,network,'','',channel,starttime,endtime),silent=TRUE)
       if ( "try-error" %in% class(result) ) {
@@ -307,7 +307,7 @@ createDataList <- function(infoList) {
     if ( metricName == 'transfer_function' && infoList$transferFunctionCoherenceThreshold ) {
       dataList[['metric_DF']] <- dataDF[dataDF$ms_coherence > 0.999,]
 
-    } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median') && infoList$scaleSensitivity) {  
+    } else if ( metricName %in% c('sample_mean','sample_max','sample_min','sample_rms','sample_median','max_range') && infoList$scaleSensitivity) {  
       dataDF$starttime <- as.Date(dataDF$starttime)
       result <- try(metaDF <- getChannel(iris,network,station,'',currentSeismicChannels,starttime,endtime),silent=TRUE)
       if ( "try-error" %in% class(result) ) {
