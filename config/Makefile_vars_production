@@ -14,15 +14,6 @@
 # OUTPUT_DIR                  -- name of subdirectory containing databrowser products
 # CACHE_SIZE                  -- size of cache in megabytes
 
-#SERVER=mazamascience.com
-#OWNERSHIP=jonc:mazama
-#CGI_PATH=/var/www/mazamascience.com/cgi-bin
-#DATABROWSER_PATH=/var/www/mazamascience.com/html/MUSTANGDatabrowser
-#DATABROWSER=MUSTANGDatabrowser
-#DATA_DIR=data_local
-#OUTPUT_DIR=output
-#CACHE_SIZE=1000
-
 SERVER=mustang-cgi.iris.washington.edu
 OWNERSHIP=www:apache
 CGI_PATH=/wwwshared/cgi-bin/mustang

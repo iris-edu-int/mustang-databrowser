@@ -176,16 +176,10 @@ createDataList <- function(infoList) {
                              "feed_latency",
                              "total_latency") 
     } else if ( metricName == 'gaps_and_availability' ) {
-       if (service_type == "fdsnws") {
-          actualMetricNames <- c("ts_num_gaps",
+      actualMetricNames <- c("ts_num_gaps",
                            "ts_max_gap",
                            "ts_percent_availability",
                            "ts_gap_length")
-       } else {
-          actualMetricNames <- c("num_gaps",
-                           "max_gap",
-                           "percent_availability")
-       }
       
     } else if ( metricName == 'SOH_flags' ) {
       actualMetricNames <- c("amplifier_saturation",

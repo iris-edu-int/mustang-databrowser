@@ -1,3 +1,6 @@
+2021.227: 1.6.0 
+	 - addition of ts_availability metrics for PH5 data
+         - bug fix for virutal network selection
 2020.170: 1.5.0 (2.5.0)
          - addition of new MUSTANG metrics: sample_rate_channel, sample_rate_resp,
            max_range

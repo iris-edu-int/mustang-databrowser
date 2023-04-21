@@ -1397,6 +1397,9 @@ function ajaxUpdateVirtualNetworksSelector() {
     ajaxUpdateNetworks();
   }).fail(function(jqXHR, textStatus, errorThrown) {
     alert("Error updating virtual networks: " + textStatus);
+    G_virtualNetworks.splice(0,0,"No virtual network");
+    generateVirtualNetworksSelector(); 
+    ajaxUpdateNetworks();
   }).always(function() {
     var a=1;
   });
