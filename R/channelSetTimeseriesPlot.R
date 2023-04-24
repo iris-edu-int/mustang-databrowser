@@ -58,8 +58,7 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     
     yStyle <- 'zeroScaled' 
     
-  } else if (metricName == 'dead_channel_exp' ||
-             metricName == 'ms_coherence' ||
+  } else if (metricName == 'ms_coherence' ||
              metricName == 'gain_ratio' ||
              metricName == 'xxx') {
     
@@ -142,11 +141,11 @@ channelSetTimeseriesPlot <- function(dataList, infoList, textList, ...) {
     }
 
     mtext(snclq, line=0.5, adj=0.05, cex=1.3)
-    i <- i + 1
     # Y axis label
     # NOTE:  for transfer functions we skip the y axis
     line <- par('oma')[2] + 2  # 
     mtext(textList$metricYlab, side=2, line=line, cex=1.0)
+
    
   }
   

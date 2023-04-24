@@ -1,3 +1,6 @@
+2023.114: 1.6.1
+         - updated to papaparse.5.4.0
+         - fixed bug with polarity_check plots and channel set not displaying correctly
 2021.227: 1.6.0 
 	 - addition of ts_availability metrics for PH5 data
          - bug fix for virutal network selection

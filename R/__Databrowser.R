@@ -142,7 +142,7 @@ __DATABROWSER__ <- function(request) {
   }
 
   if (infoList$plotType == 'metricTimeseries') {
-    if (infoList$metricName %in% c('gain_ratio','phase_diff','ms_coherence','cross_talk')) {
+    if (infoList$metricName %in% c('gain_ratio','phase_diff','ms_coherence','cross_talk','polarity_check')) {
        infoList$plotHeight <- infoList$plotWidth * length(dataList)*0.5
     }
   }

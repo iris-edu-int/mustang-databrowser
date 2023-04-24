@@ -16,7 +16,7 @@ library(MazamaWebUtils)       # logging, cache management and cgi support
 
 # Specify global (configurable) variables -------------------------------------
 
-VERSION <- "1.6.0"
+VERSION <- "1.6.1"
 
 # Variables configured with config/Makefile_vars_~
 URL_PATH <- '__URL_PATH__'
